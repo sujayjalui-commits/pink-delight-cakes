@@ -104,6 +104,11 @@ export async function getPublicSettingsView(env) {
     contactPhone: databaseSettings.contact_phone,
     instagramHandle: databaseSettings.instagram_handle,
     city: databaseSettings.city,
+    addressLine1: databaseSettings.address_line_1 || seedCatalog.businessSettings.addressLine1 || "",
+    addressLine2: databaseSettings.address_line_2 || seedCatalog.businessSettings.addressLine2 || "",
+    stateRegion: databaseSettings.state_region || seedCatalog.businessSettings.stateRegion || "Maharashtra",
+    postalCode: databaseSettings.postal_code || seedCatalog.businessSettings.postalCode || "",
+    countryCode: databaseSettings.country_code || seedCatalog.businessSettings.countryCode || "IN",
     currency: databaseSettings.currency,
     paymentMode: databaseSettings.payment_mode,
     inquiryChannel: databaseSettings.inquiry_channel,
@@ -112,6 +117,12 @@ export async function getPublicSettingsView(env) {
     bakeryIntroTitle: databaseSettings.bakery_intro_title || seedCatalog.businessSettings.bakeryIntroTitle,
     bakeryIntroParagraph1: databaseSettings.bakery_intro_paragraph_1 || seedCatalog.businessSettings.bakeryIntroParagraph1,
     bakeryIntroParagraph2: databaseSettings.bakery_intro_paragraph_2 || seedCatalog.businessSettings.bakeryIntroParagraph2,
-    responseTimeCopy: databaseSettings.response_time_copy || seedCatalog.businessSettings.responseTimeCopy
+    responseTimeCopy: databaseSettings.response_time_copy || seedCatalog.businessSettings.responseTimeCopy,
+    weekdayOpenTime: databaseSettings.weekday_open_time || seedCatalog.businessSettings.weekdayOpenTime || "10:00",
+    weekdayCloseTime: databaseSettings.weekday_close_time || seedCatalog.businessSettings.weekdayCloseTime || "20:00",
+    saturdayOpenTime: databaseSettings.saturday_open_time || seedCatalog.businessSettings.saturdayOpenTime || "10:00",
+    saturdayCloseTime: databaseSettings.saturday_close_time || seedCatalog.businessSettings.saturdayCloseTime || "20:00",
+    sundayOpenTime: databaseSettings.sunday_open_time || seedCatalog.businessSettings.sundayOpenTime || "",
+    sundayCloseTime: databaseSettings.sunday_close_time || seedCatalog.businessSettings.sundayCloseTime || ""
   };
 }

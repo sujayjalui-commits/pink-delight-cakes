@@ -78,6 +78,11 @@ const settingsBrandName = document.getElementById("settingsBrandName");
 const settingsCity = document.getElementById("settingsCity");
 const settingsContactPhone = document.getElementById("settingsContactPhone");
 const settingsContactEmail = document.getElementById("settingsContactEmail");
+const settingsAddressLine1 = document.getElementById("settingsAddressLine1");
+const settingsAddressLine2 = document.getElementById("settingsAddressLine2");
+const settingsStateRegion = document.getElementById("settingsStateRegion");
+const settingsPostalCode = document.getElementById("settingsPostalCode");
+const settingsCountryCode = document.getElementById("settingsCountryCode");
 const settingsInstagramHandle = document.getElementById("settingsInstagramHandle");
 const settingsInquiryChannel = document.getElementById("settingsInquiryChannel");
 const settingsCurrency = document.getElementById("settingsCurrency");
@@ -88,6 +93,12 @@ const settingsBakeryIntroTitle = document.getElementById("settingsBakeryIntroTit
 const settingsBakeryIntroParagraph1 = document.getElementById("settingsBakeryIntroParagraph1");
 const settingsBakeryIntroParagraph2 = document.getElementById("settingsBakeryIntroParagraph2");
 const settingsResponseTimeCopy = document.getElementById("settingsResponseTimeCopy");
+const settingsWeekdayOpenTime = document.getElementById("settingsWeekdayOpenTime");
+const settingsWeekdayCloseTime = document.getElementById("settingsWeekdayCloseTime");
+const settingsSaturdayOpenTime = document.getElementById("settingsSaturdayOpenTime");
+const settingsSaturdayCloseTime = document.getElementById("settingsSaturdayCloseTime");
+const settingsSundayOpenTime = document.getElementById("settingsSundayOpenTime");
+const settingsSundayCloseTime = document.getElementById("settingsSundayCloseTime");
 const settingsSummary = document.getElementById("settingsSummary");
 const settingsSaveButton = document.getElementById("settingsSaveButton");
 const toastStack = document.getElementById("toastStack");
@@ -596,6 +607,11 @@ function fillSettingsForm(settings) {
     settingsCity.value = settings?.city || "";
     settingsContactPhone.value = settings?.contactPhone || "";
     settingsContactEmail.value = settings?.contactEmail || "";
+    settingsAddressLine1.value = settings?.addressLine1 || "";
+    settingsAddressLine2.value = settings?.addressLine2 || "";
+    settingsStateRegion.value = settings?.stateRegion || "";
+    settingsPostalCode.value = settings?.postalCode || "";
+    settingsCountryCode.value = settings?.countryCode || "IN";
     settingsInstagramHandle.value = settings?.instagramHandle || "";
     settingsInquiryChannel.value = settings?.inquiryChannel || "website";
     settingsCurrency.value = settings?.currency || "INR";
@@ -608,6 +624,12 @@ function fillSettingsForm(settings) {
     settingsBakeryIntroParagraph1.value = settings?.bakeryIntroParagraph1 || "";
     settingsBakeryIntroParagraph2.value = settings?.bakeryIntroParagraph2 || "";
     settingsResponseTimeCopy.value = settings?.responseTimeCopy || "";
+    settingsWeekdayOpenTime.value = settings?.weekdayOpenTime || "";
+    settingsWeekdayCloseTime.value = settings?.weekdayCloseTime || "";
+    settingsSaturdayOpenTime.value = settings?.saturdayOpenTime || "";
+    settingsSaturdayCloseTime.value = settings?.saturdayCloseTime || "";
+    settingsSundayOpenTime.value = settings?.sundayOpenTime || "";
+    settingsSundayCloseTime.value = settings?.sundayCloseTime || "";
 }
 
 function renderSettingsSummary() {
@@ -645,6 +667,16 @@ function renderSettingsSummary() {
             value: settings.city || "Not set"
         },
         {
+            label: "Address",
+            value: [settings.addressLine1, settings.addressLine2, settings.city, settings.stateRegion, settings.postalCode]
+                .filter(Boolean)
+                .join(", ") || "Not set"
+        },
+        {
+            label: "Country",
+            value: settings.countryCode || "Not set"
+        },
+        {
             label: "Inquiry channel",
             value: statusLabel(settings.inquiryChannel || "website")
         },
@@ -663,6 +695,24 @@ function renderSettingsSummary() {
         {
             label: "Response-time copy",
             value: settings.responseTimeCopy || "Not set"
+        },
+        {
+            label: "Weekday hours",
+            value: settings.weekdayOpenTime && settings.weekdayCloseTime
+                ? `${settings.weekdayOpenTime} to ${settings.weekdayCloseTime}`
+                : "Not set"
+        },
+        {
+            label: "Saturday hours",
+            value: settings.saturdayOpenTime && settings.saturdayCloseTime
+                ? `${settings.saturdayOpenTime} to ${settings.saturdayCloseTime}`
+                : "Closed or not set"
+        },
+        {
+            label: "Sunday hours",
+            value: settings.sundayOpenTime && settings.sundayCloseTime
+                ? `${settings.sundayOpenTime} to ${settings.sundayCloseTime}`
+                : "Closed or not set"
         }
     ].map((item) => `
         <div class="summary-card">
@@ -683,6 +733,11 @@ function collectSettingsPayload() {
         city: settingsCity.value.trim(),
         contactPhone: settingsContactPhone.value.trim(),
         contactEmail: settingsContactEmail.value.trim(),
+        addressLine1: settingsAddressLine1.value.trim(),
+        addressLine2: settingsAddressLine2.value.trim(),
+        stateRegion: settingsStateRegion.value.trim(),
+        postalCode: settingsPostalCode.value.trim(),
+        countryCode: settingsCountryCode.value.trim().toUpperCase(),
         instagramHandle: settingsInstagramHandle.value.trim(),
         inquiryChannel: settingsInquiryChannel.value,
         currency: settingsCurrency.value,
@@ -691,7 +746,13 @@ function collectSettingsPayload() {
         bakeryIntroTitle: settingsBakeryIntroTitle.value.trim(),
         bakeryIntroParagraph1: settingsBakeryIntroParagraph1.value.trim(),
         bakeryIntroParagraph2: settingsBakeryIntroParagraph2.value.trim(),
-        responseTimeCopy: settingsResponseTimeCopy.value.trim()
+        responseTimeCopy: settingsResponseTimeCopy.value.trim(),
+        weekdayOpenTime: settingsWeekdayOpenTime.value,
+        weekdayCloseTime: settingsWeekdayCloseTime.value,
+        saturdayOpenTime: settingsSaturdayOpenTime.value,
+        saturdayCloseTime: settingsSaturdayCloseTime.value,
+        sundayOpenTime: settingsSundayOpenTime.value,
+        sundayCloseTime: settingsSundayCloseTime.value
     };
 }
 

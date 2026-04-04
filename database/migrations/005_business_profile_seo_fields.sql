@@ -1,0 +1,11 @@
+ALTER TABLE business_settings ADD COLUMN address_line_1 TEXT;
+ALTER TABLE business_settings ADD COLUMN address_line_2 TEXT;
+ALTER TABLE business_settings ADD COLUMN state_region TEXT;
+ALTER TABLE business_settings ADD COLUMN postal_code TEXT;
+ALTER TABLE business_settings ADD COLUMN country_code TEXT;
+ALTER TABLE business_settings ADD COLUMN weekday_open_time TEXT;
+ALTER TABLE business_settings ADD COLUMN weekday_close_time TEXT;
+ALTER TABLE business_settings ADD COLUMN saturday_open_time TEXT;
+ALTER TABLE business_settings ADD COLUMN saturday_close_time TEXT;
+ALTER TABLE business_settings ADD COLUMN sunday_open_time TEXT;
+ALTER TABLE business_settings ADD COLUMN sunday_close_time TEXT;

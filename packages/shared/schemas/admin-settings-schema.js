@@ -24,24 +24,64 @@ export function validateAdminSettingsInput(settings) {
   if (!isOptionalString(settings.contactPhone)) errors.push("contactPhone must be a string");
   if (!isOptionalString(settings.instagramHandle)) errors.push("instagramHandle must be a string");
   if (!isOptionalString(settings.city)) errors.push("city must be a string");
+  if (!isOptionalString(settings.addressLine1)) errors.push("addressLine1 must be a string");
+  if (!isOptionalString(settings.addressLine2)) errors.push("addressLine2 must be a string");
+  if (!isOptionalString(settings.stateRegion)) errors.push("stateRegion must be a string");
+  if (!isOptionalString(settings.postalCode)) errors.push("postalCode must be a string");
+  if (!isOptionalString(settings.countryCode)) errors.push("countryCode must be a string");
   if (!isOptionalString(settings.deliveryPickupCopy)) errors.push("deliveryPickupCopy must be a string");
   if (!isOptionalString(settings.noticePeriodCopy)) errors.push("noticePeriodCopy must be a string");
   if (!isOptionalString(settings.bakeryIntroTitle)) errors.push("bakeryIntroTitle must be a string");
   if (!isOptionalString(settings.bakeryIntroParagraph1)) errors.push("bakeryIntroParagraph1 must be a string");
   if (!isOptionalString(settings.bakeryIntroParagraph2)) errors.push("bakeryIntroParagraph2 must be a string");
   if (!isOptionalString(settings.responseTimeCopy)) errors.push("responseTimeCopy must be a string");
+  if (!isOptionalString(settings.weekdayOpenTime)) errors.push("weekdayOpenTime must be a string");
+  if (!isOptionalString(settings.weekdayCloseTime)) errors.push("weekdayCloseTime must be a string");
+  if (!isOptionalString(settings.saturdayOpenTime)) errors.push("saturdayOpenTime must be a string");
+  if (!isOptionalString(settings.saturdayCloseTime)) errors.push("saturdayCloseTime must be a string");
+  if (!isOptionalString(settings.sundayOpenTime)) errors.push("sundayOpenTime must be a string");
+  if (!isOptionalString(settings.sundayCloseTime)) errors.push("sundayCloseTime must be a string");
 
   validateOptionalLength(settings.brandName, "brandName", 100, errors);
   validateOptionalLength(settings.contactEmail, "contactEmail", 120, errors);
   validateOptionalLength(settings.contactPhone, "contactPhone", 40, errors);
   validateOptionalLength(settings.instagramHandle, "instagramHandle", 80, errors);
   validateOptionalLength(settings.city, "city", 100, errors);
+  validateOptionalLength(settings.addressLine1, "addressLine1", 160, errors);
+  validateOptionalLength(settings.addressLine2, "addressLine2", 160, errors);
+  validateOptionalLength(settings.stateRegion, "stateRegion", 100, errors);
+  validateOptionalLength(settings.postalCode, "postalCode", 20, errors);
+  validateOptionalLength(settings.countryCode, "countryCode", 8, errors);
   validateOptionalLength(settings.deliveryPickupCopy, "deliveryPickupCopy", 120, errors);
   validateOptionalLength(settings.noticePeriodCopy, "noticePeriodCopy", 120, errors);
   validateOptionalLength(settings.bakeryIntroTitle, "bakeryIntroTitle", 160, errors);
   validateOptionalLength(settings.bakeryIntroParagraph1, "bakeryIntroParagraph1", 500, errors);
   validateOptionalLength(settings.bakeryIntroParagraph2, "bakeryIntroParagraph2", 500, errors);
   validateOptionalLength(settings.responseTimeCopy, "responseTimeCopy", 220, errors);
+  validateOptionalLength(settings.weekdayOpenTime, "weekdayOpenTime", 8, errors);
+  validateOptionalLength(settings.weekdayCloseTime, "weekdayCloseTime", 8, errors);
+  validateOptionalLength(settings.saturdayOpenTime, "saturdayOpenTime", 8, errors);
+  validateOptionalLength(settings.saturdayCloseTime, "saturdayCloseTime", 8, errors);
+  validateOptionalLength(settings.sundayOpenTime, "sundayOpenTime", 8, errors);
+  validateOptionalLength(settings.sundayCloseTime, "sundayCloseTime", 8, errors);
+
+  if (typeof settings.countryCode === "string" && settings.countryCode.trim() && !/^[A-Za-z]{2}$/.test(settings.countryCode.trim())) {
+    errors.push("countryCode must be a 2-letter country code");
+  }
+
+  [
+    "weekdayOpenTime",
+    "weekdayCloseTime",
+    "saturdayOpenTime",
+    "saturdayCloseTime",
+    "sundayOpenTime",
+    "sundayCloseTime"
+  ].forEach((fieldName) => {
+    const value = settings[fieldName];
+    if (typeof value === "string" && value.trim() && !/^\d{2}:\d{2}$/.test(value.trim())) {
+      errors.push(`${fieldName} must use HH:MM format`);
+    }
+  });
 
   return {
     valid: errors.length === 0,

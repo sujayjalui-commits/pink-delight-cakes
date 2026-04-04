@@ -1754,6 +1754,11 @@
             contactPhone: "+91 98765 43210",
             instagramHandle: "@pinkdelightcakes",
             city: "",
+            addressLine1: "",
+            addressLine2: "",
+            stateRegion: "Maharashtra",
+            postalCode: "",
+            countryCode: "IN",
             currency: "INR",
             inquiryChannel: "website",
             deliveryPickupCopy: "Pickup and local delivery across your city",
@@ -1761,7 +1766,13 @@
             bakeryIntroTitle: "Baked from home, designed with care, and made for real celebrations.",
             bakeryIntroParagraph1: "Pink Delight Cakes began as a small home startup for family birthdays and special weekends. What stayed the same as orders grew was the attention to flavor, finish, and making each customer feel heard.",
             bakeryIntroParagraph2: "If you are a home baker, this section should sound like you. Share why you started, what kinds of cakes you love making, and what customers can expect from your service.",
-            responseTimeCopy: "Share your date, servings, flavor preference, and inspiration photo. We usually reply with design options and pricing within 2 hours during bakery hours."
+            responseTimeCopy: "Share your date, servings, flavor preference, and inspiration photo. We usually reply with design options and pricing within 2 hours during bakery hours.",
+            weekdayOpenTime: "10:00",
+            weekdayCloseTime: "20:00",
+            saturdayOpenTime: "10:00",
+            saturdayCloseTime: "20:00",
+            sundayOpenTime: "",
+            sundayCloseTime: ""
         };
 
         const PRODUCT_IMAGE_FALLBACKS = {
@@ -2224,6 +2235,19 @@
             }
         }
 
+        function createOpeningHoursSpecification(days, opens, closes) {
+            if (!opens || !closes) {
+                return null;
+            }
+
+            return {
+                "@type": "OpeningHoursSpecification",
+                dayOfWeek: days,
+                opens,
+                closes
+            };
+        }
+
         function applyStructuredData() {
             if (!structuredDataScript) {
                 return;
@@ -2234,8 +2258,36 @@
             const email = getSettingText("contactEmail");
             const instagramHandle = getSettingText("instagramHandle");
             const city = String(state.settings.city || "").trim();
+            const addressLine1 = String(state.settings.addressLine1 || "").trim();
+            const addressLine2 = String(state.settings.addressLine2 || "").trim();
+            const stateRegion = String(state.settings.stateRegion || "").trim();
+            const postalCode = String(state.settings.postalCode || "").trim();
+            const countryCode = String(state.settings.countryCode || "").trim() || "IN";
             const description = getSeoDescription();
             const sameAs = [];
+            const openingHoursSpecification = [
+                createOpeningHoursSpecification(
+                    [
+                        "https://schema.org/Monday",
+                        "https://schema.org/Tuesday",
+                        "https://schema.org/Wednesday",
+                        "https://schema.org/Thursday",
+                        "https://schema.org/Friday"
+                    ],
+                    state.settings.weekdayOpenTime || "",
+                    state.settings.weekdayCloseTime || ""
+                ),
+                createOpeningHoursSpecification(
+                    ["https://schema.org/Saturday"],
+                    state.settings.saturdayOpenTime || "",
+                    state.settings.saturdayCloseTime || ""
+                ),
+                createOpeningHoursSpecification(
+                    ["https://schema.org/Sunday"],
+                    state.settings.sundayOpenTime || "",
+                    state.settings.sundayCloseTime || ""
+                )
+            ].filter(Boolean);
 
             if (instagramHandle) {
                 sameAs.push(createInstagramLink(instagramHandle));
@@ -2254,11 +2306,18 @@
                 areaServed: city && !/^your city$/i.test(city) ? city : "India"
             };
 
-            if (city && !/^your city$/i.test(city)) {
+            if (openingHoursSpecification.length) {
+                bakeryEntity.openingHoursSpecification = openingHoursSpecification;
+            }
+
+            if (addressLine1 || addressLine2 || (city && !/^your city$/i.test(city)) || stateRegion || postalCode) {
                 bakeryEntity.address = {
                     "@type": "PostalAddress",
-                    addressLocality: city,
-                    addressCountry: "IN"
+                    streetAddress: [addressLine1, addressLine2].filter(Boolean).join(", ") || undefined,
+                    addressLocality: city && !/^your city$/i.test(city) ? city : undefined,
+                    addressRegion: stateRegion || undefined,
+                    postalCode: postalCode || undefined,
+                    addressCountry: countryCode
                 };
             }
 

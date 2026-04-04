@@ -16,6 +16,17 @@ CREATE TABLE IF NOT EXISTS business_settings (
   bakery_intro_paragraph_1 TEXT,
   bakery_intro_paragraph_2 TEXT,
   response_time_copy TEXT,
+  address_line_1 TEXT,
+  address_line_2 TEXT,
+  state_region TEXT,
+  postal_code TEXT,
+  country_code TEXT,
+  weekday_open_time TEXT,
+  weekday_close_time TEXT,
+  saturday_open_time TEXT,
+  saturday_close_time TEXT,
+  sunday_open_time TEXT,
+  sunday_close_time TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

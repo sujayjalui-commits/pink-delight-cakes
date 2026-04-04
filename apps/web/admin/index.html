@@ -381,8 +381,30 @@
 
                                     <div class="field-grid">
                                         <label>
-                                            <span>Instagram handle</span>
-                                            <input type="text" id="settingsInstagramHandle" placeholder="@pinkdelightcakes">
+                                            <span>Address line 1</span>
+                                            <input type="text" id="settingsAddressLine1" placeholder="Street, building, or landmark">
+                                        </label>
+                                        <label>
+                                            <span>Address line 2</span>
+                                            <input type="text" id="settingsAddressLine2" placeholder="Area or locality">
+                                        </label>
+                                    </div>
+
+                                    <div class="field-grid">
+                                        <label>
+                                            <span>State / region</span>
+                                            <input type="text" id="settingsStateRegion" placeholder="Maharashtra">
+                                        </label>
+                                        <label>
+                                            <span>Postal code</span>
+                                            <input type="text" id="settingsPostalCode" placeholder="400001">
+                                        </label>
+                                    </div>
+
+                                    <div class="field-grid">
+                                        <label>
+                                            <span>Country code</span>
+                                            <input type="text" id="settingsCountryCode" placeholder="IN" maxlength="2">
                                         </label>
                                         <label>
                                             <span>Primary inquiry channel</span>
@@ -396,10 +418,41 @@
 
                                     <div class="field-grid">
                                         <label>
+                                            <span>Instagram handle</span>
+                                            <input type="text" id="settingsInstagramHandle" placeholder="@pinkdelightcakes">
+                                        </label>
+                                        <label>
                                             <span>Currency</span>
                                             <select id="settingsCurrency">
                                                 <option value="INR">INR</option>
                                             </select>
+                                        </label>
+                                    </div>
+
+                                    <div class="field-grid">
+                                        <label>
+                                            <span>Weekday hours</span>
+                                            <div class="field-grid compact-grid">
+                                                <input type="time" id="settingsWeekdayOpenTime">
+                                                <input type="time" id="settingsWeekdayCloseTime">
+                                            </div>
+                                        </label>
+                                        <label>
+                                            <span>Saturday hours</span>
+                                            <div class="field-grid compact-grid">
+                                                <input type="time" id="settingsSaturdayOpenTime">
+                                                <input type="time" id="settingsSaturdayCloseTime">
+                                            </div>
+                                        </label>
+                                    </div>
+
+                                    <div class="field-grid">
+                                        <label>
+                                            <span>Sunday hours</span>
+                                            <div class="field-grid compact-grid">
+                                                <input type="time" id="settingsSundayOpenTime">
+                                                <input type="time" id="settingsSundayCloseTime">
+                                            </div>
                                         </label>
                                         <label>
                                             <span>Payment flow</span>
