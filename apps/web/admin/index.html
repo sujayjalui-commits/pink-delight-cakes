@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pink Delight Cakes Admin</title>
+    <meta name="description" content="Private admin dashboard for Pink Delight Cakes.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="../src/pages/admin/dashboard.css">
+</head>
+<body data-api-base="https://pink-delight-cakes-api.sujayjalui.workers.dev">
+    <div class="admin-page">
+        <div class="ambient ambient-left"></div>
+        <div class="ambient ambient-right"></div>
+
+        <section class="auth-screen" id="authScreen" aria-live="polite">
+            <div class="auth-card">
+                <div class="auth-brand">
+                    <div class="brand-mark"><i class="fa-solid fa-cake-candles"></i></div>
+                    <div>
+                        <p class="eyebrow">Pink Delight Cakes</p>
+                        <h1>Bakery Admin</h1>
+                        <p class="auth-copy">Review inquiries, update product details, and keep every custom order moving smoothly.</p>
+                    </div>
+                </div>
+
+                <div class="auth-status" id="authStatus">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i>
+                    <span>Checking your admin session...</span>
+                </div>
+
+                <form class="auth-form hidden" id="loginForm">
+                    <label>
+                        <span>Email</span>
+                        <input type="email" id="loginEmail" value="admin@pinkdelightcakes.com" autocomplete="username" required>
+                    </label>
+                    <label>
+                        <span>Password</span>
+                        <input type="password" id="loginPassword" autocomplete="current-password" required>
+                    </label>
+                    <button class="btn btn-primary" type="submit" id="loginButton">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        <span>Log in to dashboard</span>
+                    </button>
+                    <p class="helper-note">Use the admin password you configured during setup. The dashboard uses the live backend session.</p>
+                </form>
+            </div>
+        </section>
+
+        <section class="dashboard hidden" id="dashboard">
+            <header class="topbar">
+                <button class="topbar-toggle" id="sidebarToggle" type="button" aria-label="Toggle sidebar">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+                <div class="topbar-title">
+                    <p class="eyebrow">Private admin</p>
+                    <h1>Pink Delight Cakes</h1>
+                </div>
+
+                <div class="topbar-actions">
+                    <div class="session-chip" id="sessionChip">
+                        <i class="fa-solid fa-user-shield"></i>
+                        <span>Owner session</span>
+                    </div>
+                    <button class="btn btn-secondary" type="button" id="logoutButton">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        <span>Log out</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="shell">
+                <aside class="sidebar" id="sidebar">
+                    <div class="sidebar-card">
+                        <div class="sidebar-brand">
+                            <div class="brand-mark small"><i class="fa-solid fa-cookie-bite"></i></div>
+                            <div>
+                                <strong>Bakery operations</strong>
+                                <span>Orders-first dashboard</span>
+                            </div>
+                        </div>
+
+                        <nav class="sidebar-nav" id="sidebarNav">
+                            <button class="nav-link" data-view="overview" type="button">
+                                <i class="fa-solid fa-chart-line"></i>
+                                <span>Overview</span>
+                            </button>
+                            <button class="nav-link active" data-view="orders" type="button">
+                                <i class="fa-solid fa-receipt"></i>
+                                <span>Orders</span>
+                            </button>
+                            <button class="nav-link" data-view="products" type="button">
+                                <i class="fa-solid fa-box-open"></i>
+                                <span>Products</span>
+                            </button>
+                            <button class="nav-link" data-view="settings" type="button">
+                                <i class="fa-solid fa-sliders"></i>
+                                <span>Settings</span>
+                            </button>
+                        </nav>
+                    </div>
+                </aside>
+
+                <main class="main-panel">
+                    <section class="panel active" data-view-panel="overview">
+                        <div class="panel-header">
+                            <div>
+                                <p class="eyebrow">Daily snapshot</p>
+                                <h2>Bakery overview</h2>
+                            </div>
+                            <button class="btn btn-secondary" type="button" id="refreshOverview">
+                                <i class="fa-solid fa-rotate"></i>
+                                <span>Refresh data</span>
+                            </button>
+                        </div>
+
+                        <div class="stats-grid" id="overviewStats"></div>
+
+                        <div class="overview-grid">
+                            <article class="content-card">
+                                <div class="card-head">
+                                    <h3>Recent inquiries</h3>
+                                    <span class="meta-label">Latest customer activity</span>
+                                </div>
+                                <div class="stack-list" id="recentOrders"></div>
+                            </article>
+
+                            <article class="content-card">
+                                <div class="card-head">
+                                    <h3>Catalog health</h3>
+                                    <span class="meta-label">Current product lineup</span>
+                                </div>
+                                <div class="stack-list" id="productHealth"></div>
+                            </article>
+                        </div>
+                    </section>
+
+                    <section class="panel active" data-view-panel="orders">
+                        <div class="panel-header">
+                            <div>
+                                <p class="eyebrow">Inquiry workflow</p>
+                                <h2>Orders dashboard</h2>
+                            </div>
+                            <button class="btn btn-secondary" type="button" id="refreshOrders">
+                                <i class="fa-solid fa-rotate"></i>
+                                <span>Refresh orders</span>
+                            </button>
+                        </div>
+
+                        <div class="filter-row" id="orderFilters"></div>
+
+                        <div class="orders-layout">
+                            <article class="content-card">
+                                <div class="card-head">
+                                    <h3>All requests</h3>
+                                    <span class="meta-label" id="ordersCountLabel">Loading orders...</span>
+                                </div>
+                                <div class="list-pane" id="ordersList"></div>
+                            </article>
+
+                            <article class="content-card detail-card">
+                                <div class="card-head">
+                                    <h3>Order detail</h3>
+                                    <span class="meta-label">Review and update the selected request</span>
+                                </div>
+
+                                <div class="detail-empty" id="orderEmptyState">
+                                    <i class="fa-regular fa-envelope-open"></i>
+                                    <p>Select an order to review its customer details, quote, and internal notes.</p>
+                                </div>
+
+                                <form class="editor-form hidden" id="orderForm">
+                                    <div class="detail-summary" id="orderSummary"></div>
+
+                                    <div class="field-grid">
+                                        <label>
+                                            <span>Status</span>
+                                            <select id="orderStatus"></select>
+                                        </label>
+                                        <label>
+                                            <span>Quoted amount (INR)</span>
+                                            <input type="number" id="orderQuotedAmount" min="0" step="1" placeholder="4200">
+                                        </label>
+                                    </div>
+
+                                    <label>
+                                        <span>Internal note</span>
+                                        <textarea id="orderInternalNote" rows="5" placeholder="Add internal bakery notes, quote context, or follow-up reminders."></textarea>
+                                    </label>
+
+                                    <button class="btn btn-primary" type="submit" id="orderSaveButton">
+                                        <i class="fa-solid fa-floppy-disk"></i>
+                                        <span>Save order update</span>
+                                    </button>
+                                </form>
+                            </article>
+                        </div>
+                    </section>
+
+                    <section class="panel" data-view-panel="products">
+                        <div class="panel-header">
+                            <div>
+                                <p class="eyebrow">Catalog management</p>
+                                <h2>Products</h2>
+                            </div>
+                            <div class="panel-actions">
+                                <button class="btn btn-secondary" type="button" id="refreshProducts">
+                                    <i class="fa-solid fa-rotate"></i>
+                                    <span>Refresh products</span>
+                                </button>
+                                <button class="btn btn-primary" type="button" id="newProductButton">
+                                    <i class="fa-solid fa-plus"></i>
+                                    <span>New product</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="products-layout">
+                            <article class="content-card">
+                                <div class="card-head">
+                                    <h3>Catalog list</h3>
+                                    <span class="meta-label">Featured cakes, lead times, and options</span>
+                                </div>
+                                <div class="product-grid" id="productsGrid"></div>
+                            </article>
+
+                            <article class="content-card detail-card">
+                                <div class="card-head">
+                                    <h3>Product editor</h3>
+                                    <span class="meta-label" id="productEditorLabel">Select a product or create a new one</span>
+                                </div>
+
+                                <form class="editor-form" id="productForm">
+                                    <div class="field-grid">
+                                        <label>
+                                            <span>Name</span>
+                                            <input type="text" id="productName" required>
+                                        </label>
+                                        <label>
+                                            <span>Slug</span>
+                                            <input type="text" id="productSlug" required>
+                                        </label>
+                                    </div>
+
+                                    <div class="field-grid">
+                                        <label>
+                                            <span>Category</span>
+                                            <input type="text" id="productCategory" required>
+                                        </label>
+                                        <label>
+                                            <span>Badge</span>
+                                            <input type="text" id="productBadge" placeholder="Best seller">
+                                        </label>
+                                    </div>
+
+                                    <label>
+                                        <span>Short description</span>
+                                        <textarea id="productDescription" rows="4" required></textarea>
+                                    </label>
+
+                                    <div class="field-grid">
+                                        <label>
+                                            <span>Starting price (INR)</span>
+                                            <input type="number" id="productStartingPrice" min="1" step="1" required>
+                                        </label>
+                                        <label>
+                                            <span>Lead time (hours)</span>
+                                            <input type="number" id="productLeadTime" min="1" step="1" required>
+                                        </label>
+                                    </div>
+
+                                    <div class="field-grid">
+                                        <label>
+                                            <span>Availability</span>
+                                            <select id="productAvailability">
+                                                <option value="available">Available</option>
+                                                <option value="limited">Limited</option>
+                                                <option value="unavailable">Unavailable</option>
+                                            </select>
+                                        </label>
+                                        <label>
+                                            <span>Image URL</span>
+                                            <input type="url" id="productImageUrl" placeholder="https://...">
+                                        </label>
+                                    </div>
+
+                                    <label class="checkbox-row">
+                                        <input type="checkbox" id="productFeatured">
+                                        <span>Feature this product on the dashboard and public catalog</span>
+                                    </label>
+
+                                    <div class="editor-group">
+                                        <div class="group-head">
+                                            <h4>Flavors</h4>
+                                            <button class="btn btn-secondary ghost" type="button" data-add-list="flavor">
+                                                <i class="fa-solid fa-plus"></i>
+                                                <span>Add flavor</span>
+                                            </button>
+                                        </div>
+                                        <div class="dynamic-list" id="flavorList"></div>
+                                    </div>
+
+                                    <div class="editor-group">
+                                        <div class="group-head">
+                                            <h4>Sizes</h4>
+                                            <button class="btn btn-secondary ghost" type="button" data-add-list="size">
+                                                <i class="fa-solid fa-plus"></i>
+                                                <span>Add size</span>
+                                            </button>
+                                        </div>
+                                        <div class="dynamic-list" id="sizeList"></div>
+                                    </div>
+
+                                    <div class="editor-group">
+                                        <div class="group-head">
+                                            <h4>Add-ons</h4>
+                                            <button class="btn btn-secondary ghost" type="button" data-add-list="addon">
+                                                <i class="fa-solid fa-plus"></i>
+                                                <span>Add add-on</span>
+                                            </button>
+                                        </div>
+                                        <div class="dynamic-list" id="addonList"></div>
+                                    </div>
+
+                                    <button class="btn btn-primary" type="submit" id="productSaveButton">
+                                        <i class="fa-solid fa-floppy-disk"></i>
+                                        <span>Save product</span>
+                                    </button>
+                                </form>
+                            </article>
+                        </div>
+                    </section>
+
+                    <section class="panel" data-view-panel="settings">
+                        <div class="panel-header">
+                            <div>
+                                <p class="eyebrow">Live business controls</p>
+                                <h2>Settings</h2>
+                            </div>
+                            <button class="btn btn-secondary" type="button" id="refreshSettings">
+                                <i class="fa-solid fa-rotate"></i>
+                                <span>Refresh settings</span>
+                            </button>
+                        </div>
+
+                        <div class="settings-grid">
+                            <article class="content-card">
+                                <div class="card-head">
+                                    <h3>Business settings</h3>
+                                    <span class="meta-label">Public storefront source of truth</span>
+                                </div>
+
+                                <form class="editor-form" id="settingsForm">
+                                    <div class="field-grid">
+                                        <label>
+                                            <span>Brand name</span>
+                                            <input type="text" id="settingsBrandName" required>
+                                        </label>
+                                        <label>
+                                            <span>City / service area</span>
+                                            <input type="text" id="settingsCity" placeholder="Mumbai">
+                                        </label>
+                                    </div>
+
+                                    <div class="field-grid">
+                                        <label>
+                                            <span>Contact phone</span>
+                                            <input type="text" id="settingsContactPhone" placeholder="+91 98765 43210">
+                                        </label>
+                                        <label>
+                                            <span>Contact email</span>
+                                            <input type="email" id="settingsContactEmail" placeholder="hello@pinkdelightcakes.com">
+                                        </label>
+                                    </div>
+
+                                    <div class="field-grid">
+                                        <label>
+                                            <span>Instagram handle</span>
+                                            <input type="text" id="settingsInstagramHandle" placeholder="@pinkdelightcakes">
+                                        </label>
+                                        <label>
+                                            <span>Primary inquiry channel</span>
+                                            <select id="settingsInquiryChannel">
+                                                <option value="website">Website</option>
+                                                <option value="whatsapp">WhatsApp</option>
+                                                <option value="instagram">Instagram</option>
+                                            </select>
+                                        </label>
+                                    </div>
+
+                                    <div class="field-grid">
+                                        <label>
+                                            <span>Currency</span>
+                                            <select id="settingsCurrency">
+                                                <option value="INR">INR</option>
+                                            </select>
+                                        </label>
+                                        <label>
+                                            <span>Payment flow</span>
+                                            <input type="text" id="settingsPaymentMode" value="Manual quote follow-up" disabled>
+                                        </label>
+                                    </div>
+
+                                    <label>
+                                        <span>Delivery / pickup copy</span>
+                                        <input type="text" id="settingsDeliveryPickupCopy" placeholder="Pickup and local delivery">
+                                    </label>
+
+                                    <label>
+                                        <span>Notice-period copy</span>
+                                        <input type="text" id="settingsNoticePeriodCopy" placeholder="Recommended notice for standard orders">
+                                    </label>
+
+                                    <label>
+                                        <span>Bakery intro title</span>
+                                        <input type="text" id="settingsBakeryIntroTitle" placeholder="Baked from home, designed with care, and made for real celebrations.">
+                                    </label>
+
+                                    <label>
+                                        <span>Bakery intro paragraph 1</span>
+                                        <textarea id="settingsBakeryIntroParagraph1" rows="4" placeholder="Share how the bakery started and what makes it personal."></textarea>
+                                    </label>
+
+                                    <label>
+                                        <span>Bakery intro paragraph 2</span>
+                                        <textarea id="settingsBakeryIntroParagraph2" rows="4" placeholder="Share what customers can expect from your cakes and service."></textarea>
+                                    </label>
+
+                                    <label>
+                                        <span>Contact hours / response-time copy</span>
+                                        <textarea id="settingsResponseTimeCopy" rows="3" placeholder="Example: Send your date and inspiration photo. We usually reply within 2 hours from 10 AM to 8 PM."></textarea>
+                                    </label>
+
+                                    <button class="btn btn-primary" type="submit" id="settingsSaveButton">
+                                        <i class="fa-solid fa-floppy-disk"></i>
+                                        <span>Save settings</span>
+                                    </button>
+                                </form>
+                            </article>
+
+                            <article class="content-card">
+                                <div class="card-head">
+                                    <h3>Live storefront summary</h3>
+                                    <span class="meta-label">What the public site will show</span>
+                                </div>
+
+                                <div class="detail-summary">
+                                    <div class="summary-grid" id="settingsSummary"></div>
+                                </div>
+
+                                <p class="placeholder-copy">These fields feed the public settings API, storefront contact links, and bakery identity details without editing the public page again.</p>
+                            </article>
+                        </div>
+                    </section>
+                </main>
+            </div>
+        </section>
+
+        <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
+    </div>
+
+    <script type="module" src="../src/pages/admin/dashboard.js"></script>
+</body>
+</html>

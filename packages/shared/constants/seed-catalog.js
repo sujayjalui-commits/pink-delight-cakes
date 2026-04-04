@@ -1,0 +1,78 @@
+export const seedCatalog = {
+  businessSettings: {
+    brandName: "Pink Delight Cakes",
+    contactEmail: "hello@pinkdelightcakes.com",
+    contactPhone: "+91 98765 43210",
+    instagramHandle: "@pinkdelightcakes",
+    city: "Your City",
+    currency: "INR",
+    paymentMode: "hybrid_razorpay",
+    inquiryChannel: "website",
+    deliveryPickupCopy: "Pickup and local delivery",
+    noticePeriodCopy: "Recommended notice for standard orders",
+    bakeryIntroTitle: "Baked from home, designed with care, and made for real celebrations.",
+    bakeryIntroParagraph1: "Pink Delight Cakes began as a small home startup for family birthdays and special weekends. What stayed the same as orders grew was the attention to flavor, finish, and making each customer feel heard.",
+    bakeryIntroParagraph2: "If you are a home baker, this section should sound like you. Share why you started, what kinds of cakes you love making, and what customers can expect from your service.",
+    responseTimeCopy: "Send your date, number of servings, flavor preference, and inspiration photo. You’ll get a quick reply with design suggestions and pricing."
+  },
+  adminUser: {
+    email: "admin@pinkdelightcakes.com",
+    role: "owner"
+  },
+  products: [
+    {
+      slug: "midnight-chocolate",
+      name: "Midnight Chocolate",
+      category: "Birthday centerpiece",
+      shortDescription: "Rich chocolate sponge layered with smooth ganache and elegant buttercream details.",
+      startingPrice: 3200,
+      badge: "Best seller",
+      leadTimeHours: 24,
+      availabilityStatus: "available",
+      featured: true,
+      flavors: ["Chocolate truffle", "Chocolate hazelnut", "Chocolate coffee"],
+      sizes: [
+        { label: "Half kg", servings: "4 to 6", price: 3200 },
+        { label: "1 kg", servings: "8 to 10", price: 4200 },
+        { label: "1.5 kg", servings: "12 to 15", price: 5600 }
+      ],
+      addOns: ["Message topper", "Candles", "Name plaque"]
+    },
+    {
+      slug: "vintage-rose",
+      name: "Vintage Rose",
+      category: "Anniversary and floral design",
+      shortDescription: "Soft vanilla cake styled with romantic piped roses and a gentle pastel finish.",
+      startingPrice: 3600,
+      badge: "Pretty pick",
+      leadTimeHours: 48,
+      availabilityStatus: "limited",
+      featured: true,
+      flavors: ["Vanilla bean", "Strawberry cream", "White chocolate raspberry"],
+      sizes: [
+        { label: "Half kg", servings: "4 to 6", price: 3600 },
+        { label: "1 kg", servings: "8 to 10", price: 4700 },
+        { label: "2 kg", servings: "16 to 20", price: 7600 }
+      ],
+      addOns: ["Message topper", "Fresh florals", "Gold acrylic name tag"]
+    },
+    {
+      slug: "classic-vanilla-berry",
+      name: "Classic Vanilla Berry",
+      category: "Baby shower and minimal style",
+      shortDescription: "Fluffy vanilla sponge with cream filling and fresh berry styling.",
+      startingPrice: 3000,
+      badge: "Light and classic",
+      leadTimeHours: 24,
+      availabilityStatus: "available",
+      featured: false,
+      flavors: ["Classic vanilla", "Vanilla berry", "Honey almond"],
+      sizes: [
+        { label: "Half kg", servings: "4 to 6", price: 3000 },
+        { label: "1 kg", servings: "8 to 10", price: 3900 },
+        { label: "1.5 kg", servings: "12 to 15", price: 5200 }
+      ],
+      addOns: ["Message topper", "Candles", "Fruit garnish"]
+    }
+  ]
+};

@@ -1,0 +1,22 @@
+{
+  "name": "pink-delight-cakes",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Monorepo scaffold for the Pink Delight Cakes startup website.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "echo \"Serve apps/web with your preferred static dev server\"",
+    "dev:api": "wrangler dev",
+    "db:migrate": "echo \"Apply database/migrations/001_initial_schema.sql via wrangler d1 execute\"",
+    "db:backup": "node scripts/backups/export-d1.mjs",
+    "db:seed:build": "node scripts/seed-data/build-phase-1-seed-sql.mjs",
+    "db:seed": "echo \"Run npm run db:seed:build, then execute database/seeds/phase-1-seed.sql via wrangler d1 execute\"",
+    "ops:check:production": "node scripts/maintenance/check-production.mjs",
+    "ops:alert": "node scripts/maintenance/send-webhook-alert.mjs",
+    "test": "echo \"Add your test command here\""
+  }
+}

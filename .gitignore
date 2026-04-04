@@ -1,0 +1,10 @@
+node_modules/
+.wrangler/
+.env
+.env.*
+!.env.example
+dist/
+coverage/
+artifacts/
+*.log
+tail-log*.txt

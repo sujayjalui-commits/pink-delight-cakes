@@ -1,0 +1,3 @@
+# Payment Integration Tests
+
+Razorpay order creation, webhook verification, and payment state tests.

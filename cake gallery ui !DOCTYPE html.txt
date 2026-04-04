@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,300;0,400;0,700;1,300&amp;family=Manrope:wght@200;300;400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "outline-variant": "#d2c3c3",
+              "on-tertiary": "#ffffff",
+              "surface-container-highest": "#e5e2e1",
+              "background": "#fcf9f8",
+              "surface-bright": "#fcf9f8",
+              "on-secondary": "#ffffff",
+              "surface-tint": "#6a5b5b",
+              "surface-variant": "#e5e2e1",
+              "secondary-fixed-dim": "#e9c349",
+              "on-primary": "#ffffff",
+              "inverse-on-surface": "#f3f0ef",
+              "on-background": "#1c1b1b",
+              "surface-dim": "#dcd9d9",
+              "on-primary-fixed": "#241919",
+              "inverse-surface": "#313030",
+              "on-surface-variant": "#4e4444",
+              "on-primary-container": "#a99696",
+              "secondary-fixed": "#ffe088",
+              "on-secondary-fixed-variant": "#574500",
+              "primary": "#261a1a",
+              "secondary-container": "#fed65b",
+              "inverse-primary": "#d6c2c1",
+              "on-tertiary-fixed": "#1a1c19",
+              "on-error": "#ffffff",
+              "on-tertiary-container": "#9a9b97",
+              "on-error-container": "#93000a",
+              "surface": "#fcf9f8",
+              "error-container": "#ffdad6",
+              "on-secondary-fixed": "#241a00",
+              "surface-container-high": "#ebe7e7",
+              "surface-container-lowest": "#ffffff",
+              "outline": "#807474",
+              "error": "#ba1a1a",
+              "on-tertiary-fixed-variant": "#454744",
+              "tertiary-fixed": "#e3e3de",
+              "on-primary-fixed-variant": "#524343",
+              "primary-fixed-dim": "#d6c2c1",
+              "secondary": "#735c00",
+              "primary-fixed": "#f3dedd",
+              "tertiary": "#1c1e1b",
+              "tertiary-fixed-dim": "#c6c7c2",
+              "tertiary-container": "#313330",
+              "surface-container": "#f0edec",
+              "primary-container": "#3c2f2f",
+              "on-secondary-container": "#745c00",
+              "on-surface": "#1c1b1b",
+              "surface-container-low": "#f6f3f2"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .tonal-shift-on-scroll {
+            transition: background-color 0.5s ease;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #d2c3c3;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-secondary-container selection:text-on-secondary-container overflow-x-hidden">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#fcf9f8]/70 dark:bg-[#261a1a]/70 backdrop-blur-md shadow-sm dark:shadow-none transition-all duration-500">
+<div class="flex justify-between items-center px-12 py-6 w-full max-w-[1920px] mx-auto">
+<div class="font-['Noto_Serif'] italic text-2xl text-[#261a1a] dark:text-[#fcf9f8] cursor-pointer transition-transform duration-300 active:scale-95">
+                The Confectioner’s Edit
+            </div>
+<div class="hidden md:flex items-center space-x-12">
+<a class="font-['Noto_Serif'] font-light tracking-widest uppercase text-sm text-[#735c00] border-b border-[#735c00]/30 pb-1 transition-all duration-500 ease-in-out" href="#">Gallery</a>
+<a class="font-['Noto_Serif'] font-light tracking-widest uppercase text-sm text-[#261a1a] dark:text-[#fcf9f8] opacity-80 hover:opacity-100 hover:text-[#735c00] transition-all duration-500 ease-in-out" href="#">Custom Orders</a>
+<a class="font-['Noto_Serif'] font-light tracking-widest uppercase text-sm text-[#261a1a] dark:text-[#fcf9f8] opacity-80 hover:opacity-100 hover:text-[#735c00] transition-all duration-500 ease-in-out" href="#">Our Story</a>
+<a class="font-['Noto_Serif'] font-light tracking-widest uppercase text-sm text-[#261a1a] dark:text-[#fcf9f8] opacity-80 hover:opacity-100 hover:text-[#735c00] transition-all duration-500 ease-in-out" href="#">Cart</a>
+</div>
+<div class="flex items-center space-x-6">
+<button class="material-symbols-outlined text-[#261a1a] dark:text-[#fcf9f8] hover:text-[#735c00] transition-colors cursor-pointer" data-icon="shopping_bag">shopping_bag</button>
+<button class="md:hidden material-symbols-outlined text-[#261a1a]" data-icon="menu">menu</button>
+</div>
+</div>
+</nav>
+<main class="pt-40 pb-32">
+<!-- Editorial Header Section -->
+<header class="px-12 md:px-24 mb-24 max-w-[1920px] mx-auto">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
+<div class="max-w-2xl">
+<span class="font-label text-xs tracking-[0.2em] uppercase text-outline mb-4 block">Exhibition — Vol. I</span>
+<h1 class="font-headline text-5xl md:text-7xl lg:text-8xl font-light tracking-tight leading-[1.1] text-primary">
+                        Curation of <br/> <span class="italic">Sculpted</span> Flavors
+                    </h1>
+</div>
+<div class="flex gap-8 border-b border-outline-variant/15 pb-4">
+<button class="font-label text-xs tracking-widest uppercase text-secondary font-semibold transition-all duration-300">Signature</button>
+<button class="font-label text-xs tracking-widest uppercase text-on-surface-variant hover:text-primary transition-all duration-300">Seasonal</button>
+<button class="font-label text-xs tracking-widest uppercase text-on-surface-variant hover:text-primary transition-all duration-300">Wedding</button>
+</div>
+</div>
+</header>
+<!-- Gallery Grid (Asymmetric Editorial Layout) -->
+<section class="px-12 md:px-24 max-w-[1920px] mx-auto">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-y-32 gap-x-12">
+<!-- Large Feature Item 1 -->
+<div class="md:col-span-7 group cursor-pointer">
+<div class="aspect-[4/5] bg-surface-variant overflow-hidden mb-6 relative">
+<img alt="Luxury Cake" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" data-alt="Minimalist three-tier sculptural white cake with organic rough textures and a single delicate sugar orchid flower, soft window lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmiD9UXsjJ4b2Lkgc4BT7swJmlbet35cf02p_WWXqwoOT0T2zf3Ut9_Hach-SmPtyUGktVaFAgRqJDmTK-WKGi2nCL3cxdTfDRyUjWBkSBo6Ty03klbUAvruP6STn41-Sm5q5HOe3o3u8tWxihZCkGhlmSSY5FXsVXMFsLeQkFE6WlPFlrr7RFfT2BbZ_T-R9cD-ANPzQkLHSvkDDWpvWnhwrMoTUfDjPTweGlWvKyaBfUdrIHILQ0bIkUj4nZh0KDLSDPfxLFWu8"/>
+</div>
+<div class="flex justify-between items-baseline">
+<h3 class="font-headline text-2xl font-light italic">The Alabaster Tier</h3>
+<p class="font-body text-sm tracking-tighter text-outline">$420</p>
+</div>
+<p class="font-body text-xs text-on-surface-variant mt-2 uppercase tracking-widest">Signature Collection</p>
+</div>
+<!-- Spacer/Context Text -->
+<div class="hidden md:flex md:col-span-5 flex-col justify-center px-12">
+<div class="max-w-xs">
+<p class="font-headline text-xl leading-relaxed italic text-on-surface-variant/80">
+                            "We view the cake as a blank canvas—an architectural challenge met with botanical grace."
+                        </p>
+<div class="mt-8 h-[1px] w-12 bg-outline-variant/30"></div>
+</div>
+</div>
+<!-- Small Item 2 -->
+<div class="md:col-span-4 group cursor-pointer md:mt-[-10rem]">
+<div class="aspect-[3/4] bg-surface-variant overflow-hidden mb-6">
+<img alt="Gourmet Dessert" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" data-alt="Close-up of a dark chocolate ganache cake with gold leaf accents and edible pressed flowers on a stone surface, moody low-key lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuu5lI9Xl21R59E3ou1LkWHhl67vT1cVwH-PRHOXWl42_v9ydfz9HRrkS33qbmlZkHU_RlraIfvr3FB8D9SX42AXYLDDI4rcWDNFTKyq1K9oL1pQB02Un2Oqf23Gqk8v3K49nIrzA-2gkfXPs8PvuNPxVBvdYGB26WtqySPmvWK8V1PFVztXNGve69lLiuShuGZy53HR732NDOoWqyZGgN0TXvLbDqnfrLImiA-4racamG9qseGLKMwvhq_8AqdoZUmnFrfreTgws"/>
+</div>
+<div class="flex justify-between items-baseline">
+<h3 class="font-headline text-xl font-light italic">Noir &amp; Gold Leaf</h3>
+<p class="font-body text-sm tracking-tighter text-outline">$180</p>
+</div>
+<p class="font-body text-xs text-on-surface-variant mt-2 uppercase tracking-widest">Artisan Miniatures</p>
+</div>
+<!-- Medium Item 3 -->
+<div class="md:col-start-6 md:col-span-6 group cursor-pointer">
+<div class="aspect-square bg-surface-variant overflow-hidden mb-6">
+<img alt="Floral Cake" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" data-alt="Elegant rectangular cake with pastel lavender frosting and a cascade of fresh pressed wildflowers and herbs, bright morning light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrTJJDx-h6GLmiEkBPOiFLjpFL53zv9V_qp358LD4asY9HuHlfHpGRB5IDRrpRJGU9oxxYWECH7CFH6kFs3VDCKCrP4EMBxNeEpmoGjUridDv0GS9-bo9UdGrEIyoZcZSQb9nfebWEMZSl2vpP8WQyaO-KCiDysiloZ3_2lZfgxxNAv1k_EYd-gLcJN5hrs_HNYEip6KZKRXiNFYqoMMmGfPzJT04cNCMcC6Dw061nt0VnwG2GPoUCRwOmf2PwH08TMdFH6xkXUxk"/>
+</div>
+<div class="flex justify-between items-baseline">
+<h3 class="font-headline text-2xl font-light italic">Wildflower Meadow</h3>
+<p class="font-body text-sm tracking-tighter text-outline">$295</p>
+</div>
+<p class="font-body text-xs text-on-surface-variant mt-2 uppercase tracking-widest">Seasonal Bloom</p>
+</div>
+<!-- Full Width Breakout -->
+<div class="md:col-span-12 my-12 bg-surface-container-high py-24 px-12 md:px-48 text-center">
+<span class="font-label text-xs tracking-[0.4em] uppercase text-secondary mb-6 block">Bespoke Inquiries</span>
+<h2 class="font-headline text-4xl md:text-5xl font-light mb-10 max-w-2xl mx-auto leading-tight">Your vision, realized in sugar and crumb.</h2>
+<button class="bg-primary text-on-primary px-10 py-4 font-label text-xs tracking-widest uppercase transition-all hover:bg-primary-container duration-400">Consult Our Studio</button>
+</div>
+<!-- Item 4 -->
+<div class="md:col-span-5 group cursor-pointer">
+<div class="aspect-[4/5] bg-surface-variant overflow-hidden mb-6">
+<img alt="Modern Cake" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" data-alt="Tall slender cake with concrete-effect grey frosting and a modern minimalist geometric copper accent, studio lighting with sharp shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1vYGpCg7UzDykCMG9OeRUa5CMwgdeko_rciaUYh0StB0AwFyphBrz-o01_yhe0lm7TsyHLwqHoSBFUbdqgRQ1mUEt24uT_Ht1B70PHKAhg79DkuI5Av5r51MyQ81on-gXGtg0QAu6o90A_QB95L-90NgUoc7efA9hRBt983TcoMozZ2YsUfBUWKMki6ZUeYLdQ2fN3wNVlfAdR8J4t7t9HJf6_GkIlrFE2_qG50ltLag9qeh19XBQhDkS7iaaH-KXEp4yoy5AhUE"/>
+</div>
+<div class="flex justify-between items-baseline">
+<h3 class="font-headline text-2xl font-light italic">The Concrete Poem</h3>
+<p class="font-body text-sm tracking-tighter text-outline">$310</p>
+</div>
+<p class="font-body text-xs text-on-surface-variant mt-2 uppercase tracking-widest">Industrial Series</p>
+</div>
+<!-- Item 5 -->
+<div class="md:col-start-7 md:col-span-5 group cursor-pointer md:mt-24">
+<div class="aspect-square bg-surface-variant overflow-hidden mb-6">
+<img alt="Berry Cake" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" data-alt="Rustic naked cake layered with fresh whipped cream and an abundance of dark forest berries, dusting of powdered sugar, natural outdoor light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9mMq-QRKmDo0nsSGQ3g6cPbhLn8T2iAYOveAY_1E8midAMF4BD1VHwNBUo0GzNReBYW3Z2s1_8cier8hSQwE1wbOEAXLOOaExK0AnikC2mnWg7qivpF9KhL1Ni28z-6y9ShrOEc6kaTS8oOBa8lJpi4rDLwpsIcFUqSOhGsr6zbJ-R-f_hg9NlRxbYpDP0Heq_rjXETT9tDF7w7RAAdC7EUND8wp2cQ_kX3OjFk0SRL-Hfsf9-effmYeD314QHZ3oRnjDqAykwhA"/>
+</div>
+<div class="flex justify-between items-baseline">
+<h3 class="font-headline text-2xl font-light italic">Forest Forage</h3>
+<p class="font-body text-sm tracking-tighter text-outline">$225</p>
+</div>
+<p class="font-body text-xs text-on-surface-variant mt-2 uppercase tracking-widest">Seasonal Autumn</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full pt-24 pb-12 bg-[#ebe7e7] dark:bg-[#1c1b1b] border-t border-[#d2c3c3]/15">
+<div class="flex flex-col md:flex-row justify-between items-start px-12 w-full max-w-[1920px] mx-auto">
+<div class="mb-12 md:mb-0">
+<span class="font-['Noto_Serif'] text-lg mb-4 block text-[#261a1a] dark:text-[#fcf9f8]">The Confectioner’s Edit</span>
+<p class="font-['Manrope'] text-xs tracking-tighter uppercase text-[#261a1a] dark:text-[#fcf9f8] opacity-60 max-w-xs leading-relaxed">
+                    Elevating the art of the celebration through architectural design and refined flavor palettes.
+                </p>
+</div>
+<div class="flex flex-col md:flex-row gap-12 md:gap-24">
+<div class="flex flex-col space-y-4">
+<span class="font-['Manrope'] text-[10px] tracking-[0.2em] uppercase opacity-40 mb-2">Connect</span>
+<a class="font-['Manrope'] text-xs tracking-tighter uppercase text-[#261a1a] dark:text-[#fcf9f8] opacity-60 hover:opacity-100 transition-opacity duration-400" href="#">Instagram</a>
+<a class="font-['Manrope'] text-xs tracking-tighter uppercase text-[#261a1a] dark:text-[#fcf9f8] opacity-60 hover:opacity-100 transition-opacity duration-400" href="#">Pinterest</a>
+</div>
+<div class="flex flex-col space-y-4">
+<span class="font-['Manrope'] text-[10px] tracking-[0.2em] uppercase opacity-40 mb-2">Service</span>
+<a class="font-['Manrope'] text-xs tracking-tighter uppercase text-[#261a1a] dark:text-[#fcf9f8] opacity-60 hover:opacity-100 transition-opacity duration-400" href="#">Privacy Policy</a>
+<a class="font-['Manrope'] text-xs tracking-tighter uppercase text-[#261a1a] dark:text-[#fcf9f8] opacity-60 hover:opacity-100 transition-opacity duration-400" href="#">Shipping &amp; Returns</a>
+<a class="font-['Manrope'] text-xs tracking-tighter uppercase text-[#261a1a] dark:text-[#fcf9f8] opacity-60 hover:opacity-100 transition-opacity duration-400" href="#">Contact Us</a>
+</div>
+</div>
+</div>
+<div class="mt-24 px-12 w-full max-w-[1920px] mx-auto border-t border-outline-variant/10 pt-8">
+<p class="font-['Manrope'] text-[10px] tracking-[0.3em] uppercase text-[#261a1a] dark:text-[#fcf9f8] opacity-40">
+                © 2024 THE CONFECTIONER’S EDIT. ALL RIGHTS RESERVED.
+            </p>
+</div>
+</footer>
+</body></html>

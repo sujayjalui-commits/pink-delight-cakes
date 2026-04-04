@@ -1,0 +1,11 @@
+name = "pink-delight-cakes-api"
+main = "apps/api/worker.js"
+compatibility_date = "2026-04-01"
+
+[vars]
+CORS_ALLOWED_ORIGINS = "https://pink-delight-cakes.pages.dev"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pink-delight-cakes"
+database_id = "654d969c-7dab-4912-af4c-dcf12a7888ab"
