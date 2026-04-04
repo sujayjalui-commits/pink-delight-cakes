@@ -3,12 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pink Delight Cakes | Home Bakery</title>
-    <meta name="description" content="Custom home-baked cakes for birthdays, anniversaries, baby showers, and sweet everyday celebrations. Freshly baked to order with delivery across your city.">
+    <title>Pink Delight Cakes | Custom Cakes for Birthdays and Celebrations</title>
+    <meta name="description" content="Order custom birthday, anniversary, baby shower, and celebration cakes from Pink Delight Cakes. Inquiry-first home bakery with pickup and local delivery.">
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+    <meta name="theme-color" content="#fff8f2">
+    <link rel="canonical" href="https://pink-delight-cakes.pages.dev/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Pink Delight Cakes | Custom Cakes for Birthdays and Celebrations">
+    <meta property="og:description" content="Order custom birthday, anniversary, baby shower, and celebration cakes from Pink Delight Cakes. Inquiry-first home bakery with pickup and local delivery.">
+    <meta property="og:url" content="https://pink-delight-cakes.pages.dev/">
+    <meta property="og:site_name" content="Pink Delight Cakes">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=1200&q=80">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Pink Delight Cakes | Custom Cakes for Birthdays and Celebrations">
+    <meta name="twitter:description" content="Order custom birthday, anniversary, baby shower, and celebration cakes from Pink Delight Cakes. Inquiry-first home bakery with pickup and local delivery.">
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=1200&q=80">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script id="structuredDataScript" type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://pink-delight-cakes.pages.dev/#website",
+            "url": "https://pink-delight-cakes.pages.dev/",
+            "name": "Pink Delight Cakes"
+          },
+          {
+            "@type": "Bakery",
+            "@id": "https://pink-delight-cakes.pages.dev/#bakery",
+            "name": "Pink Delight Cakes",
+            "url": "https://pink-delight-cakes.pages.dev/",
+            "description": "Inquiry-first home bakery for custom birthday, anniversary, baby shower, and celebration cakes.",
+            "image": "https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=1200&q=80",
+            "telephone": "+91 98765 43210",
+            "email": "hello@pinkdelightcakes.com",
+            "sameAs": [
+              "https://instagram.com/pinkdelightcakes"
+            ],
+            "areaServed": "India"
+          }
+        ]
+      }
+    </script>
     <style>
         :root {
             --bg: #fff8f2;
@@ -1706,6 +1746,8 @@
     </div>
 
     <script>
+        const SITE_URL = "https://pink-delight-cakes.pages.dev/";
+        const DEFAULT_SOCIAL_IMAGE = "https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=1200&q=80";
         const DEFAULT_SETTINGS = {
             brandName: "Pink Delight Cakes",
             contactEmail: "hello@pinkdelightcakes.com",
@@ -1763,6 +1805,7 @@
         const bakeryIntroParagraph1 = document.getElementById("bakeryIntroParagraph1");
         const bakeryIntroParagraph2 = document.getElementById("bakeryIntroParagraph2");
         const responseTimeCopy = document.getElementById("responseTimeCopy");
+        const structuredDataScript = document.getElementById("structuredDataScript");
 
         function escapeHtml(value) {
             return String(value ?? "")
@@ -2150,6 +2193,111 @@
             return state.settings[key] || DEFAULT_SETTINGS[key] || "";
         }
 
+        function getSeoTitle() {
+            const brandName = getSettingText("brandName");
+            const city = String(state.settings.city || "").trim();
+
+            if (city && !/^your city$/i.test(city)) {
+                return `${brandName} | Custom Cakes in ${city}`;
+            }
+
+            return `${brandName} | Custom Cakes for Birthdays and Celebrations`;
+        }
+
+        function getSeoDescription() {
+            const brandName = getSettingText("brandName");
+            const city = String(state.settings.city || "").trim();
+            const deliveryCopy = personalizeDeliveryCopy(getSettingText("deliveryPickupCopy"), city).toLowerCase();
+
+            if (city && !/^your city$/i.test(city)) {
+                return `Order custom birthday, anniversary, baby shower, and celebration cakes from ${brandName} in ${city}. Inquiry-first home bakery with ${deliveryCopy}.`;
+            }
+
+            return `Order custom birthday, anniversary, baby shower, and celebration cakes from ${brandName}. Inquiry-first home bakery with pickup and local delivery.`;
+        }
+
+        function setMetaContent(selector, content) {
+            const node = document.querySelector(selector);
+
+            if (node && content) {
+                node.setAttribute("content", content);
+            }
+        }
+
+        function applyStructuredData() {
+            if (!structuredDataScript) {
+                return;
+            }
+
+            const brandName = getSettingText("brandName");
+            const phone = getSettingText("contactPhone");
+            const email = getSettingText("contactEmail");
+            const instagramHandle = getSettingText("instagramHandle");
+            const city = String(state.settings.city || "").trim();
+            const description = getSeoDescription();
+            const sameAs = [];
+
+            if (instagramHandle) {
+                sameAs.push(createInstagramLink(instagramHandle));
+            }
+
+            const bakeryEntity = {
+                "@type": "Bakery",
+                "@id": `${SITE_URL}#bakery`,
+                name: brandName,
+                url: SITE_URL,
+                description,
+                image: DEFAULT_SOCIAL_IMAGE,
+                telephone: phone,
+                email,
+                sameAs,
+                areaServed: city && !/^your city$/i.test(city) ? city : "India"
+            };
+
+            if (city && !/^your city$/i.test(city)) {
+                bakeryEntity.address = {
+                    "@type": "PostalAddress",
+                    addressLocality: city,
+                    addressCountry: "IN"
+                };
+            }
+
+            structuredDataScript.textContent = JSON.stringify({
+                "@context": "https://schema.org",
+                "@graph": [
+                    {
+                        "@type": "WebSite",
+                        "@id": `${SITE_URL}#website`,
+                        url: SITE_URL,
+                        name: brandName
+                    },
+                    bakeryEntity
+                ]
+            }, null, 2);
+        }
+
+        function applySeoMetadata() {
+            const title = getSeoTitle();
+            const description = getSeoDescription();
+
+            document.title = title;
+            setMetaContent('meta[name="description"]', description);
+            setMetaContent('meta[property="og:title"]', title);
+            setMetaContent('meta[property="og:description"]', description);
+            setMetaContent('meta[property="og:url"]', SITE_URL);
+            setMetaContent('meta[property="og:image"]', DEFAULT_SOCIAL_IMAGE);
+            setMetaContent('meta[name="twitter:title"]', title);
+            setMetaContent('meta[name="twitter:description"]', description);
+            setMetaContent('meta[name="twitter:image"]', DEFAULT_SOCIAL_IMAGE);
+
+            const canonical = document.querySelector('link[rel="canonical"]');
+            if (canonical) {
+                canonical.setAttribute("href", SITE_URL);
+            }
+
+            applyStructuredData();
+        }
+
         function applySettings() {
             document.querySelectorAll("[data-brand-name]").forEach((node) => {
                 node.textContent = state.settings.brandName || DEFAULT_SETTINGS.brandName;
@@ -2192,6 +2340,8 @@
             document.querySelectorAll("[data-email-link], a[href^='mailto:']").forEach((link) => {
                 link.setAttribute("href", `mailto:${state.settings.contactEmail || DEFAULT_SETTINGS.contactEmail}`);
             });
+
+            applySeoMetadata();
         }
 
         function setFormStatus(message, type = "info") {
