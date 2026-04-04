@@ -121,3 +121,10 @@ Backup habit:
 - the scheduled D1 backup workflow exports the live database to a timestamped `.sql` artifact
 - artifacts are retained in GitHub Actions for 14 days by default
 - you can also run `npm run db:backup` manually from a machine that has Wrangler access to the Cloudflare account
+
+## Session Documentation
+
+- Full April 2026 upgrade/session record:
+  - `docs/session-2026-04-product-and-platform-upgrade.md`
+- Long-form historical project evolution:
+  - `docs/project-history.md`
