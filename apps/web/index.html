@@ -1393,25 +1393,25 @@
 
                         <aside class="contact-panel reveal" id="contact">
                             <span class="eyebrow"><i class="fa-solid fa-comments"></i> Order and enquiries</span>
-                            <h3>Collect the exact v1 order-request fields.</h3>
-                            <p>This keeps the current inquiry-first flow while saving each request to the live bakery backend for manual follow-up.</p>
+                            <h3>Tell us your cake idea and we will reply with pricing and next steps.</h3>
+                            <p>Your request is saved to the live bakery dashboard first, then reviewed manually for design, availability, and pickup or delivery planning.</p>
 
                             <form class="order-form" id="orderForm">
                                 <h4>Order request preview</h4>
-                                <p class="panel-note">This sends a real inquiry request while keeping the same simple startup-friendly ordering flow.</p>
+                                <p class="panel-note">Send the essentials here first. We will follow up personally with pricing, availability, and confirmation before anything is finalized.</p>
 
                                 <div class="field-grid">
                                     <div class="field">
                                         <label for="customerName">Your name</label>
-                                        <input id="customerName" name="customerName" type="text" autocomplete="name" placeholder="Riya Sharma" required>
+                                        <input id="customerName" name="customerName" type="text" autocomplete="name" placeholder="Riya Sharma" maxlength="80" required>
                                     </div>
                                     <div class="field">
                                         <label for="customerPhone">Phone / WhatsApp</label>
-                                        <input id="customerPhone" name="customerPhone" type="tel" autocomplete="tel" placeholder="+91 98765 43210" required>
+                                        <input id="customerPhone" name="customerPhone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+91 98765 43210" maxlength="24" required>
                                     </div>
                                     <div class="field">
                                         <label for="customerEmail">Email (optional)</label>
-                                        <input id="customerEmail" name="customerEmail" type="email" autocomplete="email" placeholder="you@example.com">
+                                        <input id="customerEmail" name="customerEmail" type="email" autocomplete="email" placeholder="you@example.com" maxlength="120">
                                     </div>
                                     <div class="field">
                                         <label for="cakeProduct">Product</label>
@@ -1447,7 +1447,11 @@
                                     </div>
                                     <div class="field field-full">
                                         <label for="requestNotes">Theme, colors, message text, or inspiration</label>
-                                        <textarea id="requestNotes" name="requestNotes" placeholder="Example: pastel pink birthday cake with gold message topper and delivery after 5 PM"></textarea>
+                                        <textarea id="requestNotes" name="requestNotes" maxlength="800" placeholder="Example: pastel pink birthday cake with gold message topper and delivery after 5 PM"></textarea>
+                                    </div>
+                                    <div class="field" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+                                        <label for="inquiryWebsite">Leave this field empty</label>
+                                        <input id="inquiryWebsite" name="website" type="text" tabindex="-1" autocomplete="off">
                                     </div>
                                 </div>
 
@@ -1464,7 +1468,7 @@
                                 </div>
 
                                 <div class="payload-preview" id="requestPreview">Select a product to preview the order-request payload.</div>
-                                <div class="form-status" id="formStatus">We will save your request here first, then follow up manually with pricing and confirmation.</div>
+                                <div class="form-status" id="formStatus">We will save your request here first, then follow up with pricing, availability, and pickup or delivery confirmation.</div>
                             </form>
 
                             <div class="contact-list">
@@ -1710,12 +1714,12 @@
             city: "",
             currency: "INR",
             inquiryChannel: "website",
-            deliveryPickupCopy: "Pickup and local delivery",
-            noticePeriodCopy: "Recommended notice for standard orders",
+            deliveryPickupCopy: "Pickup and local delivery across your city",
+            noticePeriodCopy: "Standard celebration cakes usually need 24 to 48 hours notice",
             bakeryIntroTitle: "Baked from home, designed with care, and made for real celebrations.",
             bakeryIntroParagraph1: "Pink Delight Cakes began as a small home startup for family birthdays and special weekends. What stayed the same as orders grew was the attention to flavor, finish, and making each customer feel heard.",
             bakeryIntroParagraph2: "If you are a home baker, this section should sound like you. Share why you started, what kinds of cakes you love making, and what customers can expect from your service.",
-            responseTimeCopy: "Send your date, number of servings, flavor preference, and inspiration photo. You’ll get a quick reply with design suggestions and pricing."
+            responseTimeCopy: "Share your date, servings, flavor preference, and inspiration photo. We usually reply with design options and pricing within 2 hours during bakery hours."
         };
 
         const PRODUCT_IMAGE_FALLBACKS = {
@@ -1737,6 +1741,7 @@
         const customerName = document.getElementById("customerName");
         const customerPhone = document.getElementById("customerPhone");
         const customerEmail = document.getElementById("customerEmail");
+        const inquiryWebsite = document.getElementById("inquiryWebsite");
         const cakeProduct = document.getElementById("cakeProduct");
         const cakeFlavor = document.getElementById("cakeFlavor");
         const cakeSize = document.getElementById("cakeSize");
@@ -1801,6 +1806,23 @@
 
         function formatFulfillmentLabel(value) {
             return value === "local_delivery" ? "Local delivery" : "Pickup";
+        }
+
+        function isValidInquiryPhone(value) {
+            const normalized = String(value || "").trim();
+            const digitsOnly = normalized.replace(/\D/g, "");
+
+            return /^[0-9+\-()\s]+$/.test(normalized) && digitsOnly.length >= 7 && digitsOnly.length <= 15;
+        }
+
+        function isValidInquiryEmail(value) {
+            const normalized = String(value || "").trim();
+
+            if (!normalized) {
+                return true;
+            }
+
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized);
         }
 
         function getWhatsAppNumber(phone) {
@@ -2020,6 +2042,7 @@
                 customerName: customerName.value.trim(),
                 customerPhone: customerPhone.value.trim(),
                 customerEmail: customerEmail.value.trim(),
+                website: inquiryWebsite.value.trim(),
                 productId: product?.slug || "",
                 flavor: cakeFlavor.value || "",
                 sizeLabel: size?.label || "",
@@ -2104,6 +2127,25 @@
             return `Pickup and delivery across ${city}`;
         }
 
+        function personalizeDeliveryCopy(value, city) {
+            const base = String(value || "").trim();
+
+            if (!base) {
+                return getContactLocationLabel(city);
+            }
+
+            if (!city) {
+                return base
+                    .replace(/\byour local area\b/gi, "your area")
+                    .replace(/\byour city\b/gi, "your area");
+            }
+
+            return base
+                .replace(/\byour local area\b/gi, city)
+                .replace(/\byour area\b/gi, city)
+                .replace(/\byour city\b/gi, city);
+        }
+
         function getSettingText(key) {
             return state.settings[key] || DEFAULT_SETTINGS[key] || "";
         }
@@ -2126,10 +2168,12 @@
             });
 
             heroCityLabel.textContent = getHeroCityLabel(state.settings.city || "");
-            heroDeliveryPickupCopy.textContent = getSettingText("deliveryPickupCopy");
+            const deliveryCopy = personalizeDeliveryCopy(getSettingText("deliveryPickupCopy"), state.settings.city || "");
+
+            heroDeliveryPickupCopy.textContent = deliveryCopy;
             noticePeriodCopy.textContent = getSettingText("noticePeriodCopy");
-            contactLocationText.textContent = getSettingText("deliveryPickupCopy") || getContactLocationLabel(state.settings.city || "");
-            footerLocationText.textContent = getSettingText("deliveryPickupCopy") || (state.settings.city
+            contactLocationText.textContent = deliveryCopy || getContactLocationLabel(state.settings.city || "");
+            footerLocationText.textContent = deliveryCopy || (state.settings.city
                 ? `Local delivery and pickup in ${state.settings.city}`
                 : "Local delivery and pickup available");
             bakeryIntroTitle.textContent = getSettingText("bakeryIntroTitle");
@@ -2221,6 +2265,21 @@
                 return;
             }
 
+            if (!isValidInquiryPhone(payload.customerPhone)) {
+                setFormStatus("Please enter a valid phone or WhatsApp number.", "error");
+                return;
+            }
+
+            if (!isValidInquiryEmail(payload.customerEmail)) {
+                setFormStatus("Please enter a valid email address or leave it blank.", "error");
+                return;
+            }
+
+            if (payload.website) {
+                setFormStatus("Inquiry could not be submitted. Please refresh and try again.", "error");
+                return;
+            }
+
             setSubmitBusy(true);
             setFormStatus("Saving your inquiry to the bakery dashboard...");
 
@@ -2234,8 +2293,8 @@
 
                 setFormStatus(
                     referenceId
-                        ? `Inquiry sent successfully. Reference #${referenceId} is now in the bakery dashboard for manual follow-up.`
-                        : "Inquiry sent successfully. The bakery can now review it from the live dashboard.",
+                        ? `Inquiry sent successfully. Reference #${referenceId} was received, and we will follow up with pricing, availability, and pickup or delivery details.`
+                        : "Inquiry sent successfully. We will review your details and follow up with pricing and next steps.",
                     "success"
                 );
 

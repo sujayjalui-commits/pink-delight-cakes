@@ -1,5 +1,5 @@
 import { seedCatalog } from "../../../../packages/shared/constants/seed-catalog.js";
-import { validateOrderRequestDraft } from "../../../../packages/shared/schemas/order-request-schema.js";
+import { validatePublicOrderRequestInput } from "../../../../packages/shared/schemas/order-request-schema.js";
 import { createOrderRequest, getProductBySlug, hasDatabase } from "../db/d1-client.js";
 
 function findSeedProduct(productIdOrSlug) {
@@ -45,7 +45,10 @@ export async function createPublicOrderRequest(env, input) {
     status: "new"
   };
 
-  const validation = validateOrderRequestDraft(draft);
+  const validation = validatePublicOrderRequestInput({
+    ...input,
+    ...draft
+  });
 
   if (!validation.valid) {
     return {
