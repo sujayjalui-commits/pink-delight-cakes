@@ -1,6 +1,17 @@
 const apiBaseUrl = String(process.env.API_BASE_URL || "").replace(/\/$/, "");
 const siteBaseUrl = String(process.env.SITE_BASE_URL || "").replace(/\/$/, "");
-const adminBaseUrl = String(process.env.ADMIN_BASE_URL || "").replace(/\/$/, "") || (siteBaseUrl ? `${siteBaseUrl}/admin` : "");
+
+function normalizeAdminBaseUrl(value) {
+  const trimmedValue = String(value || "").trim();
+
+  if (!trimmedValue) {
+    return "";
+  }
+
+  return trimmedValue.replace(/\/+$/, "") + "/";
+}
+
+const adminBaseUrl = normalizeAdminBaseUrl(process.env.ADMIN_BASE_URL) || (siteBaseUrl ? `${siteBaseUrl}/admin/` : "");
 
 if (!apiBaseUrl) {
   throw new Error("API_BASE_URL is required.");

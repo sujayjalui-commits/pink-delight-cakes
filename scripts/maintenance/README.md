@@ -19,7 +19,7 @@ Expected environment variables for checks:
 
 - `API_BASE_URL`
 - `SITE_BASE_URL`
-- `ADMIN_BASE_URL` (optional if `SITE_BASE_URL` is set; defaults to `${SITE_BASE_URL}/admin`)
+- `ADMIN_BASE_URL` (optional if `SITE_BASE_URL` is set; defaults to `${SITE_BASE_URL}/admin/`)
 
 Expected environment variables for alerts:
 
