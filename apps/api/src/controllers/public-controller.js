@@ -4,7 +4,7 @@ import {
   createRequestMonitoringContext,
   reportMonitoringEvent
 } from "../services/monitoring-service.js";
-import { createPublicOrderRequest } from "../services/order-service.js";
+import { createPublicOrderRequest, lookupPublicOrderRequest } from "../services/order-service.js";
 import { createRateLimitHeaders, enforcePublicOrderRateLimit } from "../services/rate-limit-service.js";
 import { createJsonResponse } from "../utils/http.js";
 import { readJsonBody } from "../validators/request-body.js";
@@ -27,6 +27,14 @@ export async function handleGetProductBySlug(env, slug) {
 export async function handleGetSettings(env) {
   const settings = await getPublicSettingsView(env);
   return createJsonResponse({ ok: true, settings });
+}
+
+export async function handleLookupOrderRequest(request, env) {
+  const url = new URL(request.url);
+  const referenceId = url.searchParams.get("referenceId");
+  const phone = url.searchParams.get("phone");
+  const result = await lookupPublicOrderRequest(env, referenceId, phone);
+  return createJsonResponse(result, result.ok ? 200 : result.status || 400);
 }
 
 export async function handleCreateOrderRequest(request, env, executionCtx) {

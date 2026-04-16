@@ -14,7 +14,13 @@ import {
   handleUpdateAdminProduct,
   handleUpdateAdminSettings
 } from "./src/controllers/admin-controller.js";
-import { handleCreateOrderRequest, handleGetProductBySlug, handleGetProducts, handleGetSettings } from "./src/controllers/public-controller.js";
+import {
+  handleCreateOrderRequest,
+  handleGetProductBySlug,
+  handleGetProducts,
+  handleGetSettings,
+  handleLookupOrderRequest
+} from "./src/controllers/public-controller.js";
 import { adminRoutes } from "./src/routes/admin-routes.js";
 import { systemRoutes } from "./src/routes/system-routes.js";
 import { publicRoutes } from "./src/routes/public-routes.js";
@@ -84,6 +90,10 @@ export default {
 
       if (pathname === publicRoutes.orderRequests && method === "POST") {
         return withCors(await handleCreateOrderRequest(request, env, executionCtx), request, env);
+      }
+
+      if (pathname === publicRoutes.orderRequestLookup && method === "GET") {
+        return withCors(await handleLookupOrderRequest(request, env), request, env);
       }
 
       if (pathname === adminRoutes.setup && method === "POST") {

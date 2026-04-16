@@ -39,10 +39,11 @@
             "url": "__PUBLIC_SITE_URL__",
             "description": "Inquiry-first home bakery for custom birthday, anniversary, baby shower, and celebration cakes.",
             "image": "https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=1200&q=80",
-            "telephone": "+91 98765 43210",
+            "telephone": "+91 87678 12121",
             "email": "hello@pinkdelightcakes.com",
             "sameAs": [
-              "https://instagram.com/pinkdelightcakes"
+              "https://www.instagram.com/pinkdelightcake/profilecard/?igsh=MWM1dmFhY2VzOGVvaw==",
+              "https://www.facebook.com/PinkDelightCake?mibextid=ZbWKwL"
             ],
             "areaServed": "India"
           }
@@ -157,6 +158,22 @@
             font-weight: 700;
             letter-spacing: 0.08em;
             text-transform: uppercase;
+        }
+
+        .beta-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 0.35rem;
+            padding: 0.18rem 0.48rem;
+            border-radius: 999px;
+            background: rgba(111, 78, 55, 0.12);
+            color: var(--secondary);
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            vertical-align: middle;
         }
 
         .section-heading {
@@ -355,6 +372,21 @@
             padding: 1rem 1.2rem 2rem;
         }
 
+        .premium-collage {
+            padding: 0;
+        }
+
+        .hero-collage-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.45fr) minmax(200px, 0.9fr);
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .hero-main-visual {
+            position: relative;
+        }
+
         .hero-frame {
             position: relative;
             min-height: 620px;
@@ -368,6 +400,10 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        .hero-frame--main {
+            min-height: 560px;
         }
 
         .floating-panel,
@@ -415,6 +451,51 @@
         .stat-card span {
             color: var(--muted);
             font-size: 0.92rem;
+        }
+
+        .hero-stat-card {
+            top: auto;
+            right: 1rem;
+            bottom: 1rem;
+        }
+
+        .hero-detail-stack {
+            display: grid;
+            grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) auto;
+            gap: 1rem;
+        }
+
+        .hero-detail-card {
+            overflow: hidden;
+            min-height: 174px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.78);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .hero-detail-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .hero-trust-card {
+            padding: 1rem 1.05rem;
+            border-radius: 24px;
+            background: rgba(255, 253, 251, 0.88);
+            border: 1px solid rgba(111, 78, 55, 0.08);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .hero-trust-card strong {
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .hero-trust-card p {
+            color: var(--muted);
+            font-size: 0.92rem;
+            margin: 0;
         }
 
         .promise-strip {
@@ -657,6 +738,64 @@
             margin-bottom: 1.4rem;
         }
 
+        .contact-flow-grid {
+            display: grid;
+            grid-template-columns: minmax(210px, 0.72fr) minmax(0, 1.28fr);
+            gap: 1.1rem;
+            align-items: start;
+        }
+
+        .journey-card {
+            padding: 1.35rem;
+            border-radius: 24px;
+            background: linear-gradient(180deg, rgba(255, 247, 248, 0.96), rgba(255, 253, 251, 0.88));
+            border: 1px solid rgba(217, 121, 131, 0.14);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .journey-header h4 {
+            font-size: 1.08rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .journey-header p {
+            font-size: 0.92rem;
+            margin-bottom: 1rem;
+        }
+
+        .journey-list {
+            display: grid;
+            gap: 0.8rem;
+        }
+
+        .journey-step {
+            display: grid;
+            grid-template-columns: 40px 1fr;
+            gap: 0.8rem;
+            align-items: start;
+        }
+
+        .journey-step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(145deg, #f8d4cf, #f1bcc1);
+            color: var(--accent-dark);
+            font-weight: 800;
+        }
+
+        .journey-step strong {
+            display: block;
+            margin-bottom: 0.15rem;
+        }
+
+        .journey-step span {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
         .contact-list {
             display: grid;
             gap: 0.9rem;
@@ -894,6 +1033,30 @@
             margin-top: 1rem;
         }
 
+        .reference-card {
+            margin-top: 1rem;
+            padding: 1rem 1.1rem;
+            border-radius: 18px;
+            background: linear-gradient(180deg, rgba(255, 247, 248, 0.98), rgba(255, 253, 251, 0.9));
+            border: 1px solid rgba(217, 121, 131, 0.18);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .reference-card[hidden] {
+            display: none;
+        }
+
+        .reference-card strong {
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .reference-card p {
+            color: var(--muted);
+            margin-bottom: 0.9rem;
+            font-size: 0.94rem;
+        }
+
         .form-status.error {
             color: #9d434d;
             background: rgba(201, 95, 106, 0.1);
@@ -922,6 +1085,75 @@
         .micro-card {
             padding: 1rem;
             border-radius: 18px;
+        }
+
+        .support-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.5rem;
+        }
+
+        .support-card {
+            padding: 1.6rem;
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.76);
+            border: 1px solid rgba(111, 78, 55, 0.08);
+            box-shadow: var(--shadow-soft);
+            transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+        }
+
+        .support-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(184, 92, 102, 0.15);
+            box-shadow: 0 20px 30px rgba(96, 67, 53, 0.1);
+        }
+
+        .support-card h3 {
+            font-family: "Cormorant Garamond", serif;
+            font-size: 2rem;
+            line-height: 1;
+            margin: 0.8rem 0 0.7rem;
+        }
+
+        .support-card p {
+            color: var(--muted);
+            margin-bottom: 1rem;
+        }
+
+        .support-mini-list,
+        .support-steps {
+            display: grid;
+            gap: 0.85rem;
+        }
+
+        .support-mini-card {
+            padding: 0.95rem 1rem;
+            border-radius: 18px;
+            background: var(--surface);
+        }
+
+        .support-mini-card strong {
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .support-mini-card span,
+        .support-steps span {
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .support-steps li {
+            list-style: none;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.7rem;
+        }
+
+        .support-steps i {
+            color: var(--accent-dark);
+            margin-top: 0.2rem;
         }
 
         .testimonial-band {
@@ -981,6 +1213,25 @@
             margin-bottom: 1rem;
         }
 
+        .founder-note-card {
+            padding: 1rem 1.1rem;
+            border-radius: 20px;
+            background: linear-gradient(180deg, rgba(255, 247, 248, 0.98), rgba(255, 253, 251, 0.9));
+            border: 1px solid rgba(217, 121, 131, 0.18);
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 1.2rem;
+        }
+
+        .founder-note-card strong {
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .founder-note-card p {
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
         .about-highlights {
             display: grid;
             gap: 0.8rem;
@@ -1009,6 +1260,28 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        .founder-portrait-card {
+            position: relative;
+        }
+
+        .portrait-chip {
+            position: absolute;
+            left: 1rem;
+            right: auto;
+            bottom: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 0.9rem;
+            border-radius: 999px;
+            background: rgba(255, 253, 251, 0.84);
+            border: 1px solid rgba(255, 255, 255, 0.72);
+            box-shadow: var(--shadow-soft);
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--secondary);
         }
 
         .cta-card {
@@ -1143,6 +1416,7 @@
             .menu-grid,
             .schema-grid,
             .ops-grid,
+            .support-grid,
             .mini-grid,
             .micro-grid,
             .review-grid,
@@ -1153,6 +1427,11 @@
             .hero-frame,
             .story-image-card {
                 min-height: 460px;
+            }
+
+            .hero-collage-grid,
+            .contact-flow-grid {
+                grid-template-columns: 1fr;
             }
 
         }
@@ -1206,6 +1485,15 @@
                 padding: 0;
             }
 
+            .hero-detail-stack {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                grid-template-rows: auto auto;
+            }
+
+            .hero-trust-card {
+                grid-column: 1 / -1;
+            }
+
         }
 
         @media (max-width: 640px) {
@@ -1217,6 +1505,7 @@
             .menu-grid,
             .schema-grid,
             .ops-grid,
+            .support-grid,
             .mini-grid,
             .micro-grid,
             .review-grid,
@@ -1244,6 +1533,19 @@
             .hero-frame,
             .story-image-card {
                 min-height: 380px;
+            }
+
+            .hero-detail-stack {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-detail-card {
+                min-height: 140px;
+            }
+
+            .hero-stat-card {
+                right: 0.75rem;
+                left: 0.75rem;
             }
 
             .footer-bottom {
@@ -1287,8 +1589,8 @@
                 <div class="hero-layout">
                     <div class="hero-copy reveal">
                         <span class="eyebrow"><i class="fa-solid fa-heart"></i> Freshly baked to order</span>
-                        <h1>Custom cakes for birthdays, baby showers, and sweet little milestones.</h1>
-                        <p>Pink Delight Cakes is a home bakery creating soft, elegant cakes that look beautiful, taste homemade, and make celebrations feel personal. Every order is baked fresh with care and styled to match your occasion.</p>
+                        <h1>Custom cakes that look beautiful, taste homemade, and feel made just for your celebration.</h1>
+                        <p>Pink Delight Cakes creates soft, elegant celebration cakes with thoughtful details, custom themes, and a warm inquiry-first experience from the first message to the final pickup or delivery.</p>
 
                         <div class="hero-actions">
                             <a class="btn btn-primary" href="#contact"><i class="fa-brands fa-whatsapp"></i> Start Your Order</a>
@@ -1298,21 +1600,34 @@
                         <div class="hero-meta">
                             <span><i class="fa-solid fa-location-dot"></i> <span id="heroCityLabel">Home bakery in your city</span></span>
                             <span><i class="fa-solid fa-truck"></i> <span id="heroDeliveryPickupCopy">Pickup and local delivery</span></span>
-                            <span><i class="fa-solid fa-star"></i> 100+ happy celebrations</span>
+                            <span><i class="fa-solid fa-star"></i> Custom themes welcome</span>
                         </div>
                     </div>
 
-                    <div class="hero-card reveal">
-                        <div class="hero-frame">
-                            <img src="https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=1200&q=80" alt="Elegant celebration cake with floral decoration">
-                        </div>
-                        <div class="stat-card">
-                            <strong>24 hrs</strong>
-                            <span id="noticePeriodCopy">Recommended notice for standard orders</span>
-                        </div>
-                        <div class="floating-panel">
-                            <strong>Most-loved flavor combo</strong>
-                            <p>Chocolate sponge, silky ganache layers, and a soft blush buttercream finish.</p>
+                    <div class="hero-card premium-collage reveal">
+                        <div class="hero-collage-grid">
+                            <div class="hero-main-visual">
+                                <div class="hero-frame hero-frame--main">
+                                    <img id="heroMainImage" src="https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=1200&q=80" alt="Signature Pink Delight Cakes centerpiece">
+                                </div>
+                                <div class="stat-card hero-stat-card">
+                                    <strong id="heroNoticeHighlight">24 to 48 hrs</strong>
+                                    <span id="noticePeriodCopy">Recommended notice for standard orders</span>
+                                </div>
+                            </div>
+
+                            <div class="hero-detail-stack">
+                                <div class="hero-detail-card">
+                                    <img id="heroDetailImageOne" src="https://images.unsplash.com/photo-1535141192574-5d4897c12636?auto=format&fit=crop&w=800&q=80" alt="Cake detail from Pink Delight Cakes">
+                                </div>
+                                <div class="hero-detail-card">
+                                    <img id="heroDetailImageTwo" src="https://images.unsplash.com/photo-1562777717-b6aff3afac0f?auto=format&fit=crop&w=800&q=80" alt="Close-up frosting detail from Pink Delight Cakes">
+                                </div>
+                                <div class="hero-trust-card">
+                                    <strong>Styled around your occasion</strong>
+                                    <p>Custom themes, color palettes, and finishing details are confirmed personally before your date is reserved.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1347,53 +1662,12 @@
                 <div class="container">
                     <div class="section-heading reveal">
                         <span class="eyebrow"><i class="fa-solid fa-sparkles"></i> Signature menu</span>
-                        <h2>Products are now defined like real backend records, not placeholder cards.</h2>
-                        <p>Each listing below now maps to the data your backend will need: product name, starting price, flavors, size options, design category, lead time, and availability.</p>
+                        <h2>Signature cakes styled for birthdays, baby showers, anniversaries, and sweet little milestones.</h2>
+                        <p>Choose a design direction you love, then personalize the flavor, size, topper details, and event notes through a quick inquiry.</p>
                     </div>
 
                     <div class="menu-grid" id="menuGrid"></div>
-                    <p class="catalog-note reveal">This product structure is designed for a lightweight v1 API and admin panel, so prices, flavors, lead times, and availability can change without editing the layout again.</p>
-                </div>
-            </section>
-
-            <section class="section">
-                <div class="container">
-                    <div class="schema-grid">
-                        <article class="schema-card reveal">
-                            <span class="eyebrow"><i class="fa-solid fa-box-open"></i> Product listing model</span>
-                            <h3>What each cake should store</h3>
-                            <p class="panel-note">These are the exact fields your v1 backend and admin panel should manage for every product.</p>
-                            <div class="mini-grid">
-                                <div class="mini-card">
-                                    <strong>Identity</strong>
-                                    <span>Name, slug, description, design category</span>
-                                </div>
-                                <div class="mini-card">
-                                    <strong>Pricing</strong>
-                                    <span>Starting price, size-based pricing, add-on pricing</span>
-                                </div>
-                                <div class="mini-card">
-                                    <strong>Customization</strong>
-                                    <span>Flavor options, size options, topper/message support</span>
-                                </div>
-                                <div class="mini-card">
-                                    <strong>Operations</strong>
-                                    <span>Lead time, availability status, pickup and delivery eligibility</span>
-                                </div>
-                            </div>
-                        </article>
-
-                        <article class="schema-card reveal">
-                            <span class="eyebrow"><i class="fa-solid fa-sliders"></i> Customization rules</span>
-                            <h3>Freeze the order rules before backend</h3>
-                            <ul class="bullet-list">
-                                <li><i class="fa-solid fa-check"></i><span>Keep v1 inquiry-first: customers request cakes, you confirm the final quote manually.</span></li>
-                                <li><i class="fa-solid fa-check"></i><span>Support fixed products and custom styling, but collect design details as a request instead of promising instant checkout.</span></li>
-                                <li><i class="fa-solid fa-check"></i><span>Allow message topper text, candles, and theme color choices as add-ons or notes.</span></li>
-                                <li><i class="fa-solid fa-check"></i><span>Store delivery area, delivery fee, and pickup rules in editable business settings instead of hardcoding them.</span></li>
-                            </ul>
-                        </article>
-                    </div>
+                    <p class="catalog-note reveal">Every cake can still be tailored with flavors, serving sizes, topper ideas, and celebration notes once you send your inquiry.</p>
                 </div>
             </section>
             <section class="section" id="process">
@@ -1436,94 +1710,138 @@
                             <h3>Tell us your cake idea and we will reply with pricing and next steps.</h3>
                             <p>Your request is saved to the live bakery dashboard first, then reviewed manually for design, availability, and pickup or delivery planning.</p>
 
-                            <form class="order-form" id="orderForm">
-                                <h4>Order request preview</h4>
-                                <p class="panel-note">Send the essentials here first. We will follow up personally with pricing, availability, and confirmation before anything is finalized.</p>
-
-                                <div class="field-grid">
-                                    <div class="field">
-                                        <label for="customerName">Your name</label>
-                                        <input id="customerName" name="customerName" type="text" autocomplete="name" placeholder="Riya Sharma" maxlength="80" required>
+                            <div class="contact-flow-grid">
+                                <div class="journey-card">
+                                    <div class="journey-header">
+                                        <h4>What happens next</h4>
+                                        <p>Everything stays personal, but you’ll always know the next step after you send your request.</p>
                                     </div>
-                                    <div class="field">
-                                        <label for="customerPhone">Phone / WhatsApp</label>
-                                        <input id="customerPhone" name="customerPhone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+91 98765 43210" maxlength="24" required>
-                                    </div>
-                                    <div class="field">
-                                        <label for="customerEmail">Email (optional)</label>
-                                        <input id="customerEmail" name="customerEmail" type="email" autocomplete="email" placeholder="you@example.com" maxlength="120">
-                                    </div>
-                                    <div class="field">
-                                        <label for="cakeProduct">Product</label>
-                                        <select id="cakeProduct" name="cakeProduct"></select>
-                                    </div>
-                                    <div class="field">
-                                        <label for="cakeFlavor">Flavor</label>
-                                        <select id="cakeFlavor" name="cakeFlavor"></select>
-                                    </div>
-                                    <div class="field">
-                                        <label for="cakeSize">Size / servings</label>
-                                        <select id="cakeSize" name="cakeSize"></select>
-                                    </div>
-                                    <div class="field">
-                                        <label for="eventDate">Event date</label>
-                                        <input id="eventDate" name="eventDate" type="date">
-                                    </div>
-                                    <div class="field">
-                                        <label for="fulfillment">Pickup or delivery</label>
-                                        <select id="fulfillment" name="fulfillment">
-                                            <option value="pickup">Pickup</option>
-                                            <option value="local_delivery">Local delivery</option>
-                                        </select>
-                                    </div>
-                                    <div class="field">
-                                        <label for="addon">Add-on</label>
-                                        <select id="addon" name="addon">
-                                            <option value="Message topper">Message topper</option>
-                                            <option value="Candles">Candles</option>
-                                            <option value="Fresh florals">Fresh florals</option>
-                                            <option value="None">None</option>
-                                        </select>
-                                    </div>
-                                    <div class="field field-full">
-                                        <label for="requestNotes">Theme, colors, message text, or inspiration</label>
-                                        <textarea id="requestNotes" name="requestNotes" maxlength="800" placeholder="Example: pastel pink birthday cake with gold message topper and delivery after 5 PM"></textarea>
-                                    </div>
-                                    <div class="field" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
-                                        <label for="inquiryWebsite">Leave this field empty</label>
-                                        <input id="inquiryWebsite" name="website" type="text" tabindex="-1" autocomplete="off">
+                                    <div class="journey-list">
+                                        <div class="journey-step">
+                                            <div class="journey-step-number">1</div>
+                                            <div>
+                                                <strong>Send request</strong>
+                                                <span>Share your preferred cake, date, flavor, and any design notes here.</span>
+                                            </div>
+                                        </div>
+                                        <div class="journey-step">
+                                            <div class="journey-step-number">2</div>
+                                            <div>
+                                                <strong>Receive quote</strong>
+                                                <span>We review availability and styling details, then reply with pricing and options.</span>
+                                            </div>
+                                        </div>
+                                        <div class="journey-step">
+                                            <div class="journey-step-number">3</div>
+                                            <div>
+                                                <strong>Confirm date and design</strong>
+                                                <span>We lock in your flavor, look, and celebration timing before the order is planned.</span>
+                                            </div>
+                                        </div>
+                                        <div class="journey-step">
+                                            <div class="journey-step-number">4</div>
+                                            <div>
+                                                <strong>Pickup or delivery</strong>
+                                                <span>Pickup and local delivery details are shared clearly once the order is confirmed.</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="form-actions">
-                                    <button class="btn btn-primary" id="submitInquiryButton" type="submit">
-                                        <i class="fa-solid fa-paper-plane"></i> Send inquiry
-                                    </button>
-                                    <a class="btn btn-secondary" href="https://wa.me/919876543210" id="whatsAppOrderLink" data-whatsapp-link target="_blank" rel="noreferrer">
-                                        <i class="fa-brands fa-whatsapp"></i> Continue on WhatsApp
-                                    </a>
-                                    <button class="btn btn-secondary" id="updatePreviewButton" type="button">
-                                        <i class="fa-solid fa-file-lines"></i> Refresh request preview
-                                    </button>
-                                </div>
+                                <form class="order-form" id="orderForm">
+                                    <h4>Order request preview</h4>
+                                    <p class="panel-note">Send the essentials here first. We will follow up personally with pricing, availability, and confirmation before anything is finalized.</p>
 
-                                <div class="payload-preview" id="requestPreview">Select a product to preview the order-request payload.</div>
-                                <div class="form-status" id="formStatus">We will save your request here first, then follow up with pricing, availability, and pickup or delivery confirmation.</div>
-                            </form>
+                                    <div class="field-grid">
+                                        <div class="field">
+                                            <label for="customerName">Your name</label>
+                                            <input id="customerName" name="customerName" type="text" autocomplete="name" placeholder="Riya Sharma" maxlength="80" required>
+                                        </div>
+                                        <div class="field">
+                                            <label for="customerPhone">Phone / WhatsApp</label>
+                                            <input id="customerPhone" name="customerPhone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+91 87678 12121" maxlength="24" required>
+                                        </div>
+                                        <div class="field">
+                                            <label for="customerEmail">Email (optional)</label>
+                                            <input id="customerEmail" name="customerEmail" type="email" autocomplete="email" placeholder="you@example.com" maxlength="120">
+                                        </div>
+                                        <div class="field">
+                                            <label for="cakeProduct">Product</label>
+                                            <select id="cakeProduct" name="cakeProduct"></select>
+                                        </div>
+                                        <div class="field">
+                                            <label for="cakeFlavor">Flavor</label>
+                                            <select id="cakeFlavor" name="cakeFlavor"></select>
+                                        </div>
+                                        <div class="field">
+                                            <label for="cakeSize">Size / servings</label>
+                                            <select id="cakeSize" name="cakeSize"></select>
+                                        </div>
+                                        <div class="field">
+                                            <label for="eventDate">Event date</label>
+                                            <input id="eventDate" name="eventDate" type="date">
+                                        </div>
+                                        <div class="field">
+                                            <label for="fulfillment">Pickup or delivery</label>
+                                            <select id="fulfillment" name="fulfillment">
+                                                <option value="pickup">Pickup</option>
+                                                <option value="local_delivery">Local delivery</option>
+                                            </select>
+                                        </div>
+                                        <div class="field">
+                                            <label for="addon">Add-on</label>
+                                            <select id="addon" name="addon">
+                                                <option value="Message topper">Message topper</option>
+                                                <option value="Candles">Candles</option>
+                                                <option value="Fresh florals">Fresh florals</option>
+                                                <option value="None">None</option>
+                                            </select>
+                                        </div>
+                                        <div class="field field-full">
+                                            <label for="requestNotes">Theme, colors, message text, or inspiration</label>
+                                            <textarea id="requestNotes" name="requestNotes" maxlength="800" placeholder="Example: pastel pink birthday cake with gold message topper and delivery after 5 PM"></textarea>
+                                        </div>
+                                        <div class="field" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+                                            <label for="inquiryWebsite">Leave this field empty</label>
+                                            <input id="inquiryWebsite" name="website" type="text" tabindex="-1" autocomplete="off">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-actions">
+                                        <button class="btn btn-primary" id="submitInquiryButton" type="submit">
+                                            <i class="fa-solid fa-paper-plane"></i> Send inquiry
+                                        </button>
+                                        <a class="btn btn-secondary" href="https://wa.me/918767812121" id="whatsAppOrderLink" data-whatsapp-link target="_blank" rel="noreferrer">
+                                            <i class="fa-brands fa-whatsapp"></i> Continue on WhatsApp
+                                        </a>
+                                        <button class="btn btn-secondary" id="updatePreviewButton" type="button">
+                                            <i class="fa-solid fa-file-lines"></i> Refresh request preview
+                                        </button>
+                                    </div>
+
+                                    <div class="payload-preview" id="requestPreview">Select a product to preview the order-request payload.</div>
+                                    <div class="form-status" id="formStatus">We will save your request here first, then follow up with pricing, availability, and pickup or delivery confirmation.</div>
+                                    <div class="reference-card" id="referenceCard" hidden>
+                                        <strong>Your reference is saved</strong>
+                                        <p>Use your inquiry reference and the same phone number later if you want to check the latest update without creating an account.</p>
+                                        <a class="btn btn-secondary" id="trackReferenceLink" href="__PUBLIC_SITE_URL__track/"><i class="fa-solid fa-arrow-up-right-from-square"></i> Track this inquiry <span class="beta-pill">Beta</span></a>
+                                    </div>
+                                </form>
+                            </div>
 
                             <div class="contact-list">
                                 <div class="contact-item">
                                     <i class="fa-brands fa-whatsapp"></i>
                                     <div>
                                         <strong>WhatsApp orders</strong>
-                                        <span data-contact-phone>+91 98765 43210</span>
+                                        <span data-contact-phone>+91 87678 12121</span>
                                     </div>
                                 </div>
                                 <div class="contact-item">
                                     <i class="fa-brands fa-instagram"></i>
                                     <div>
                                         <strong>Instagram</strong>
-                                        <span data-instagram-handle>@pinkdelightcakes</span>
+                                        <span data-instagram-handle>@pinkdelightcake</span>
                                     </div>
                                 </div>
                                 <div class="contact-item">
@@ -1535,7 +1853,7 @@
                                 </div>
                             </div>
 
-                            <a class="btn btn-primary" href="https://wa.me/919876543210" data-whatsapp-link target="_blank" rel="noreferrer">
+                            <a class="btn btn-primary" href="https://wa.me/918767812121" data-whatsapp-link target="_blank" rel="noreferrer">
                                 <i class="fa-brands fa-whatsapp"></i> Order on WhatsApp
                             </a>
                         </aside>
@@ -1546,90 +1864,50 @@
             <section class="section">
                 <div class="container">
                     <div class="section-heading reveal">
-                        <span class="eyebrow"><i class="fa-solid fa-server"></i> V1 backend scope</span>
-                        <h2>Build the backend around products, inquiries, admin controls, and business settings.</h2>
-                        <p>This keeps the first version lean and avoids building cart, login, payment, and inventory systems before your bakery actually needs them.</p>
+                        <span class="eyebrow"><i class="fa-solid fa-compass"></i> Order support</span>
+                        <h2>Clear delivery details, a simple follow-up flow, and a lightweight way to track your inquiry.</h2>
+                        <p>The experience stays personal and conversation-led, but the website now gives customers more clarity before and after they submit a request.</p>
                     </div>
 
-                    <div class="ops-grid">
-                        <article class="ops-card reveal">
-                            <span class="eyebrow"><i class="fa-solid fa-database"></i> Products endpoint</span>
-                            <h3>What the product API should expose</h3>
-                            <div class="mini-grid">
-                                <div class="mini-card">
-                                    <strong>Catalog fields</strong>
-                                    <span>Name, slug, category, hero image, description</span>
+                    <div class="support-grid">
+                        <article class="support-card reveal">
+                            <span class="eyebrow"><i class="fa-solid fa-location-dot"></i> Service area</span>
+                            <h3>Where we deliver and how pickup works</h3>
+                            <p id="serviceAreaDeliveryCopy">Pickup and local delivery across your city.</p>
+                            <div class="support-mini-list">
+                                <div class="support-mini-card">
+                                    <strong>Pickup</strong>
+                                    <span id="serviceAreaPickupCopy">Pickup slots are shared after your design and time are confirmed.</span>
                                 </div>
-                                <div class="mini-card">
-                                    <strong>Pricing fields</strong>
-                                    <span>Starting price, sizes, flavor choices, add-ons</span>
-                                </div>
-                                <div class="mini-card">
-                                    <strong>Operational fields</strong>
-                                    <span>Lead time, availability, delivery eligibility</span>
-                                </div>
-                                <div class="mini-card">
-                                    <strong>Display fields</strong>
-                                    <span>Badge, featured flag, short marketing summary</span>
+                                <div class="support-mini-card">
+                                    <strong>Notice</strong>
+                                    <span id="serviceAreaNoticeCopy">Standard celebration cakes usually need 24 to 48 hours notice.</span>
                                 </div>
                             </div>
                         </article>
 
-                        <article class="ops-card reveal">
-                            <span class="eyebrow"><i class="fa-solid fa-inbox"></i> Order request endpoint</span>
-                            <h3>What the inquiry payload should save</h3>
-                            <div class="mini-grid">
-                                <div class="mini-card">
-                                    <strong>Customer request</strong>
-                                    <span>Product, flavor, servings, event date, delivery choice</span>
-                                </div>
-                                <div class="mini-card">
-                                    <strong>Customization</strong>
-                                    <span>Add-ons, topper text, design notes, inspiration link</span>
-                                </div>
-                                <div class="mini-card">
-                                    <strong>Status</strong>
-                                    <span>New, quoted, confirmed, scheduled, completed</span>
-                                </div>
-                                <div class="mini-card">
-                                    <strong>Channel</strong>
-                                    <span>Website, WhatsApp, Instagram, manual admin entry</span>
-                                </div>
-                            </div>
-                        </article>
-
-                        <article class="ops-card reveal">
-                            <span class="eyebrow"><i class="fa-solid fa-user-gear"></i> Admin needs</span>
-                            <h3>Minimum controls for the bakery owner</h3>
-                            <ul class="bullet-list">
-                                <li><i class="fa-solid fa-check"></i><span>Update product prices, lead times, and availability without touching frontend code.</span></li>
-                                <li><i class="fa-solid fa-check"></i><span>Add or remove flavors, size options, and featured products from an admin view.</span></li>
-                                <li><i class="fa-solid fa-check"></i><span>Review incoming order requests and move them through simple statuses.</span></li>
-                                <li><i class="fa-solid fa-check"></i><span>Edit contact info, delivery area, and delivery fee from business settings.</span></li>
+                        <article class="support-card reveal">
+                            <span class="eyebrow"><i class="fa-solid fa-message"></i> After you inquire</span>
+                            <h3>What happens after you send a request</h3>
+                            <ul class="support-steps">
+                                <li><i class="fa-solid fa-check"></i><span>Your request is saved first so the bakery can review it properly.</span></li>
+                                <li><i class="fa-solid fa-check"></i><span>You receive pricing, design guidance, and availability confirmation.</span></li>
+                                <li><i class="fa-solid fa-check"></i><span>Pickup or delivery details are finalized once the cake is confirmed.</span></li>
                             </ul>
                         </article>
 
-                        <article class="ops-card reveal">
-                            <span class="eyebrow"><i class="fa-solid fa-road"></i> What to defer</span>
-                            <h3>Skip these in v1 unless demand proves you need them</h3>
-                            <div class="micro-grid">
-                                <div class="micro-card">
-                                    <strong>Direct checkout</strong>
-                                    <span>Keep manual quote confirmation for custom orders.</span>
-                                </div>
-                                <div class="micro-card">
-                                    <strong>Customer login</strong>
-                                    <span>Not needed for a small, conversation-led bakery flow.</span>
-                                </div>
-                                <div class="micro-card">
-                                    <strong>Payment gateway</strong>
-                                    <span>Add later when the order flow becomes more self-serve.</span>
-                                </div>
-                                <div class="micro-card">
-                                    <strong>Inventory logic</strong>
-                                    <span>Use simple availability and lead time flags first.</span>
-                                </div>
-                            </div>
+                        <article class="support-card reveal">
+                            <span class="eyebrow"><i class="fa-solid fa-receipt"></i> Inquiry lookup <span class="beta-pill">Beta</span></span>
+                            <h3>Already sent a request?</h3>
+                            <p>Use your reference number and the same phone number you submitted earlier to check the latest bakery update without creating an account.</p>
+                            <a class="btn btn-secondary" data-track-link href="__PUBLIC_SITE_URL__track/"><i class="fa-solid fa-arrow-up-right-from-square"></i> Track your inquiry <span class="beta-pill">Beta</span></a>
+                        </article>
+
+                        <article class="support-card reveal">
+                            <span class="eyebrow"><i class="fa-solid fa-bell-concierge"></i> Response time</span>
+                            <h3>Personal replies, not automated checkout</h3>
+                            <p id="supportResponseTimeCopy">Send your date, servings, flavor preference, and inspiration photo. You’ll get a quick reply with design suggestions and pricing.</p>
+                            <a class="btn btn-primary" href="https://wa.me/918767812121" data-whatsapp-link target="_blank" rel="noreferrer"><i class="fa-brands fa-whatsapp"></i> Ask on WhatsApp</a>
                         </article>
                     </div>
                 </div>
@@ -1638,7 +1916,7 @@
             <section class="section testimonial-band" id="reviews">
                 <div class="container">
                     <div class="section-heading reveal">
-                        <span class="eyebrow"><i class="fa-solid fa-star"></i> Customer love</span>
+                        <span class="eyebrow"><i class="fa-solid fa-star"></i> Customer love <span class="beta-pill">Beta</span></span>
                         <h2>Small-batch baking works best when people remember both the taste and the feeling.</h2>
                         <p>Add real customer quotes and photos here once you have them. They will do more for trust than any visual effect.</p>
                     </div>
@@ -1673,7 +1951,11 @@
                             <span class="eyebrow"><i class="fa-solid fa-cookie-bite"></i> About the baker</span>
                             <h3 id="bakeryIntroTitle">Baked from home, designed with care, and made for real celebrations.</h3>
                             <p id="bakeryIntroParagraph1">Pink Delight Cakes began as a small home startup for family birthdays and special weekends. What stayed the same as orders grew was the attention to flavor, finish, and making each customer feel heard.</p>
-                            <p id="bakeryIntroParagraph2">If you are a home baker, this section should sound like you. Share why you started, what kinds of cakes you love making, and what customers can expect from your service.</p>
+                            <p id="bakeryIntroParagraph2">Pink Delight Cakes grew from family celebrations into a warm home bakery focused on soft finishes, homemade flavor, and cakes that feel truly personal.</p>
+                            <div class="founder-note-card">
+                                <strong>Founder note</strong>
+                            <p id="founderNoteText">Pinky Sangoi handles each inquiry like a real conversation, not a rushed checkout. The aim is simple: make the cake feel personal, taste homemade, and arrive as part of the celebration instead of just another order.</p>
+                            </div>
 
                             <ul class="about-highlights">
                                 <li><i class="fa-solid fa-check"></i> Fresh sponge baked in small batches</li>
@@ -1682,8 +1964,9 @@
                             </ul>
                         </div>
 
-                        <div class="story-image-card reveal">
-                            <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?auto=format&fit=crop&w=1100&q=80" alt="Baker decorating a cake in a warm kitchen">
+                        <div class="story-image-card founder-portrait-card reveal">
+                            <img id="founderPortraitImage" src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?auto=format&fit=crop&w=1100&q=80" alt="Founder of Pink Delight Cakes decorating a cake">
+                            <div class="portrait-chip"><i class="fa-solid fa-heart"></i> Founder-led home bakery</div>
                         </div>
                     </div>
                 </div>
@@ -1695,7 +1978,7 @@
                         <h2>Planning a celebration soon? Let’s create a cake that feels personal.</h2>
                         <p id="responseTimeCopy">Send your date, number of servings, flavor preference, and inspiration photo. You’ll get a quick reply with design suggestions and pricing.</p>
                         <div class="cta-actions">
-                            <a class="btn btn-primary" href="https://wa.me/919876543210" target="_blank" rel="noreferrer"><i class="fa-brands fa-whatsapp"></i> Message on WhatsApp</a>
+                            <a class="btn btn-primary" href="https://wa.me/918767812121" target="_blank" rel="noreferrer"><i class="fa-brands fa-whatsapp"></i> Message on WhatsApp</a>
                             <a class="btn btn-secondary" href="#menu"><i class="fa-solid fa-cake-candles"></i> View Menu Again</a>
                         </div>
                     </div>
@@ -1710,8 +1993,9 @@
                         <h3 data-brand-name>Pink Delight Cakes</h3>
                         <p>Custom home-baked cakes for birthdays, baby showers, anniversaries, and every sweet little celebration in between.</p>
                         <div class="social-row">
+                            <a href="https://www.facebook.com/PinkDelightCake?mibextid=ZbWKwL" data-facebook-link target="_blank" rel="noreferrer" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
                             <a href="https://instagram.com" data-instagram-link target="_blank" rel="noreferrer" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-                            <a href="https://wa.me/919876543210" data-whatsapp-link target="_blank" rel="noreferrer" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+                            <a href="https://wa.me/918767812121" data-whatsapp-link target="_blank" rel="noreferrer" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
                             <a href="mailto:hello@pinkdelightcakes.com" data-email-link aria-label="Email"><i class="fa-regular fa-envelope"></i></a>
                         </div>
                     </div>
@@ -1723,15 +2007,17 @@
                             <a href="#process">How ordering works</a>
                             <a href="#about">About the bakery</a>
                             <a href="#reviews">Customer reviews</a>
+                            <a data-track-link href="__PUBLIC_SITE_URL__track/">Track your inquiry <span class="beta-pill">Beta</span></a>
                         </div>
                     </div>
 
                     <div class="footer-column">
                         <h4>Contact</h4>
                         <div class="footer-links">
-                            <span>WhatsApp: <span data-contact-phone>+91 98765 43210</span></span>
+                            <span>Facebook: <a href="https://www.facebook.com/PinkDelightCake?mibextid=ZbWKwL" data-facebook-link target="_blank" rel="noreferrer">Pink Delight Cakes</a></span>
+                            <span>WhatsApp: <span data-contact-phone>+91 87678 12121</span></span>
                             <span>Email: <span data-contact-email>hello@pinkdelightcakes.com</span></span>
-                            <span>Instagram: <span data-instagram-handle>@pinkdelightcakes</span></span>
+                            <span>Instagram: <span data-instagram-handle>@pinkdelightcake</span></span>
                             <span id="footerLocationText">Local delivery and pickup available</span>
                         </div>
                     </div>
@@ -1750,11 +2036,22 @@
         const RUNTIME_ADMIN_SITE_URL = "__ADMIN_SITE_URL__";
         const RUNTIME_API_BASE_URL = "__API_BASE_URL__";
         const DEFAULT_SOCIAL_IMAGE = "https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=1200&q=80";
+        const DEFAULT_OWNER_NAME = "Pinky Sangoi";
+        const DEFAULT_FACEBOOK_URL = "https://www.facebook.com/PinkDelightCake?mibextid=ZbWKwL";
+        const DEFAULT_INSTAGRAM_URL = "https://www.instagram.com/pinkdelightcake/profilecard/?igsh=MWM1dmFhY2VzOGVvaw==";
+        const HERO_COLLAGE_FALLBACKS = [
+            "https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=1200&q=80",
+            "https://images.unsplash.com/photo-1535141192574-5d4897c12636?auto=format&fit=crop&w=900&q=80",
+            "https://images.unsplash.com/photo-1562777717-b6aff3afac0f?auto=format&fit=crop&w=900&q=80"
+        ];
+        const FOUNDER_PORTRAIT_FALLBACK = "https://images.unsplash.com/photo-1486427944299-d1955d23e34d?auto=format&fit=crop&w=1100&q=80";
+        const DEFAULT_WARM_FOUNDER_PARAGRAPH = "Pink Delight Cakes is led by Pinky Sangoi and grew from small family celebrations into a warm home bakery focused on soft finishes, homemade flavor, and cakes that feel truly personal.";
+        const DEFAULT_FOUNDER_NOTE = "Pinky Sangoi handles each inquiry like a real conversation, not a rushed checkout. The goal is simple: make the cake feel personal, taste homemade, and arrive as part of the celebration instead of just another order.";
         const DEFAULT_SETTINGS = {
             brandName: "Pink Delight Cakes",
             contactEmail: "hello@pinkdelightcakes.com",
-            contactPhone: "+91 98765 43210",
-            instagramHandle: "@pinkdelightcakes",
+            contactPhone: "+91 87678 12121",
+            instagramHandle: "@pinkdelightcake",
             city: "",
             addressLine1: "",
             addressLine2: "",
@@ -1766,8 +2063,8 @@
             deliveryPickupCopy: "Pickup and local delivery across your city",
             noticePeriodCopy: "Standard celebration cakes usually need 24 to 48 hours notice",
             bakeryIntroTitle: "Baked from home, designed with care, and made for real celebrations.",
-            bakeryIntroParagraph1: "Pink Delight Cakes began as a small home startup for family birthdays and special weekends. What stayed the same as orders grew was the attention to flavor, finish, and making each customer feel heard.",
-            bakeryIntroParagraph2: "If you are a home baker, this section should sound like you. Share why you started, what kinds of cakes you love making, and what customers can expect from your service.",
+            bakeryIntroParagraph1: "Pink Delight Cakes is led by Pinky Sangoi and began as a home bakery rooted in family celebrations, soft finishes, and cakes that feel personal from the very first conversation.",
+            bakeryIntroParagraph2: DEFAULT_WARM_FOUNDER_PARAGRAPH,
             responseTimeCopy: "Share your date, servings, flavor preference, and inspiration photo. We usually reply with design options and pricing within 2 hours during bakery hours.",
             weekdayOpenTime: "10:00",
             weekdayCloseTime: "20:00",
@@ -1870,14 +2167,27 @@
         const updatePreviewButton = document.getElementById("updatePreviewButton");
         const heroCityLabel = document.getElementById("heroCityLabel");
         const heroDeliveryPickupCopy = document.getElementById("heroDeliveryPickupCopy");
+        const heroMainImage = document.getElementById("heroMainImage");
+        const heroDetailImageOne = document.getElementById("heroDetailImageOne");
+        const heroDetailImageTwo = document.getElementById("heroDetailImageTwo");
+        const heroNoticeHighlight = document.getElementById("heroNoticeHighlight");
         const noticePeriodCopy = document.getElementById("noticePeriodCopy");
         const contactLocationText = document.getElementById("contactLocationText");
         const footerLocationText = document.getElementById("footerLocationText");
         const bakeryIntroTitle = document.getElementById("bakeryIntroTitle");
         const bakeryIntroParagraph1 = document.getElementById("bakeryIntroParagraph1");
         const bakeryIntroParagraph2 = document.getElementById("bakeryIntroParagraph2");
+        const founderNoteText = document.getElementById("founderNoteText");
+        const founderPortraitImage = document.getElementById("founderPortraitImage");
         const responseTimeCopy = document.getElementById("responseTimeCopy");
+        const supportResponseTimeCopy = document.getElementById("supportResponseTimeCopy");
+        const serviceAreaDeliveryCopy = document.getElementById("serviceAreaDeliveryCopy");
+        const serviceAreaPickupCopy = document.getElementById("serviceAreaPickupCopy");
+        const serviceAreaNoticeCopy = document.getElementById("serviceAreaNoticeCopy");
+        const referenceCard = document.getElementById("referenceCard");
+        const trackReferenceLink = document.getElementById("trackReferenceLink");
         const structuredDataScript = document.getElementById("structuredDataScript");
+        let currentHeroImage = DEFAULT_SOCIAL_IMAGE;
 
         function escapeHtml(value) {
             return String(value ?? "")
@@ -1941,7 +2251,7 @@
         }
 
         function getWhatsAppNumber(phone) {
-            return String(phone || DEFAULT_SETTINGS.contactPhone).replace(/\D/g, "") || "919876543210";
+            return String(phone || DEFAULT_SETTINGS.contactPhone).replace(/\D/g, "") || "918767812121";
         }
 
         function createWhatsAppLink(phone, message = "") {
@@ -1952,8 +2262,24 @@
         }
 
         function createInstagramLink(handle) {
-            const slug = String(handle || "").trim().replace(/^@/, "");
+            const normalizedValue = String(handle || "").trim();
+
+            if (/^https?:\/\//i.test(normalizedValue)) {
+                return normalizedValue;
+            }
+
+            const slug = normalizedValue.replace(/^@/, "");
             return slug ? `https://instagram.com/${slug}` : "https://instagram.com";
+        }
+
+        function createTrackLink(referenceId = "") {
+            const trackUrl = new URL("track/", SITE_URL);
+
+            if (referenceId) {
+                trackUrl.searchParams.set("reference", referenceId);
+            }
+
+            return trackUrl.toString();
         }
 
         function getApiUrl(pathname) {
@@ -2025,6 +2351,7 @@
                 category: product.category || "Custom celebration cakes",
                 leadTimeHours: product.leadTimeHours,
                 availabilityStatus: product.availabilityStatus || "available",
+                featured: Boolean(product.featured),
                 flavors: Array.isArray(options.flavors) && options.flavors.length ? options.flavors : ["Bakery special"],
                 sizes,
                 addOns: Array.isArray(options.addOns) && options.addOns.length ? options.addOns : ["None"]
@@ -2242,6 +2569,100 @@
             return `Pickup and delivery across ${city}`;
         }
 
+        function getWarmBakeryParagraph() {
+            const paragraph = String(getSettingText("bakeryIntroParagraph2") || "").trim();
+
+            if (!paragraph || /If you are a home baker/i.test(paragraph)) {
+                return DEFAULT_WARM_FOUNDER_PARAGRAPH;
+            }
+
+            return paragraph;
+        }
+
+        function getFounderNote() {
+            const paragraph = getWarmBakeryParagraph();
+            return paragraph.length > 220 ? DEFAULT_FOUNDER_NOTE : paragraph;
+        }
+
+        function getPickupAvailabilityCopy(city) {
+            if (!city || /^your city$/i.test(String(city).trim())) {
+                return "Pickup slots are shared after your design and preferred timing are confirmed.";
+            }
+
+            return `Pickup is available by pre-arranged time once your ${city} order is confirmed.`;
+        }
+
+        function getNoticeHighlight(value) {
+            const trimmedValue = String(value || "").trim();
+            const match = trimmedValue.match(/(\d+\s*(?:to|-)\s*\d+\s*(?:hours?|days?)|\d+\s*(?:hours?|days?))/i);
+
+            if (!match) {
+                return "24 to 48 hrs";
+            }
+
+            return match[0]
+                .replace(/\bhours?\b/i, "hrs")
+                .replace(/\bdays?\b/i, "days");
+        }
+
+        function updateShowcaseImage(node, src, alt) {
+            if (!node || !src) {
+                return;
+            }
+
+            node.src = src;
+            node.alt = alt;
+        }
+
+        function getShowcaseProducts() {
+            const uniqueImages = new Set();
+            const sortedProducts = [...state.products].sort((left, right) => Number(right.featured) - Number(left.featured));
+
+            return sortedProducts.filter((product) => {
+                if (!product.imageUrl || uniqueImages.has(product.imageUrl)) {
+                    return false;
+                }
+
+                uniqueImages.add(product.imageUrl);
+                return true;
+            });
+        }
+
+        function applyHomepageMedia() {
+            const showcaseProducts = getShowcaseProducts();
+            const mediaItems = showcaseProducts.slice(0, 3);
+
+            while (mediaItems.length < 3) {
+                mediaItems.push({
+                    imageUrl: HERO_COLLAGE_FALLBACKS[mediaItems.length] || HERO_COLLAGE_FALLBACKS[0],
+                    name: state.settings.brandName || DEFAULT_SETTINGS.brandName
+                });
+            }
+
+            updateShowcaseImage(
+                heroMainImage,
+                mediaItems[0].imageUrl || HERO_COLLAGE_FALLBACKS[0],
+                `${mediaItems[0].name || state.settings.brandName} featured cake`
+            );
+            updateShowcaseImage(
+                heroDetailImageOne,
+                mediaItems[1].imageUrl || HERO_COLLAGE_FALLBACKS[1],
+                `${mediaItems[1].name || state.settings.brandName} close-up`
+            );
+            updateShowcaseImage(
+                heroDetailImageTwo,
+                mediaItems[2].imageUrl || HERO_COLLAGE_FALLBACKS[2],
+                `${mediaItems[2].name || state.settings.brandName} detail view`
+            );
+
+            currentHeroImage = heroMainImage?.src || DEFAULT_SOCIAL_IMAGE;
+
+            if (founderPortraitImage) {
+                founderPortraitImage.src = FOUNDER_PORTRAIT_FALLBACK;
+                founderPortraitImage.alt = `${DEFAULT_OWNER_NAME}, founder of ${state.settings.brandName || DEFAULT_SETTINGS.brandName}`;
+            }
+        }
+
         function personalizeDeliveryCopy(value, city) {
             const base = String(value || "").trim();
 
@@ -2354,13 +2775,17 @@
                 sameAs.push(createInstagramLink(instagramHandle));
             }
 
+            if (DEFAULT_FACEBOOK_URL) {
+                sameAs.push(DEFAULT_FACEBOOK_URL);
+            }
+
             const bakeryEntity = {
                 "@type": "Bakery",
                 "@id": `${SITE_URL}#bakery`,
                 name: brandName,
                 url: SITE_URL,
                 description,
-                image: DEFAULT_SOCIAL_IMAGE,
+                image: currentHeroImage || DEFAULT_SOCIAL_IMAGE,
                 telephone: phone,
                 email,
                 sameAs,
@@ -2405,10 +2830,10 @@
             setMetaContent('meta[property="og:title"]', title);
             setMetaContent('meta[property="og:description"]', description);
             setMetaContent('meta[property="og:url"]', SITE_URL);
-            setMetaContent('meta[property="og:image"]', DEFAULT_SOCIAL_IMAGE);
+            setMetaContent('meta[property="og:image"]', currentHeroImage || DEFAULT_SOCIAL_IMAGE);
             setMetaContent('meta[name="twitter:title"]', title);
             setMetaContent('meta[name="twitter:description"]', description);
-            setMetaContent('meta[name="twitter:image"]', DEFAULT_SOCIAL_IMAGE);
+            setMetaContent('meta[name="twitter:image"]', currentHeroImage || DEFAULT_SOCIAL_IMAGE);
 
             const canonical = document.querySelector('link[rel="canonical"]');
             if (canonical) {
@@ -2440,27 +2865,42 @@
 
             heroDeliveryPickupCopy.textContent = deliveryCopy;
             noticePeriodCopy.textContent = getSettingText("noticePeriodCopy");
+            heroNoticeHighlight.textContent = getNoticeHighlight(getSettingText("noticePeriodCopy"));
             contactLocationText.textContent = deliveryCopy || getContactLocationLabel(state.settings.city || "");
             footerLocationText.textContent = deliveryCopy || (state.settings.city
                 ? `Local delivery and pickup in ${state.settings.city}`
                 : "Local delivery and pickup available");
             bakeryIntroTitle.textContent = getSettingText("bakeryIntroTitle");
             bakeryIntroParagraph1.textContent = getSettingText("bakeryIntroParagraph1");
-            bakeryIntroParagraph2.textContent = getSettingText("bakeryIntroParagraph2");
+            bakeryIntroParagraph2.textContent = getWarmBakeryParagraph();
+            founderNoteText.textContent = getFounderNote();
             responseTimeCopy.textContent = getSettingText("responseTimeCopy");
+            supportResponseTimeCopy.textContent = getSettingText("responseTimeCopy");
+            serviceAreaDeliveryCopy.textContent = deliveryCopy || getContactLocationLabel(state.settings.city || "");
+            serviceAreaPickupCopy.textContent = getPickupAvailabilityCopy(state.settings.city || "");
+            serviceAreaNoticeCopy.textContent = getSettingText("noticePeriodCopy");
 
             document.querySelectorAll("[data-whatsapp-link], a[href^='https://wa.me/']").forEach((link) => {
                 link.setAttribute("href", createWhatsAppLink(state.settings.contactPhone));
             });
 
             document.querySelectorAll("[data-instagram-link], a[href^='https://instagram.com']").forEach((link) => {
-                link.setAttribute("href", createInstagramLink(state.settings.instagramHandle));
+                link.setAttribute("href", createInstagramLink(state.settings.instagramHandle || DEFAULT_INSTAGRAM_URL));
+            });
+
+            document.querySelectorAll("[data-facebook-link]").forEach((link) => {
+                link.setAttribute("href", DEFAULT_FACEBOOK_URL);
             });
 
             document.querySelectorAll("[data-email-link], a[href^='mailto:']").forEach((link) => {
                 link.setAttribute("href", `mailto:${state.settings.contactEmail || DEFAULT_SETTINGS.contactEmail}`);
             });
 
+            document.querySelectorAll("[data-track-link]").forEach((link) => {
+                link.setAttribute("href", createTrackLink());
+            });
+
+            applyHomepageMedia();
             applySeoMetadata();
         }
 
@@ -2470,6 +2910,10 @@
 
             if (type !== "info") {
                 formStatus.classList.add(type);
+            }
+
+            if (type !== "success" && referenceCard) {
+                referenceCard.hidden = true;
             }
         }
 
@@ -2511,6 +2955,7 @@
 
             renderProducts();
             populateProductOptions();
+            applyHomepageMedia();
 
             if (state.products.length) {
                 cakeProduct.value = state.products[0].slug;
@@ -2567,6 +3012,11 @@
                         : "Inquiry sent successfully. We will review your details and follow up with pricing and next steps.",
                     "success"
                 );
+
+                if (referenceCard && referenceId) {
+                    referenceCard.hidden = false;
+                    trackReferenceLink.href = createTrackLink(referenceId);
+                }
 
                 requestPreview.textContent = JSON.stringify({
                     ok: true,
@@ -2631,6 +3081,7 @@
 
         async function init() {
             applySettings();
+            applyHomepageMedia();
             renderCatalogState("Loading the live cake catalogue...");
             updateRequestPreview();
             observeRevealItems(document);

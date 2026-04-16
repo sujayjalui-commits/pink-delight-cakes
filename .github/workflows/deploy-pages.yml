@@ -46,6 +46,7 @@ jobs:
           const fs = require('fs');
           const files = [
             'apps/web/index.html',
+            'apps/web/track/index.html',
             'apps/web/admin/index.html',
             'apps/web/admin.html',
             'apps/web/robots.txt',

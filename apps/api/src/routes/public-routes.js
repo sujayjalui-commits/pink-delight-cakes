@@ -1,5 +1,6 @@
 export const publicRoutes = {
   products: "/api/products",
   settings: "/api/settings/public",
-  orderRequests: "/api/order-requests"
+  orderRequests: "/api/order-requests",
+  orderRequestLookup: "/api/order-requests/lookup"
 };
