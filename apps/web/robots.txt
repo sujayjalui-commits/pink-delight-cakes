@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin/
 Disallow: /admin.html
 
-Sitemap: https://pink-delight-cakes.pages.dev/sitemap.xml
+Sitemap: __PUBLIC_SITE_URL__sitemap.xml

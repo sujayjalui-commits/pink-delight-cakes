@@ -15,6 +15,10 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      CONFIGURED_SITE_BASE_URL: ${{ vars.SITE_BASE_URL }}
+      CONFIGURED_ADMIN_BASE_URL: ${{ vars.ADMIN_BASE_URL }}
+      CONFIGURED_API_BASE_URL: ${{ vars.API_BASE_URL }}
 
     steps:
       - name: Checkout repository
@@ -27,6 +31,43 @@ jobs:
 
       - name: Install Wrangler
         run: npm install --global wrangler@4.80.0
+
+      - name: Stamp runtime URLs into static assets
+        run: |
+          SITE_BASE_URL="${CONFIGURED_SITE_BASE_URL:-https://pink-delight-cakes.pages.dev}"
+          SITE_BASE_URL="${SITE_BASE_URL%/}/"
+          ADMIN_BASE_URL="${CONFIGURED_ADMIN_BASE_URL:-${SITE_BASE_URL}admin/}"
+          ADMIN_BASE_URL="${ADMIN_BASE_URL%/}/"
+          API_BASE_URL="${CONFIGURED_API_BASE_URL:-https://pink-delight-cakes-api.sujayjalui.workers.dev}"
+
+          export SITE_BASE_URL ADMIN_BASE_URL API_BASE_URL
+
+          node <<'EOF'
+          const fs = require('fs');
+          const files = [
+            'apps/web/index.html',
+            'apps/web/admin/index.html',
+            'apps/web/admin.html',
+            'apps/web/robots.txt',
+            'apps/web/sitemap.xml'
+          ];
+
+          const replacements = new Map([
+            ['__PUBLIC_SITE_URL__', process.env.SITE_BASE_URL],
+            ['__ADMIN_SITE_URL__', process.env.ADMIN_BASE_URL],
+            ['__API_BASE_URL__', process.env.API_BASE_URL]
+          ]);
+
+          for (const file of files) {
+            let contents = fs.readFileSync(file, 'utf8');
+
+            for (const [token, value] of replacements.entries()) {
+              contents = contents.split(token).join(value);
+            }
+
+            fs.writeFileSync(file, contents);
+          }
+          EOF
 
       - name: Deploy Cloudflare Pages site
         working-directory: apps/web

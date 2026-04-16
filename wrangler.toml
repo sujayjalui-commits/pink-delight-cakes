@@ -3,6 +3,9 @@ main = "apps/api/worker.js"
 compatibility_date = "2026-04-01"
 
 [vars]
+SITE_URL = "https://pink-delight-cakes.pages.dev"
+ADMIN_URL = "https://pink-delight-cakes.pages.dev/admin/"
+API_BASE_URL = "https://pink-delight-cakes-api.sujayjalui.workers.dev"
 CORS_ALLOWED_ORIGINS = "https://pink-delight-cakes.pages.dev"
 
 [[d1_databases]]

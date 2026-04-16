@@ -39,11 +39,31 @@ function normalizeOrigin(origin) {
   return origin ? origin.replace(/\/$/, "") : "";
 }
 
+function normalizeConfiguredOriginValue(value) {
+  const trimmedValue = String(value || "").trim();
+
+  if (!trimmedValue) {
+    return "";
+  }
+
+  try {
+    return normalizeOrigin(new URL(trimmedValue).origin);
+  } catch {
+    return normalizeOrigin(trimmedValue);
+  }
+}
+
 function getAllowedOrigins(env) {
-  return String(env?.CORS_ALLOWED_ORIGINS || "")
+  const configuredOrigins = String(env?.CORS_ALLOWED_ORIGINS || "")
     .split(",")
-    .map((origin) => normalizeOrigin(origin.trim()))
+    .map((origin) => normalizeConfiguredOriginValue(origin))
     .filter(Boolean);
+
+  return Array.from(new Set([
+    normalizeConfiguredOriginValue(env?.SITE_URL),
+    normalizeConfiguredOriginValue(env?.ADMIN_URL),
+    ...configuredOrigins
+  ].filter(Boolean)));
 }
 
 export function getRequestOrigin(request) {

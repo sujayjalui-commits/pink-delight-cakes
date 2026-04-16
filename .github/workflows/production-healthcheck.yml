@@ -12,8 +12,9 @@ jobs:
   healthcheck:
     runs-on: ubuntu-latest
     env:
-      API_BASE_URL: https://pink-delight-cakes-api.sujayjalui.workers.dev
-      SITE_BASE_URL: https://pink-delight-cakes.pages.dev
+      API_BASE_URL: ${{ vars.API_BASE_URL || 'https://pink-delight-cakes-api.sujayjalui.workers.dev' }}
+      SITE_BASE_URL: ${{ vars.SITE_BASE_URL || 'https://pink-delight-cakes.pages.dev' }}
+      ADMIN_BASE_URL: ${{ vars.ADMIN_BASE_URL || '' }}
 
     steps:
       - name: Checkout repository
@@ -25,7 +26,9 @@ jobs:
           node-version: 20
 
       - name: Run production checks
-        run: node scripts/maintenance/check-production.mjs
+        run: |
+          node scripts/maintenance/check-production.mjs
+          node scripts/maintenance/check-admin-auth.mjs
 
       - name: Send failure alert
         if: failure() && secrets.MONITORING_WEBHOOK_URL != ''

@@ -27,7 +27,48 @@ const state = {
 };
 
 const body = document.body;
-const apiBase = (body.dataset.apiBase || "").replace(/\/$/, "");
+
+function isRuntimePlaceholder(value) {
+    return /^__.+__$/.test(String(value || "").trim());
+}
+
+function normalizeAbsoluteUrl(value) {
+    const trimmedValue = String(value || "").trim();
+
+    if (!trimmedValue || isRuntimePlaceholder(trimmedValue)) {
+        return "";
+    }
+
+    try {
+        return new URL(trimmedValue).toString();
+    } catch {
+        return "";
+    }
+}
+
+function deriveApiBaseFromLocation() {
+    const { protocol, hostname, port } = window.location;
+    const portSuffix = port ? `:${port}` : "";
+
+    if (hostname.startsWith("admin.")) {
+        return `${protocol}//api.${hostname.slice("admin.".length)}${portSuffix}`;
+    }
+
+    if (hostname.startsWith("www.")) {
+        return `${protocol}//api.${hostname.slice("www.".length)}${portSuffix}`;
+    }
+
+    if (hostname.includes(".") && !hostname.endsWith(".pages.dev")) {
+        return `${protocol}//api.${hostname}${portSuffix}`;
+    }
+
+    return "";
+}
+
+const apiBase = (
+    normalizeAbsoluteUrl(body.dataset.apiBase || "") ||
+    normalizeAbsoluteUrl(deriveApiBaseFromLocation())
+).replace(/\/$/, "");
 
 const authScreen = document.getElementById("authScreen");
 const dashboard = document.getElementById("dashboard");

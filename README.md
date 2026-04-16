@@ -65,6 +65,9 @@ Recommended Worker variable for separate frontend/backend origins:
 - `CORS_ALLOWED_ORIGINS=https://your-admin-frontend-origin`
 - Use a comma-separated list if you need both a local/admin preview origin and a production origin.
 - Example: `CORS_ALLOWED_ORIGINS=https://pink-delight-cakes.pages.dev,https://admin.pinkdelightcakes.com`
+- `SITE_URL=https://your-public-site-origin`
+- `ADMIN_URL=https://your-admin-site-origin/admin/`
+- `API_BASE_URL=https://your-api-origin`
 
 Cross-origin admin login now works in two layers:
 
@@ -87,6 +90,12 @@ Add these repository secrets in GitHub before pushing to `main`:
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_ACCOUNT_ID`
 - `MONITORING_WEBHOOK_URL` (optional, for Slack/Discord/generic webhook alerts from healthcheck and backup failures)
+
+Recommended repository variables for deploy-time URL stamping:
+
+- `SITE_BASE_URL=https://your-public-site-origin`
+- `ADMIN_BASE_URL=https://your-admin-site-origin/admin/`
+- `API_BASE_URL=https://your-api-origin`
 
 Deployment behavior:
 
