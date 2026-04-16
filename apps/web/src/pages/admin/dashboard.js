@@ -10,10 +10,12 @@ const ORDER_STATUSES = [
 ];
 
 const PRODUCT_AVAILABILITY = ["available", "limited", "unavailable"];
-const SESSION_TOKEN_STORAGE_KEY = "pinkDelightAdminSessionToken";
+const LEGACY_SESSION_TOKEN_STORAGE_KEY = "pinkDelightAdminSessionToken";
 
 const state = {
     session: null,
+    sessionToken: "",
+    usingBearerFallback: false,
     orders: [],
     products: [],
     settings: null,
@@ -197,21 +199,26 @@ function showToast(message, type = "info") {
     }, 3200);
 }
 
-function getStoredSessionToken() {
-    return window.sessionStorage.getItem(SESSION_TOKEN_STORAGE_KEY) || "";
+function clearLegacyStoredSessionToken() {
+    try {
+        window.sessionStorage.removeItem(LEGACY_SESSION_TOKEN_STORAGE_KEY);
+    } catch {
+        // Ignore storage access issues and continue with runtime-only auth state.
+    }
 }
 
-function setStoredSessionToken(token) {
-    if (!token) {
-        window.sessionStorage.removeItem(SESSION_TOKEN_STORAGE_KEY);
-        return;
-    }
+function clearSessionTokenFallback() {
+    state.sessionToken = "";
+    state.usingBearerFallback = false;
+}
 
-    window.sessionStorage.setItem(SESSION_TOKEN_STORAGE_KEY, token);
+function setSessionTokenFallback(token) {
+    state.sessionToken = token || "";
+    state.usingBearerFallback = Boolean(token);
 }
 
 async function apiRequest(path, options = {}) {
-    const sessionToken = getStoredSessionToken();
+    const sessionToken = options.skipSessionToken ? "" : state.sessionToken;
     let response;
 
     try {
@@ -242,7 +249,7 @@ async function apiRequest(path, options = {}) {
 
     if (!response.ok) {
         if (response.status === 401) {
-            setStoredSessionToken("");
+            clearSessionTokenFallback();
         }
 
         const error = new Error(payload?.error || `Request failed with status ${response.status}`);
@@ -254,9 +261,11 @@ async function apiRequest(path, options = {}) {
     return payload;
 }
 
-async function checkSession() {
+async function checkSession(options = {}) {
     try {
-        const payload = await apiRequest("/api/admin/auth/session");
+        const payload = await apiRequest("/api/admin/auth/session", {
+            skipSessionToken: options.skipSessionToken
+        });
         state.session = payload.session;
         sessionChip.innerHTML = `<i class="fa-solid fa-user-shield"></i><span>${escapeHtml(payload.session.email)}</span>`;
         return true;
@@ -802,6 +811,7 @@ async function handleLogin(event) {
     event.preventDefault();
 
     setButtonBusy(loginButton, true, "Logging in...");
+    clearSessionTokenFallback();
 
     try {
         const loginPayload = await apiRequest("/api/admin/auth/login", {
@@ -809,14 +819,23 @@ async function handleLogin(event) {
             body: {
                 email: loginEmail.value.trim(),
                 password: loginPassword.value
-            }
+            },
+            skipSessionToken: true
         });
 
-        setStoredSessionToken(loginPayload.sessionToken);
+        let sessionOk = await checkSession({ skipSessionToken: true });
 
-        const sessionOk = await checkSession();
+        if (!sessionOk && loginPayload.sessionToken) {
+            setSessionTokenFallback(loginPayload.sessionToken);
+            sessionOk = await checkSession();
+        }
+
         if (!sessionOk) {
-            throw new Error("Login succeeded, but the admin session could not be restored. Check the Worker CORS settings for this frontend origin.");
+            throw new Error("Login succeeded, but the admin session could not be restored. Check the Worker CORS settings for this frontend origin and confirm the browser is allowing the admin session cookie.");
+        }
+
+        if (state.usingBearerFallback) {
+            showToast("This browser blocked the secure admin cookie, so this tab is using a temporary session fallback. Keep this tab open or log in again after a refresh.", "info");
         }
 
         await refreshDashboardData();
@@ -841,7 +860,7 @@ async function handleLogout() {
         // Even if logout fails, reset the local dashboard state.
     }
 
-    setStoredSessionToken("");
+    clearSessionTokenFallback();
     state.session = null;
     state.orders = [];
     state.products = [];
@@ -1096,6 +1115,7 @@ function bindInteractions() {
 }
 
 async function init() {
+    clearLegacyStoredSessionToken();
     bindInteractions();
     setAuthState("Checking your admin session...");
 

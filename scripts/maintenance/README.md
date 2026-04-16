@@ -5,18 +5,21 @@ One-off cleanup, migration-assist, and support scripts.
 ## Production Ops
 
 - `check-production.mjs` verifies the live API health endpoint, public products endpoint, public settings endpoint, and storefront page
+- `check-admin-auth.mjs` verifies the live admin page wiring plus admin auth CORS/session endpoints without submitting a real login
 - `send-webhook-alert.mjs` posts failure notifications to Slack, Discord, or a generic webhook endpoint
 
 Run from the repo root:
 
 ```bash
 npm run ops:check:production
+npm run ops:check:admin-auth
 ```
 
 Expected environment variables for checks:
 
 - `API_BASE_URL`
 - `SITE_BASE_URL`
+- `ADMIN_BASE_URL` (optional if `SITE_BASE_URL` is set; defaults to `${SITE_BASE_URL}/admin`)
 
 Expected environment variables for alerts:
 

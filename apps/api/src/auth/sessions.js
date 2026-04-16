@@ -98,8 +98,14 @@ export async function verifyAdminSessionToken(token, env) {
 }
 
 export async function readAdminSessionFromRequest(request, env) {
+  const cookieToken = getCookieValue(request, apiConfig.adminSessionCookieName);
+  const cookieSession = await verifyAdminSessionToken(cookieToken, env);
+
+  if (cookieSession) {
+    return cookieSession;
+  }
+
   const authorizationHeader = request.headers.get("authorization") || "";
   const bearerToken = authorizationHeader.startsWith("Bearer ") ? authorizationHeader.slice("Bearer ".length).trim() : "";
-  const token = bearerToken || getCookieValue(request, apiConfig.adminSessionCookieName);
-  return verifyAdminSessionToken(token, env);
+  return verifyAdminSessionToken(bearerToken, env);
 }
