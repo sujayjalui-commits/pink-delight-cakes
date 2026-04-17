@@ -28,14 +28,6 @@ function createRequestHeaders(extraHeaders = {}) {
   };
 }
 
-function assertHeader(headers, name, expectedValue, label) {
-  const actualValue = headers.get(name);
-
-  if (actualValue !== expectedValue) {
-    throw new Error(`${label} expected header ${name}=${expectedValue}, received ${actualValue || "null"}`);
-  }
-}
-
 function getOrigin(value, label) {
   try {
     return new URL(value).origin;
@@ -46,26 +38,7 @@ function getOrigin(value, label) {
 
 function extractApiBaseFromMarkup(html) {
   const match = html.match(/data-api-base="([^"]+)"/i);
-  return match?.[1] ? match[1].replace(/\/$/, "") : "";
-}
-
-function getHostnameFamily(urlValue) {
-  const hostname = new URL(urlValue).hostname.toLowerCase();
-
-  if (hostname.endsWith(".pages.dev")) {
-    return "pages.dev";
-  }
-
-  if (hostname.endsWith(".workers.dev")) {
-    return "workers.dev";
-  }
-
-  const labels = hostname.split(".").filter(Boolean);
-  return labels.slice(-2).join(".");
-}
-
-function isLikelyCrossSiteCookiePair(adminUrl, apiUrl) {
-  return getHostnameFamily(adminUrl) !== getHostnameFamily(apiUrl);
+  return match?.[1] ? match[1].trim() : "";
 }
 
 async function fetchText(url, label, headers = {}) {
@@ -95,6 +68,7 @@ async function fetchWithValidation(url, label, options = {}) {
 
 const adminOrigin = getOrigin(adminBaseUrl, "ADMIN_BASE_URL");
 const apiOrigin = getOrigin(apiBaseUrl, "API_BASE_URL");
+const adminApiBaseUrl = `${adminOrigin}/api`;
 const warnings = [];
 
 const adminHtml = await fetchText(adminBaseUrl, "Admin page");
@@ -109,62 +83,33 @@ if (!configuredApiBase) {
   throw new Error("Admin page did not expose data-api-base");
 }
 
-if (configuredApiBase !== apiBaseUrl) {
-  throw new Error(`Admin page data-api-base (${configuredApiBase}) does not match API_BASE_URL (${apiBaseUrl})`);
+if (configuredApiBase !== "/api") {
+  throw new Error(`Admin page data-api-base should be /api, received ${configuredApiBase}`);
 }
 
-const sessionPreflight = await fetchWithValidation(`${apiBaseUrl}/api/admin/auth/session`, "Admin session preflight", {
-  method: "OPTIONS",
-  expectedStatus: 204,
-  headers: {
-    Origin: adminOrigin,
-    "Access-Control-Request-Method": "GET",
-    "Access-Control-Request-Headers": "Content-Type, Authorization"
-  }
+const sameOriginSessionProbe = await fetchWithValidation(`${adminApiBaseUrl}/admin/auth/session`, "Same-origin admin session probe", {
+  method: "GET",
+  expectedStatus: 401
 });
 
-assertHeader(sessionPreflight.headers, "access-control-allow-origin", adminOrigin, "Admin session preflight");
-assertHeader(sessionPreflight.headers, "access-control-allow-credentials", "true", "Admin session preflight");
+const sameOriginProbePayload = await sameOriginSessionProbe.json();
 
-const allowedHeaders = String(sessionPreflight.headers.get("access-control-allow-headers") || "").toLowerCase();
-if (!allowedHeaders.includes("content-type") || !allowedHeaders.includes("authorization")) {
-  throw new Error("Admin session preflight did not allow both Content-Type and Authorization headers");
+if (sameOriginProbePayload?.ok !== false || !String(sameOriginProbePayload?.error || "").toLowerCase().includes("authentication")) {
+  throw new Error("Same-origin admin session probe returned an unexpected payload");
 }
 
-const sessionProbe = await fetchWithValidation(`${apiBaseUrl}/api/admin/auth/session`, "Admin session probe", {
+const directWorkerProbe = await fetchWithValidation(`${apiBaseUrl}/api/admin/auth/session`, "Direct worker admin session probe", {
   method: "GET",
-  expectedStatus: 401,
+  expectedStatus: 400,
   headers: {
     Origin: adminOrigin
   }
 });
 
-assertHeader(sessionProbe.headers, "access-control-allow-origin", adminOrigin, "Admin session probe");
-assertHeader(sessionProbe.headers, "access-control-allow-credentials", "true", "Admin session probe");
+const directWorkerPayload = await directWorkerProbe.json();
 
-const sessionProbePayload = await sessionProbe.json();
-
-if (sessionProbePayload?.ok !== false || !String(sessionProbePayload?.error || "").toLowerCase().includes("authentication")) {
-  throw new Error("Admin session probe returned an unexpected payload");
-}
-
-const loginPreflight = await fetchWithValidation(`${apiBaseUrl}/api/admin/auth/login`, "Admin login preflight", {
-  method: "OPTIONS",
-  expectedStatus: 204,
-  headers: {
-    Origin: adminOrigin,
-    "Access-Control-Request-Method": "POST",
-    "Access-Control-Request-Headers": "Content-Type"
-  }
-});
-
-assertHeader(loginPreflight.headers, "access-control-allow-origin", adminOrigin, "Admin login preflight");
-assertHeader(loginPreflight.headers, "access-control-allow-credentials", "true", "Admin login preflight");
-
-if (isLikelyCrossSiteCookiePair(adminBaseUrl, apiBaseUrl)) {
-  warnings.push(
-    "Admin and API origins are on different cookie families. Cookie-only auth may still fail in some browsers until both live under the same site, such as admin.yourdomain.com and api.yourdomain.com."
-  );
+if (directWorkerPayload?.ok !== false || !String(directWorkerPayload?.error || "").toLowerCase().includes("same-origin")) {
+  throw new Error("Direct worker admin session probe should be rejected in browser-style cross-origin mode");
 }
 
 console.log(JSON.stringify({
@@ -172,9 +117,11 @@ console.log(JSON.stringify({
   checkedAt: new Date().toISOString(),
   adminBaseUrl,
   adminOrigin,
+  adminApiBaseUrl,
   apiBaseUrl,
   apiOrigin,
   configuredApiBase,
-  sessionProbeStatus: sessionProbe.status,
+  sameOriginSessionProbeStatus: sameOriginSessionProbe.status,
+  directWorkerProbeStatus: directWorkerProbe.status,
   warnings
 }, null, 2));

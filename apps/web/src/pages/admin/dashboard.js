@@ -10,12 +10,9 @@ const ORDER_STATUSES = [
 ];
 
 const PRODUCT_AVAILABILITY = ["available", "limited", "unavailable"];
-const LEGACY_SESSION_TOKEN_STORAGE_KEY = "pinkDelightAdminSessionToken";
 
 const state = {
     session: null,
-    sessionToken: "",
-    usingBearerFallback: false,
     orders: [],
     products: [],
     settings: null,
@@ -46,29 +43,21 @@ function normalizeAbsoluteUrl(value) {
     }
 }
 
-function deriveApiBaseFromLocation() {
-    const { protocol, hostname, port } = window.location;
-    const portSuffix = port ? `:${port}` : "";
+function normalizeApiBase(value) {
+    const trimmedValue = String(value || "").trim();
 
-    if (hostname.startsWith("admin.")) {
-        return `${protocol}//api.${hostname.slice("admin.".length)}${portSuffix}`;
+    if (!trimmedValue || isRuntimePlaceholder(trimmedValue)) {
+        return "";
     }
 
-    if (hostname.startsWith("www.")) {
-        return `${protocol}//api.${hostname.slice("www.".length)}${portSuffix}`;
+    if (trimmedValue.startsWith("/")) {
+        return trimmedValue.replace(/\/$/, "");
     }
 
-    if (hostname.includes(".") && !hostname.endsWith(".pages.dev")) {
-        return `${protocol}//api.${hostname}${portSuffix}`;
-    }
-
-    return "";
+    return normalizeAbsoluteUrl(trimmedValue).replace(/\/$/, "");
 }
 
-const apiBase = (
-    normalizeAbsoluteUrl(body.dataset.apiBase || "") ||
-    normalizeAbsoluteUrl(deriveApiBaseFromLocation())
-).replace(/\/$/, "");
+const apiBase = normalizeApiBase(body.dataset.apiBase || "") || "/api";
 
 const authScreen = document.getElementById("authScreen");
 const dashboard = document.getElementById("dashboard");
@@ -240,26 +229,7 @@ function showToast(message, type = "info") {
     }, 3200);
 }
 
-function clearLegacyStoredSessionToken() {
-    try {
-        window.sessionStorage.removeItem(LEGACY_SESSION_TOKEN_STORAGE_KEY);
-    } catch {
-        // Ignore storage access issues and continue with runtime-only auth state.
-    }
-}
-
-function clearSessionTokenFallback() {
-    state.sessionToken = "";
-    state.usingBearerFallback = false;
-}
-
-function setSessionTokenFallback(token) {
-    state.sessionToken = token || "";
-    state.usingBearerFallback = Boolean(token);
-}
-
 async function apiRequest(path, options = {}) {
-    const sessionToken = options.skipSessionToken ? "" : state.sessionToken;
     let response;
 
     try {
@@ -267,7 +237,6 @@ async function apiRequest(path, options = {}) {
             method: options.method || "GET",
             headers: {
                 "Content-Type": "application/json",
-                ...(sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {}),
                 ...(options.headers || {})
             },
             body: options.body ? JSON.stringify(options.body) : undefined,
@@ -289,10 +258,6 @@ async function apiRequest(path, options = {}) {
     }
 
     if (!response.ok) {
-        if (response.status === 401) {
-            clearSessionTokenFallback();
-        }
-
         const error = new Error(payload?.error || `Request failed with status ${response.status}`);
         error.status = response.status;
         error.payload = payload;
@@ -302,11 +267,9 @@ async function apiRequest(path, options = {}) {
     return payload;
 }
 
-async function checkSession(options = {}) {
+async function checkSession() {
     try {
-        const payload = await apiRequest("/api/admin/auth/session", {
-            skipSessionToken: options.skipSessionToken
-        });
+        const payload = await apiRequest("/admin/auth/session");
         state.session = payload.session;
         sessionChip.innerHTML = `<i class="fa-solid fa-user-shield"></i><span>${escapeHtml(payload.session.email)}</span>`;
         return true;
@@ -829,17 +792,17 @@ function setView(view) {
 }
 
 async function loadOrders() {
-    const payload = await apiRequest("/api/admin/orders");
+    const payload = await apiRequest("/admin/orders");
     state.orders = payload.orders || [];
 }
 
 async function loadProducts() {
-    const payload = await apiRequest("/api/admin/products");
+    const payload = await apiRequest("/admin/products");
     state.products = payload.products || [];
 }
 
 async function loadSettings() {
-    const payload = await apiRequest("/api/admin/settings");
+    const payload = await apiRequest("/admin/settings");
     state.settings = payload.settings || null;
 }
 
@@ -852,31 +815,20 @@ async function handleLogin(event) {
     event.preventDefault();
 
     setButtonBusy(loginButton, true, "Logging in...");
-    clearSessionTokenFallback();
 
     try {
-        const loginPayload = await apiRequest("/api/admin/auth/login", {
+        await apiRequest("/admin/auth/login", {
             method: "POST",
             body: {
                 email: loginEmail.value.trim(),
                 password: loginPassword.value
-            },
-            skipSessionToken: true
+            }
         });
 
-        let sessionOk = await checkSession({ skipSessionToken: true });
-
-        if (!sessionOk && loginPayload.sessionToken) {
-            setSessionTokenFallback(loginPayload.sessionToken);
-            sessionOk = await checkSession();
-        }
+        const sessionOk = await checkSession();
 
         if (!sessionOk) {
-            throw new Error("Login succeeded, but the admin session could not be restored. Check the Worker CORS settings for this frontend origin and confirm the browser is allowing the admin session cookie.");
-        }
-
-        if (state.usingBearerFallback) {
-            showToast("This browser blocked the secure admin cookie, so this tab is using a temporary session fallback. Keep this tab open or log in again after a refresh.", "info");
+            throw new Error("Login succeeded, but the secure admin cookie did not become active. Use the same-site /admin/ dashboard and /api/ proxy path for this environment.");
         }
 
         await refreshDashboardData();
@@ -896,12 +848,11 @@ async function handleLogout() {
     setButtonBusy(logoutButton, true, "Logging out...");
 
     try {
-        await apiRequest("/api/admin/auth/logout", { method: "POST" });
+        await apiRequest("/admin/auth/logout", { method: "POST" });
     } catch {
         // Even if logout fails, reset the local dashboard state.
     }
 
-    clearSessionTokenFallback();
     state.session = null;
     state.orders = [];
     state.products = [];
@@ -925,7 +876,7 @@ async function handleOrderSave(event) {
     setButtonBusy(orderSaveButton, true, "Saving update...");
 
     try {
-        const payload = await apiRequest(`/api/admin/orders/${orderId}`, {
+        const payload = await apiRequest(`/admin/orders/${orderId}`, {
             method: "PATCH",
             body: {
                 status: orderStatus.value,
@@ -954,8 +905,8 @@ async function handleProductSave(event) {
     try {
         const payload = collectProductPayload();
         const response = state.isCreatingProduct
-            ? await apiRequest("/api/admin/products", { method: "POST", body: payload })
-            : await apiRequest(`/api/admin/products/${state.activeProductId}`, { method: "PATCH", body: payload });
+            ? await apiRequest("/admin/products", { method: "POST", body: payload })
+            : await apiRequest(`/admin/products/${state.activeProductId}`, { method: "PATCH", body: payload });
 
         if (state.isCreatingProduct) {
             state.products.unshift(response.product);
@@ -984,7 +935,7 @@ async function handleSettingsSave(event) {
     setButtonBusy(settingsSaveButton, true, "Saving settings...");
 
     try {
-        const payload = await apiRequest("/api/admin/settings", {
+        const payload = await apiRequest("/admin/settings", {
             method: "PATCH",
             body: collectSettingsPayload()
         });
@@ -1156,7 +1107,6 @@ function bindInteractions() {
 }
 
 async function init() {
-    clearLegacyStoredSessionToken();
     bindInteractions();
     setAuthState("Checking your admin session...");
 

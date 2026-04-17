@@ -69,10 +69,12 @@ Recommended Worker variable for separate frontend/backend origins:
 - `ADMIN_URL=https://your-admin-site-origin/admin/`
 - `API_BASE_URL=https://your-api-origin`
 
-Cross-origin admin login now works in two layers:
+Admin auth is now designed to stay cookie-only in the browser:
 
-- secure cookie session for same-origin or allowed cross-origin browser requests
-- bearer-token fallback from the dashboard for cleaner production behavior when the frontend and API are deployed on different origins
+- the dashboard talks to a same-origin Pages Functions proxy at `/api/*`
+- the proxy forwards requests to the Worker target defined by `API_BASE_URL`
+- browser-facing admin requests sent directly to a different-origin Worker are rejected
+- the dashboard no longer stores or sends bearer fallback tokens
 
 Apply `database/migrations/002_admin_internal_note.sql` before using inquiry notes in the admin flow.
 
@@ -101,6 +103,7 @@ Deployment behavior:
 
 - pushes that change `apps/api`, `database`, `packages/shared`, or `wrangler.toml` deploy the Worker
 - pushes that change `apps/web` deploy the Pages frontend from `apps/web`
+- Pages deploys should be prepared through `npm run deploy:prepare:pages`, which creates a stamped bundle in `.deploy/pages-site`
 
 Because the Pages project was created as a direct-upload project, GitHub Actions is the clean automatic deployment path here rather than switching to Cloudflare's built-in Git integration. This is an inference from the current project setup and Cloudflare Pages behavior.
 

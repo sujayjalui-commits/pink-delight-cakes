@@ -6,5 +6,6 @@ node_modules/
 dist/
 coverage/
 artifacts/
+.deploy/
 *.log
 tail-log*.txt

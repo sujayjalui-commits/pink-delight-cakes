@@ -26,31 +26,21 @@ function shouldUseSecureCookies(requestUrl) {
   return url.protocol === "https:";
 }
 
-function shouldUseCrossOriginCookieMode(requestUrl, requestOrigin) {
-  if (!requestUrl || !requestOrigin) {
-    return false;
-  }
-
-  return new URL(requestUrl).origin !== requestOrigin;
-}
-
-export function createAdminAuthCookie(sessionToken, requestUrl, requestOrigin) {
-  const crossOrigin = shouldUseCrossOriginCookieMode(requestUrl, requestOrigin);
+export function createAdminAuthCookie(sessionToken, requestUrl) {
   return createCookie(apiConfig.adminSessionCookieName, sessionToken, {
     httpOnly: true,
     secure: shouldUseSecureCookies(requestUrl),
-    sameSite: crossOrigin ? "None" : "Lax",
+    sameSite: "Lax",
     path: "/",
     maxAge: apiConfig.adminSessionMaxAgeSeconds
   });
 }
 
-export function createClearedAdminAuthCookie(requestUrl, requestOrigin) {
-  const crossOrigin = shouldUseCrossOriginCookieMode(requestUrl, requestOrigin);
+export function createClearedAdminAuthCookie(requestUrl) {
   return createCookie(apiConfig.adminSessionCookieName, "", {
     httpOnly: true,
     secure: shouldUseSecureCookies(requestUrl),
-    sameSite: crossOrigin ? "None" : "Lax",
+    sameSite: "Lax",
     path: "/",
     maxAge: 0
   });

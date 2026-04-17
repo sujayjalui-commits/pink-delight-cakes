@@ -1,5 +1,5 @@
 import { apiConfig } from "../config/api-config.js";
-import { requireAdmin } from "../middleware/admin-auth.js";
+import { requireAdmin, requireSameOriginAdminBrowserRequest } from "../middleware/admin-auth.js";
 import {
   createAdminAuthCookie,
   createClearedAdminAuthCookie,
@@ -47,6 +47,12 @@ async function readRequiredJsonBody(request) {
 }
 
 export async function handleAdminSetup(request, env) {
+  const sameOriginViolation = requireSameOriginAdminBrowserRequest(request);
+
+  if (sameOriginViolation) {
+    return sameOriginViolation;
+  }
+
   const rateLimit = await enforceAdminSetupRateLimit(env, request);
 
   if (!rateLimit.ok) {
@@ -64,6 +70,12 @@ export async function handleAdminSetup(request, env) {
 }
 
 export async function handleAdminLogin(request, env) {
+  const sameOriginViolation = requireSameOriginAdminBrowserRequest(request);
+
+  if (sameOriginViolation) {
+    return sameOriginViolation;
+  }
+
   const rateLimit = await enforceAdminLoginRateLimit(env, request);
 
   if (!rateLimit.ok) {
@@ -86,16 +98,22 @@ export async function handleAdminLogin(request, env) {
     {
       ok: true,
       admin: result.admin,
-      sessionToken: result.sessionToken
+      sessionTtlSeconds: apiConfig.adminSessionMaxAgeSeconds
     },
     200,
     {
-      "Set-Cookie": createAdminAuthCookie(result.sessionToken, request.url, request.headers.get("origin"))
+      "Set-Cookie": createAdminAuthCookie(result.sessionToken, request.url)
     }
   );
 }
 
 export async function handleAdminLogout(request) {
+  const sameOriginViolation = requireSameOriginAdminBrowserRequest(request);
+
+  if (sameOriginViolation) {
+    return sameOriginViolation;
+  }
+
   return createJsonResponse(
     {
       ok: true,
@@ -103,12 +121,18 @@ export async function handleAdminLogout(request) {
     },
     200,
     {
-      "Set-Cookie": createClearedAdminAuthCookie(request?.url, request?.headers.get("origin"))
+      "Set-Cookie": createClearedAdminAuthCookie(request?.url)
     }
   );
 }
 
 export async function handleAdminSession(request, env) {
+  const sameOriginViolation = requireSameOriginAdminBrowserRequest(request);
+
+  if (sameOriginViolation) {
+    return sameOriginViolation;
+  }
+
   const auth = await requireAdmin(request, env);
 
   if (!auth.ok) {

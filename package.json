@@ -11,6 +11,7 @@
   "scripts": {
     "dev:web": "echo \"Serve apps/web with your preferred static dev server\"",
     "dev:api": "wrangler dev",
+    "deploy:prepare:pages": "node scripts/deploy/prepare-pages-output.mjs",
     "db:migrate": "echo \"Apply database/migrations/001_initial_schema.sql via wrangler d1 execute\"",
     "db:backup": "node scripts/backups/export-d1.mjs",
     "db:seed:build": "node scripts/seed-data/build-phase-1-seed-sql.mjs",

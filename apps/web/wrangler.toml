@@ -1,3 +1,6 @@
 name = "pink-delight-cakes"
 compatibility_date = "2026-04-03"
 pages_build_output_dir = "."
+
+[vars]
+API_PROXY_TARGET = "https://pink-delight-cakes-api.sujayjalui.workers.dev"
