@@ -15,6 +15,7 @@ jobs:
       API_BASE_URL: ${{ vars.API_BASE_URL || 'https://pink-delight-cakes-api.sujayjalui.workers.dev' }}
       SITE_BASE_URL: ${{ vars.SITE_BASE_URL || 'https://pink-delight-cakes.pages.dev' }}
       ADMIN_BASE_URL: ${{ vars.ADMIN_BASE_URL || '' }}
+      MONITORING_WEBHOOK_URL: ${{ secrets.MONITORING_WEBHOOK_URL }}
 
     steps:
       - name: Checkout repository
@@ -31,9 +32,8 @@ jobs:
           node scripts/maintenance/check-admin-auth.mjs
 
       - name: Send failure alert
-        if: failure() && secrets.MONITORING_WEBHOOK_URL != ''
+        if: failure() && env.MONITORING_WEBHOOK_URL != ''
         env:
-          MONITORING_WEBHOOK_URL: ${{ secrets.MONITORING_WEBHOOK_URL }}
           MONITORING_ALERT_TITLE: Production healthcheck failed
           MONITORING_ALERT_BODY: One or more public production checks failed for the storefront or API.
           MONITORING_ALERT_SEVERITY: error

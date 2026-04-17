@@ -16,6 +16,7 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       D1_DATABASE_NAME: pink-delight-cakes
       D1_BACKUP_OUTPUT_DIR: artifacts/d1-backups
+      MONITORING_WEBHOOK_URL: ${{ secrets.MONITORING_WEBHOOK_URL }}
 
     steps:
       - name: Checkout repository
@@ -41,9 +42,8 @@ jobs:
           retention-days: 14
 
       - name: Send failure alert
-        if: failure() && secrets.MONITORING_WEBHOOK_URL != ''
+        if: failure() && env.MONITORING_WEBHOOK_URL != ''
         env:
-          MONITORING_WEBHOOK_URL: ${{ secrets.MONITORING_WEBHOOK_URL }}
           MONITORING_ALERT_TITLE: D1 backup failed
           MONITORING_ALERT_BODY: The scheduled D1 export workflow failed before the backup artifact was produced.
           MONITORING_ALERT_SEVERITY: error
