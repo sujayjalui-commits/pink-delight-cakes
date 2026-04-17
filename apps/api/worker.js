@@ -10,15 +10,18 @@ import {
   handleGetAdminProductById,
   handleGetAdminProducts,
   handleGetAdminSettings,
+  handleGetAdminTestimonials,
   handleUpdateAdminOrder,
   handleUpdateAdminProduct,
-  handleUpdateAdminSettings
+  handleUpdateAdminSettings,
+  handleUpdateAdminTestimonials
 } from "./src/controllers/admin-controller.js";
 import {
   handleCreateOrderRequest,
   handleGetProductBySlug,
   handleGetProducts,
   handleGetSettings,
+  handleGetTestimonials,
   handleLookupOrderRequest
 } from "./src/controllers/public-controller.js";
 import { adminRoutes } from "./src/routes/admin-routes.js";
@@ -88,6 +91,10 @@ export default {
         return withCors(await handleGetSettings(env), request, env);
       }
 
+      if (pathname === publicRoutes.testimonials && method === "GET") {
+        return withCors(await handleGetTestimonials(env), request, env);
+      }
+
       if (pathname === publicRoutes.orderRequests && method === "POST") {
         return withCors(await handleCreateOrderRequest(request, env, executionCtx), request, env);
       }
@@ -140,6 +147,14 @@ export default {
 
       if (pathname === adminRoutes.settings && method === "PATCH") {
         return withCors(await handleUpdateAdminSettings(request, env), request, env);
+      }
+
+      if (pathname === adminRoutes.testimonials && method === "GET") {
+        return withCors(await handleGetAdminTestimonials(request, env), request, env);
+      }
+
+      if (pathname === adminRoutes.testimonials && method === "PATCH") {
+        return withCors(await handleUpdateAdminTestimonials(request, env), request, env);
       }
 
       if (pathname.startsWith(`${adminRoutes.orders}/`) && method === "GET") {

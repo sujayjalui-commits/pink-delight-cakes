@@ -18,6 +18,66 @@ export async function getAdminBusinessSettings(env) {
   return getPublicSettings(env);
 }
 
+export async function getPublicTestimonials(env) {
+  if (!hasDatabase(env)) {
+    return [];
+  }
+
+  const query = `
+    SELECT * FROM ${tables.testimonials}
+    WHERE is_published = 1
+    ORDER BY sort_order ASC, id ASC
+  `;
+  const result = await env.DB.prepare(query).all();
+  return result.results || [];
+}
+
+export async function getAdminTestimonials(env) {
+  if (!hasDatabase(env)) {
+    return [];
+  }
+
+  const query = `SELECT * FROM ${tables.testimonials} ORDER BY sort_order ASC, id ASC`;
+  const result = await env.DB.prepare(query).all();
+  return result.results || [];
+}
+
+export async function replaceTestimonials(env, testimonials) {
+  if (!hasDatabase(env)) {
+    return [];
+  }
+
+  const statements = [
+    env.DB.prepare(`DELETE FROM ${tables.testimonials}`)
+  ];
+
+  testimonials.forEach((testimonial, index) => {
+    statements.push(
+      env.DB.prepare(
+        `INSERT INTO ${tables.testimonials} (
+          customer_name,
+          occasion_label,
+          quote_text,
+          rating,
+          is_published,
+          sort_order,
+          updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`
+      ).bind(
+        testimonial.customerName,
+        testimonial.occasionLabel,
+        testimonial.quoteText,
+        testimonial.rating,
+        testimonial.isPublished ? 1 : 0,
+        index + 1
+      )
+    );
+  });
+
+  await env.DB.batch(statements);
+  return getAdminTestimonials(env);
+}
+
 export async function getProducts(env) {
   if (!hasDatabase(env)) {
     return [];
@@ -45,6 +105,33 @@ export async function getProductOptions(env, productId) {
 
   const query = `SELECT * FROM ${tables.productOptions} WHERE product_id = ? ORDER BY option_group ASC, sort_order ASC, id ASC`;
   const result = await env.DB.prepare(query).bind(productId).all();
+  return result.results || [];
+}
+
+export async function getProductOptionsByProductIds(env, productIds) {
+  if (!hasDatabase(env) || !Array.isArray(productIds) || productIds.length === 0) {
+    return [];
+  }
+
+  const normalizedIds = Array.from(
+    new Set(
+      productIds
+        .map((productId) => Number(productId))
+        .filter((productId) => Number.isInteger(productId) && productId > 0)
+    )
+  );
+
+  if (normalizedIds.length === 0) {
+    return [];
+  }
+
+  const placeholders = normalizedIds.map(() => "?").join(", ");
+  const query = `
+    SELECT * FROM ${tables.productOptions}
+    WHERE product_id IN (${placeholders})
+    ORDER BY product_id ASC, option_group ASC, sort_order ASC, id ASC
+  `;
+  const result = await env.DB.prepare(query).bind(...normalizedIds).all();
   return result.results || [];
 }
 

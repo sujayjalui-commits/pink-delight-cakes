@@ -1,4 +1,5 @@
 import { getPublicCatalog, getPublicCatalogItem, getPublicSettingsView } from "../services/catalog-service.js";
+import { getPublicTestimonialsView } from "../services/testimonial-service.js";
 import {
   createInquiryMonitoringContext,
   createRequestMonitoringContext,
@@ -27,6 +28,11 @@ export async function handleGetProductBySlug(env, slug) {
 export async function handleGetSettings(env) {
   const settings = await getPublicSettingsView(env);
   return createJsonResponse({ ok: true, settings });
+}
+
+export async function handleGetTestimonials(env) {
+  const testimonials = await getPublicTestimonialsView(env);
+  return createJsonResponse({ ok: true, testimonials });
 }
 
 export async function handleLookupOrderRequest(request, env) {

@@ -8,6 +8,8 @@ on:
       - "apps/api/**"
       - "database/**"
       - "packages/shared/**"
+      - "scripts/deploy/**"
+      - "package.json"
       - "wrangler.toml"
       - ".github/workflows/deploy-worker.yml"
   workflow_dispatch:
@@ -37,38 +39,24 @@ jobs:
         run: npm install --global wrangler@4.80.0
 
       - name: Prepare deploy-specific Wrangler config
-        run: |
-          SITE_BASE_URL="${CONFIGURED_SITE_BASE_URL:-https://pink-delight-cakes.pages.dev}"
-          SITE_BASE_URL="${SITE_BASE_URL%/}"
-          ADMIN_BASE_URL="${CONFIGURED_ADMIN_BASE_URL:-${SITE_BASE_URL}/admin/}"
-          ADMIN_BASE_URL="${ADMIN_BASE_URL%/}/"
-          API_BASE_URL="${CONFIGURED_API_BASE_URL:-https://pink-delight-cakes-api.sujayjalui.workers.dev}"
-          ADMIN_ORIGIN="${ADMIN_BASE_URL%/}"
-          ADMIN_ORIGIN="${ADMIN_ORIGIN%/admin}"
-          CORS_ALLOWED_ORIGINS="${CONFIGURED_CORS_ALLOWED_ORIGINS:-$ADMIN_ORIGIN}"
+        env:
+          SITE_BASE_URL: ${{ env.CONFIGURED_SITE_BASE_URL }}
+          ADMIN_BASE_URL: ${{ env.CONFIGURED_ADMIN_BASE_URL }}
+          API_BASE_URL: ${{ env.CONFIGURED_API_BASE_URL }}
+          CORS_ALLOWED_ORIGINS: ${{ env.CONFIGURED_CORS_ALLOWED_ORIGINS }}
+        run: npm run deploy:prepare:worker
 
-          export SITE_BASE_URL ADMIN_BASE_URL API_BASE_URL CORS_ALLOWED_ORIGINS
+      - name: Check pending remote D1 migrations
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: wrangler d1 migrations list pink-delight-cakes --remote --config wrangler.deploy.toml
 
-          node <<'EOF'
-          const fs = require('fs');
-
-          const configPath = 'wrangler.toml';
-          const deployConfigPath = 'wrangler.deploy.toml';
-          const replacements = [
-            [/^SITE_URL = ".*"$/m, `SITE_URL = "${process.env.SITE_BASE_URL}"`],
-            [/^ADMIN_URL = ".*"$/m, `ADMIN_URL = "${process.env.ADMIN_BASE_URL}"`],
-            [/^API_BASE_URL = ".*"$/m, `API_BASE_URL = "${process.env.API_BASE_URL}"`],
-            [/^CORS_ALLOWED_ORIGINS = ".*"$/m, `CORS_ALLOWED_ORIGINS = "${process.env.CORS_ALLOWED_ORIGINS}"`]
-          ];
-
-          let contents = fs.readFileSync(configPath, 'utf8');
-
-          for (const [pattern, replacement] of replacements) {
-            contents = contents.replace(pattern, replacement);
-          }
-
-          fs.writeFileSync(deployConfigPath, contents);
-          EOF
+      - name: Apply pending remote D1 migrations
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: wrangler d1 migrations apply pink-delight-cakes --remote --config wrangler.deploy.toml
 
       - name: Deploy Cloudflare Worker
         env:

@@ -461,6 +461,10 @@ select:focus {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.settings-span-full {
+    grid-column: 1 / -1;
+}
+
 .orders-layout,
 .products-layout {
     grid-template-columns: minmax(320px, 0.95fr) minmax(360px, 1.05fr);
@@ -695,6 +699,35 @@ select:focus {
     grid-template-columns: 1fr 1fr minmax(120px, 0.7fr) auto;
 }
 
+.dynamic-row.testimonial-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) minmax(110px, 0.45fr) auto auto;
+    align-items: start;
+    padding: 1rem;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.58);
+    border: 1px solid rgba(111, 78, 55, 0.08);
+}
+
+.testimonial-list textarea {
+    min-height: 116px;
+}
+
+.testimonial-quote {
+    grid-column: 1 / -1;
+}
+
+.testimonial-publish {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding-top: 0.4rem;
+}
+
+.testimonial-publish input {
+    width: 18px;
+    height: 18px;
+}
+
 .icon-button {
     width: 42px;
     height: 42px;
@@ -839,6 +872,10 @@ select:focus {
     .dynamic-row.flavor-row,
     .dynamic-row.addon-row {
         grid-template-columns: 1fr auto;
+    }
+
+    .dynamic-row.testimonial-row {
+        grid-template-columns: 1fr;
     }
 
     .card-head,

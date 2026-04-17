@@ -23,6 +23,10 @@ import {
   updateAdminBusinessSettings
 } from "../services/admin-settings-service.js";
 import {
+  getAdminTestimonialsView,
+  replaceAdminTestimonials
+} from "../services/testimonial-service.js";
+import {
   createRateLimitHeaders,
   enforceAdminLoginRateLimit,
   enforceAdminSetupRateLimit
@@ -279,5 +283,33 @@ export async function handleUpdateAdminSettings(request, env) {
   }
 
   const result = await updateAdminBusinessSettings(env, parsed.body);
+  return createJsonResponse(result, result.ok ? 200 : result.status || 400);
+}
+
+export async function handleGetAdminTestimonials(request, env) {
+  const auth = await requireAdmin(request, env);
+
+  if (!auth.ok) {
+    return auth.response;
+  }
+
+  const testimonials = await getAdminTestimonialsView(env);
+  return createJsonResponse({ ok: true, testimonials });
+}
+
+export async function handleUpdateAdminTestimonials(request, env) {
+  const auth = await requireAdmin(request, env);
+
+  if (!auth.ok) {
+    return auth.response;
+  }
+
+  const parsed = await readRequiredJsonBody(request);
+
+  if (!parsed.ok) {
+    return parsed.response;
+  }
+
+  const result = await replaceAdminTestimonials(env, parsed.body.testimonials || []);
   return createJsonResponse(result, result.ok ? 200 : result.status || 400);
 }

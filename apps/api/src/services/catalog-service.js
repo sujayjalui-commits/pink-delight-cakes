@@ -1,5 +1,5 @@
 import { seedCatalog } from "../../../../packages/shared/constants/seed-catalog.js";
-import { getProductBySlug, getProducts, getProductOptions, getPublicSettings } from "../db/d1-client.js";
+import { getProductBySlug, getProducts, getProductOptions, getProductOptionsByProductIds, getPublicSettings } from "../db/d1-client.js";
 
 function mapSeedProduct(product) {
   return {
@@ -45,6 +45,19 @@ function groupDatabaseOptions(options) {
   );
 }
 
+function groupOptionsByProductId(options) {
+  return options.reduce((accumulator, option) => {
+    const productId = Number(option.product_id);
+
+    if (!accumulator.has(productId)) {
+      accumulator.set(productId, []);
+    }
+
+    accumulator.get(productId).push(option);
+    return accumulator;
+  }, new Map());
+}
+
 function mapDatabaseProduct(product, options) {
   return {
     id: product.id,
@@ -69,12 +82,15 @@ export async function getPublicCatalog(env) {
     return seedCatalog.products.map(mapSeedProduct);
   }
 
-  const mappedProducts = await Promise.all(
-    databaseProducts.map(async (product) => {
-      const options = await getProductOptions(env, product.id);
-      return mapDatabaseProduct(product, options);
-    })
+  const allOptions = await getProductOptionsByProductIds(
+    env,
+    databaseProducts.map((product) => product.id)
   );
+  const optionsByProductId = groupOptionsByProductId(allOptions);
+  const mappedProducts = databaseProducts.map((product) => {
+    const options = optionsByProductId.get(Number(product.id)) || [];
+    return mapDatabaseProduct(product, options);
+  });
 
   return mappedProducts;
 }

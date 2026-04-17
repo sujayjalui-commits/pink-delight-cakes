@@ -104,6 +104,8 @@ Deployment behavior:
 - pushes that change `apps/api`, `database`, `packages/shared`, or `wrangler.toml` deploy the Worker
 - pushes that change `apps/web` deploy the Pages frontend from `apps/web`
 - Pages deploys should be prepared through `npm run deploy:prepare:pages`, which creates a stamped bundle in `.deploy/pages-site`
+- Worker deploys should be prepared through `npm run deploy:prepare:worker`, which writes `wrangler.deploy.toml` with the deploy-time URLs and CORS origins
+- Worker deploys now run `wrangler d1 migrations list` and `wrangler d1 migrations apply` against the remote D1 database before deploying, so unapplied migrations are surfaced and applied in CI instead of relying on a separate manual step
 
 Because the Pages project was created as a direct-upload project, GitHub Actions is the clean automatic deployment path here rather than switching to Cloudflare's built-in Git integration. This is an inference from the current project setup and Cloudflare Pages behavior.
 

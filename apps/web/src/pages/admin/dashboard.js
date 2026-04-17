@@ -16,6 +16,7 @@ const state = {
     orders: [],
     products: [],
     settings: null,
+    testimonials: [],
     activeView: "orders",
     activeOrderId: null,
     activeProductId: null,
@@ -133,6 +134,10 @@ const settingsSundayOpenTime = document.getElementById("settingsSundayOpenTime")
 const settingsSundayCloseTime = document.getElementById("settingsSundayCloseTime");
 const settingsSummary = document.getElementById("settingsSummary");
 const settingsSaveButton = document.getElementById("settingsSaveButton");
+const testimonialsForm = document.getElementById("testimonialsForm");
+const testimonialList = document.getElementById("testimonialList");
+const addTestimonialButton = document.getElementById("addTestimonialButton");
+const testimonialsSaveButton = document.getElementById("testimonialsSaveButton");
 const toastStack = document.getElementById("toastStack");
 
 function escapeHtml(value) {
@@ -482,6 +487,40 @@ function createListInput(type, values = {}) {
     return row;
 }
 
+function createTestimonialInput(values = {}) {
+    const row = document.createElement("div");
+    row.className = "dynamic-row testimonial-row";
+    row.innerHTML = `
+        <label>
+            <span>Customer name</span>
+            <input type="text" data-testimonial-name placeholder="Riya S." value="${escapeHtml(values.customerName || "")}">
+        </label>
+        <label>
+            <span>Occasion label</span>
+            <input type="text" data-testimonial-occasion placeholder="Birthday order" value="${escapeHtml(values.occasionLabel || "")}">
+        </label>
+        <label>
+            <span>Rating</span>
+            <select data-testimonial-rating>
+                ${[5, 4, 3, 2, 1].map((rating) => `
+                    <option value="${rating}" ${Number(values.rating || 5) === rating ? "selected" : ""}>${rating} star${rating === 1 ? "" : "s"}</option>
+                `).join("")}
+            </select>
+        </label>
+        <label class="testimonial-publish">
+            <input type="checkbox" data-testimonial-published ${values.isPublished !== false ? "checked" : ""}>
+            <span>Published</span>
+        </label>
+        <button class="icon-button" type="button" data-remove-testimonial><i class="fa-solid fa-trash"></i></button>
+        <label class="testimonial-quote">
+            <span>Quote</span>
+            <textarea data-testimonial-quote rows="4" placeholder="Share the customer quote exactly as you want it on the storefront.">${escapeHtml(values.quoteText || "")}</textarea>
+        </label>
+    `;
+
+    return row;
+}
+
 function fillDynamicList(container, type, items) {
     container.innerHTML = "";
 
@@ -645,6 +684,19 @@ function fillSettingsForm(settings) {
     settingsSundayCloseTime.value = settings?.sundayCloseTime || "";
 }
 
+function renderTestimonialsEditor() {
+    testimonialList.innerHTML = "";
+
+    if (!Array.isArray(state.testimonials) || !state.testimonials.length) {
+        testimonialList.appendChild(createTestimonialInput());
+        return;
+    }
+
+    state.testimonials.forEach((testimonial) => {
+        testimonialList.appendChild(createTestimonialInput(testimonial));
+    });
+}
+
 function renderSettingsSummary() {
     const settings = state.settings;
 
@@ -738,6 +790,7 @@ function renderSettingsSummary() {
 function renderSettings() {
     fillSettingsForm(state.settings);
     renderSettingsSummary();
+    renderTestimonialsEditor();
 }
 
 function collectSettingsPayload() {
@@ -767,6 +820,22 @@ function collectSettingsPayload() {
         sundayOpenTime: settingsSundayOpenTime.value,
         sundayCloseTime: settingsSundayCloseTime.value
     };
+}
+
+function collectTestimonialsPayload() {
+    return Array.from(testimonialList.querySelectorAll(".testimonial-row"))
+        .map((row) => ({
+            customerName: row.querySelector("[data-testimonial-name]")?.value.trim() || "",
+            occasionLabel: row.querySelector("[data-testimonial-occasion]")?.value.trim() || "",
+            quoteText: row.querySelector("[data-testimonial-quote]")?.value.trim() || "",
+            rating: Number(row.querySelector("[data-testimonial-rating]")?.value || 5),
+            isPublished: Boolean(row.querySelector("[data-testimonial-published]")?.checked)
+        }))
+        .filter((testimonial) => (
+            testimonial.customerName ||
+            testimonial.occasionLabel ||
+            testimonial.quoteText
+        ));
 }
 
 function renderAll() {
@@ -806,8 +875,13 @@ async function loadSettings() {
     state.settings = payload.settings || null;
 }
 
+async function loadTestimonials() {
+    const payload = await apiRequest("/admin/testimonials");
+    state.testimonials = payload.testimonials || [];
+}
+
 async function refreshDashboardData() {
-    await Promise.all([loadOrders(), loadProducts(), loadSettings()]);
+    await Promise.all([loadOrders(), loadProducts(), loadSettings(), loadTestimonials()]);
     renderAll();
 }
 
@@ -950,6 +1024,29 @@ async function handleSettingsSave(event) {
     }
 }
 
+async function handleTestimonialsSave(event) {
+    event.preventDefault();
+
+    setButtonBusy(testimonialsSaveButton, true, "Saving testimonials...");
+
+    try {
+        const payload = await apiRequest("/admin/testimonials", {
+            method: "PATCH",
+            body: {
+                testimonials: collectTestimonialsPayload()
+            }
+        });
+
+        state.testimonials = payload.testimonials || [];
+        renderTestimonialsEditor();
+        showToast("Testimonials updated successfully.", "success");
+    } catch (error) {
+        showToast(error.message || "Unable to save testimonials.", "error");
+    } finally {
+        setButtonBusy(testimonialsSaveButton, false, "Save testimonials");
+    }
+}
+
 function bindDynamicListButtons() {
     document.querySelectorAll("[data-add-list]").forEach((button) => {
         button.addEventListener("click", () => {
@@ -988,6 +1085,7 @@ function bindInteractions() {
     orderForm.addEventListener("submit", handleOrderSave);
     productForm.addEventListener("submit", handleProductSave);
     settingsForm.addEventListener("submit", handleSettingsSave);
+    testimonialsForm.addEventListener("submit", handleTestimonialsSave);
     sidebarToggle.addEventListener("click", () => {
         sidebar.classList.toggle("open");
     });
@@ -1023,9 +1121,9 @@ function bindInteractions() {
     });
 
     refreshSettings.addEventListener("click", async () => {
-        await loadSettings();
+        await Promise.all([loadSettings(), loadTestimonials()]);
         renderSettings();
-        showToast("Business settings refreshed.", "info");
+        showToast("Business settings and testimonials refreshed.", "info");
     });
 
     orderFilters.addEventListener("click", (event) => {
@@ -1094,6 +1192,23 @@ function bindInteractions() {
         state.activeProductId = null;
         renderProductsGrid();
         renderProductEditor();
+    });
+
+    addTestimonialButton.addEventListener("click", () => {
+        testimonialList.appendChild(createTestimonialInput());
+    });
+
+    testimonialList.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-remove-testimonial]");
+        if (!button) {
+            return;
+        }
+
+        button.closest(".testimonial-row")?.remove();
+
+        if (!testimonialList.querySelector(".testimonial-row")) {
+            testimonialList.appendChild(createTestimonialInput());
+        }
     });
 
     window.addEventListener("hashchange", () => {

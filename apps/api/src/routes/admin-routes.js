@@ -5,5 +5,6 @@ export const adminRoutes = {
   session: "/api/admin/auth/session",
   products: "/api/admin/products",
   orders: "/api/admin/orders",
+  testimonials: "/api/admin/testimonials",
   settings: "/api/admin/settings"
 };

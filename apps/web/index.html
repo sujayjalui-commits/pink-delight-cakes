@@ -1918,29 +1918,10 @@
                     <div class="section-heading reveal">
                         <span class="eyebrow"><i class="fa-solid fa-star"></i> Customer love <span class="beta-pill">Beta</span></span>
                         <h2>Small-batch baking works best when people remember both the taste and the feeling.</h2>
-                        <p>Add real customer quotes and photos here once you have them. They will do more for trust than any visual effect.</p>
+                        <p>A few kind words from past celebrations can help new customers understand the care behind each custom order.</p>
                     </div>
 
-                    <div class="review-grid">
-                        <article class="testimonial-card reveal">
-                            <div class="stars"><i class="fa-solid fa-star"></i> <i class="fa-solid fa-star"></i> <i class="fa-solid fa-star"></i> <i class="fa-solid fa-star"></i> <i class="fa-solid fa-star"></i></div>
-                            <p>"The cake looked exactly like the reference I sent and tasted even better. Everyone asked where it was from."</p>
-                            <strong>Riya S.</strong>
-                            <span>Birthday order</span>
-                        </article>
-                        <article class="testimonial-card reveal">
-                            <div class="stars"><i class="fa-solid fa-star"></i> <i class="fa-solid fa-star"></i> <i class="fa-solid fa-star"></i> <i class="fa-solid fa-star"></i> <i class="fa-solid fa-star"></i></div>
-                            <p>"The ordering process was so smooth on WhatsApp. The design felt premium, but still warm and homemade."</p>
-                            <strong>Neha M.</strong>
-                            <span>Baby shower cake</span>
-                        </article>
-                        <article class="testimonial-card reveal">
-                            <div class="stars"><i class="fa-solid fa-star"></i> <i class="fa-solid fa-star"></i> <i class="fa-solid fa-star"></i> <i class="fa-solid fa-star"></i> <i class="fa-solid fa-star"></i></div>
-                            <p>"Beautiful finish, balanced sweetness, and on-time delivery. It made our anniversary table look special."</p>
-                            <strong>Arjun and Meera</strong>
-                            <span>Anniversary order</span>
-                        </article>
-                    </div>
+                    <div class="review-grid" id="reviewGrid"></div>
                 </div>
             </section>
 
@@ -2073,6 +2054,26 @@
             sundayOpenTime: "",
             sundayCloseTime: ""
         };
+        const DEFAULT_TESTIMONIALS = [
+            {
+                customerName: "Riya S.",
+                occasionLabel: "Birthday order",
+                quoteText: "The cake looked exactly like the reference I sent and tasted even better. Everyone asked where it was from.",
+                rating: 5
+            },
+            {
+                customerName: "Neha M.",
+                occasionLabel: "Baby shower cake",
+                quoteText: "The ordering process was so smooth on WhatsApp. The design felt premium, but still warm and homemade.",
+                rating: 5
+            },
+            {
+                customerName: "Arjun and Meera",
+                occasionLabel: "Anniversary order",
+                quoteText: "Beautiful finish, balanced sweetness, and on-time delivery. It made our anniversary table look special.",
+                rating: 5
+            }
+        ];
 
         function isRuntimePlaceholder(value) {
             return /^__.+__$/.test(String(value || "").trim());
@@ -2142,6 +2143,7 @@
 
         const state = {
             settings: { ...DEFAULT_SETTINGS },
+            testimonials: [...DEFAULT_TESTIMONIALS],
             products: [],
             productsStatus: "loading"
         };
@@ -2181,6 +2183,7 @@
         const founderPortraitImage = document.getElementById("founderPortraitImage");
         const responseTimeCopy = document.getElementById("responseTimeCopy");
         const supportResponseTimeCopy = document.getElementById("supportResponseTimeCopy");
+        const reviewGrid = document.getElementById("reviewGrid");
         const serviceAreaDeliveryCopy = document.getElementById("serviceAreaDeliveryCopy");
         const serviceAreaPickupCopy = document.getElementById("serviceAreaPickupCopy");
         const serviceAreaNoticeCopy = document.getElementById("serviceAreaNoticeCopy");
@@ -2231,6 +2234,11 @@
 
         function formatFulfillmentLabel(value) {
             return value === "local_delivery" ? "Local delivery" : "Pickup";
+        }
+
+        function createStarsMarkup(rating) {
+            const count = Math.max(1, Math.min(5, Number(rating) || 5));
+            return Array.from({ length: count }, () => '<i class="fa-solid fa-star"></i>').join(" ");
         }
 
         function isValidInquiryPhone(value) {
@@ -2426,6 +2434,34 @@
                     </div>
                 </article>
             `).join("");
+        }
+
+        function renderTestimonials() {
+            const testimonials = Array.isArray(state.testimonials) ? state.testimonials : [];
+
+            if (!testimonials.length) {
+                reviewGrid.innerHTML = `
+                    <article class="testimonial-card reveal">
+                        <div class="stars">${createStarsMarkup(5)}</div>
+                        <p>"Customer testimonials will appear here once they are published from the admin dashboard."</p>
+                        <strong>${escapeHtml(state.settings.brandName || DEFAULT_SETTINGS.brandName)}</strong>
+                        <span>Customer love</span>
+                    </article>
+                `;
+                observeRevealItems(reviewGrid);
+                return;
+            }
+
+            reviewGrid.innerHTML = testimonials.map((testimonial) => `
+                <article class="testimonial-card reveal">
+                    <div class="stars">${createStarsMarkup(testimonial.rating)}</div>
+                    <p>"${escapeHtml(testimonial.quoteText || "")}"</p>
+                    <strong>${escapeHtml(testimonial.customerName || "Happy customer")}</strong>
+                    <span>${escapeHtml(testimonial.occasionLabel || "Celebration order")}</span>
+                </article>
+            `).join("");
+
+            observeRevealItems(reviewGrid);
         }
 
         function setInquiryEnabled(enabled) {
@@ -2965,6 +3001,20 @@
             observeRevealItems(menuGrid);
         }
 
+        async function loadTestimonials() {
+            try {
+                const payload = await apiRequest("/api/testimonials");
+                state.testimonials = Array.isArray(payload?.testimonials) && payload.testimonials.length
+                    ? payload.testimonials
+                    : [];
+            } catch (error) {
+                console.warn("Testimonials fallback in use:", error.message);
+                state.testimonials = [...DEFAULT_TESTIMONIALS];
+            }
+
+            renderTestimonials();
+        }
+
         async function handleInquirySubmit(event) {
             event.preventDefault();
 
@@ -3083,12 +3133,14 @@
             applySettings();
             applyHomepageMedia();
             renderCatalogState("Loading the live cake catalogue...");
+            renderTestimonials();
             updateRequestPreview();
             observeRevealItems(document);
 
             await Promise.allSettled([
                 loadSettings(),
-                loadProducts()
+                loadProducts(),
+                loadTestimonials()
             ]);
         }
 

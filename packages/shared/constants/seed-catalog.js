@@ -1,4 +1,27 @@
 export const seedCatalog = {
+  testimonials: [
+    {
+      customerName: "Riya S.",
+      occasionLabel: "Birthday order",
+      quoteText: "The cake looked exactly like the reference I sent and tasted even better. Everyone asked where it was from.",
+      rating: 5,
+      isPublished: true
+    },
+    {
+      customerName: "Neha M.",
+      occasionLabel: "Baby shower cake",
+      quoteText: "The ordering process was so smooth on WhatsApp. The design felt premium, but still warm and homemade.",
+      rating: 5,
+      isPublished: true
+    },
+    {
+      customerName: "Arjun and Meera",
+      occasionLabel: "Anniversary order",
+      quoteText: "Beautiful finish, balanced sweetness, and on-time delivery. It made our anniversary table look special.",
+      rating: 5,
+      isPublished: true
+    }
+  ],
   businessSettings: {
     brandName: "Pink Delight Cakes",
     contactEmail: "hello@pinkdelightcakes.com",
