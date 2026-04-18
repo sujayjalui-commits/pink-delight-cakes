@@ -11,6 +11,8 @@ const ORDER_STATUSES = [
 
 const PRODUCT_AVAILABILITY = ["available", "limited", "unavailable"];
 const FORM_KEYS = ["order", "product", "settings", "testimonials"];
+const PRODUCT_IMAGE_UPLOAD_MAX_BYTES = 320 * 1024;
+const PRODUCT_IMAGE_MAX_DIMENSION = 1400;
 
 const state = {
     session: null,
@@ -22,7 +24,11 @@ const state = {
     activeOrderId: null,
     activeProductId: null,
     orderFilter: "all",
+    orderScope: "all",
+    orderSearch: "",
+    orderSort: "attention_desc",
     isCreatingProduct: false,
+    productDraft: null,
     formMeta: {
         order: { baseline: "", savedAt: null },
         product: { baseline: "", savedAt: null },
@@ -88,6 +94,9 @@ const refreshOrders = document.getElementById("refreshOrders");
 const refreshProducts = document.getElementById("refreshProducts");
 const refreshSettings = document.getElementById("refreshSettings");
 const orderFilters = document.getElementById("orderFilters");
+const orderSearchInput = document.getElementById("orderSearchInput");
+const orderSortSelect = document.getElementById("orderSortSelect");
+const orderQuickFilters = document.getElementById("orderQuickFilters");
 const ordersList = document.getElementById("ordersList");
 const ordersCountLabel = document.getElementById("ordersCountLabel");
 const orderEmptyState = document.getElementById("orderEmptyState");
@@ -104,6 +113,7 @@ const copyOrderReplyButton = document.getElementById("copyOrderReplyButton");
 const copyOrderSummaryButton = document.getElementById("copyOrderSummaryButton");
 const productsGrid = document.getElementById("productsGrid");
 const newProductButton = document.getElementById("newProductButton");
+const duplicateProductButton = document.getElementById("duplicateProductButton");
 const productEditorLabel = document.getElementById("productEditorLabel");
 const productForm = document.getElementById("productForm");
 const productName = document.getElementById("productName");
@@ -115,9 +125,14 @@ const productStartingPrice = document.getElementById("productStartingPrice");
 const productLeadTime = document.getElementById("productLeadTime");
 const productAvailability = document.getElementById("productAvailability");
 const productImageUrl = document.getElementById("productImageUrl");
+const productImageFile = document.getElementById("productImageFile");
+const productImageUploadButton = document.getElementById("productImageUploadButton");
+const productImageClearButton = document.getElementById("productImageClearButton");
+const productImageMeta = document.getElementById("productImageMeta");
 const productFeatured = document.getElementById("productFeatured");
 const productSaveButton = document.getElementById("productSaveButton");
 const productSaveMeta = document.getElementById("productSaveMeta");
+const productPreviewCard = document.getElementById("productPreviewCard");
 const flavorList = document.getElementById("flavorList");
 const sizeList = document.getElementById("sizeList");
 const addonList = document.getElementById("addonList");
@@ -224,6 +239,36 @@ function slugLabel(value) {
     return String(value || "")
         .replace(/_/g, " ")
         .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+function generateSlug(value) {
+    return String(value || "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .replace(/-{2,}/g, "-");
+}
+
+function getUniqueProductSlug(baseSlug, excludedProductId = null) {
+    const fallbackBase = generateSlug(baseSlug) || "cake-product";
+    const normalizedExistingSlugs = new Set(
+        state.products
+            .filter((product) => product.id !== excludedProductId)
+            .map((product) => String(product.slug || "").trim())
+            .filter(Boolean)
+    );
+
+    if (!normalizedExistingSlugs.has(fallbackBase)) {
+        return fallbackBase;
+    }
+
+    let suffix = 2;
+    while (normalizedExistingSlugs.has(`${fallbackBase}-${suffix}`)) {
+        suffix += 1;
+    }
+
+    return `${fallbackBase}-${suffix}`;
 }
 
 function normalizePhoneNumber(value) {
@@ -382,6 +427,118 @@ function getNeedsAttentionItems() {
     return [...orderItems, ...productItems]
         .sort((left, right) => right.priority - left.priority)
         .slice(0, 6);
+}
+
+function matchesOrderSearch(order, query) {
+    if (!query) {
+        return true;
+    }
+
+    const normalizedQuery = query.toLowerCase();
+    const searchableParts = [
+        order.id,
+        order.customerName,
+        order.customerPhone,
+        order.customerEmail,
+        order.productSnapshot?.name,
+        order.status,
+        order.eventDate
+    ];
+
+    return searchableParts.some((part) => String(part || "").toLowerCase().includes(normalizedQuery));
+}
+
+function matchesOrderScope(order, scope) {
+    const attention = getOrderAttentionMeta(order);
+    const daysUntilEvent = daysUntilDate(order.eventDate);
+    const hasQuote = order.quotedAmount !== null && order.quotedAmount !== undefined && order.quotedAmount !== "";
+
+    if (scope === "needs_quote") {
+        return (order.status === "new" || order.status === "reviewing") && !hasQuote;
+    }
+
+    if (scope === "event_this_week") {
+        return Number.isFinite(daysUntilEvent) && daysUntilEvent >= 0 && daysUntilEvent <= 7;
+    }
+
+    if (scope === "waiting_customer") {
+        return attention.tone === "watch";
+    }
+
+    return true;
+}
+
+function sortOrders(orders) {
+    const sortedOrders = [...orders];
+
+    if (state.orderSort === "event_asc") {
+        return sortedOrders.sort((left, right) => {
+            const leftDays = daysUntilDate(left.eventDate);
+            const rightDays = daysUntilDate(right.eventDate);
+            return leftDays - rightDays || right.id - left.id;
+        });
+    }
+
+    if (state.orderSort === "created_desc") {
+        return sortedOrders.sort((left, right) => (
+            new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()
+        ));
+    }
+
+    return sortedOrders.sort((left, right) => {
+        const leftAttention = getOrderAttentionMeta(left);
+        const rightAttention = getOrderAttentionMeta(right);
+        return rightAttention.priority - leftAttention.priority
+            || new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
+    });
+}
+
+function getProductImagePreviewSource(value) {
+    const normalizedValue = String(value || "").trim();
+
+    if (normalizedValue) {
+        return normalizedValue;
+    }
+
+    return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480">
+            <defs>
+                <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#f8d8d3" />
+                    <stop offset="100%" stop-color="#fff4ea" />
+                </linearGradient>
+            </defs>
+            <rect width="640" height="480" fill="url(#bg)" />
+            <circle cx="320" cy="184" r="84" fill="#fff9f4" opacity="0.92" />
+            <path d="M224 296c24-54 64-82 96-82s72 28 96 82v56H224z" fill="#ffffff" opacity="0.86" />
+            <text x="320" y="390" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="28" fill="#8d6561">Cake photo preview</text>
+        </svg>
+    `);
+}
+
+function renderProductPreview() {
+    const draft = collectProductPayload();
+    const previewFlavor = draft.flavors.find(Boolean) || "Flavor option";
+    const previewSize = draft.sizes.find((size) => size.label)?.label || "Serving size";
+
+    productPreviewCard.innerHTML = `
+        <div class="product-preview-image">
+            <img src="${escapeHtml(getProductImagePreviewSource(draft.imageUrl))}" alt="${escapeHtml(draft.name || "Cake preview")}">
+            ${draft.badge ? `<span class="badge-chip">${escapeHtml(draft.badge)}</span>` : ""}
+        </div>
+        <div class="product-preview-content">
+            <div class="product-preview-topline">
+                <strong>${escapeHtml(draft.name || "New cake concept")}</strong>
+                <span class="product-preview-price">${draft.startingPrice ? `From ${escapeHtml(formatCurrency(draft.startingPrice))}` : "Price not set"}</span>
+            </div>
+            <p>${escapeHtml(draft.shortDescription || "Write a short description to preview how this cake card will look on the storefront.")}</p>
+            <div class="catalog-tags">
+                <span class="mini-pill">${escapeHtml(statusLabel(draft.availabilityStatus || "available"))}</span>
+                <span class="mini-pill">${escapeHtml(previewFlavor)}</span>
+                <span class="mini-pill">${escapeHtml(previewSize)}</span>
+            </div>
+        </div>
+    `;
 }
 
 function setAuthState(message, type = "info") {
@@ -817,11 +974,14 @@ function renderOverview() {
 }
 
 function getVisibleOrders() {
-    if (state.orderFilter === "all") {
-        return state.orders;
-    }
+    const filteredOrders = state.orders.filter((order) => {
+        const statusMatch = state.orderFilter === "all" || order.status === state.orderFilter;
+        return statusMatch
+            && matchesOrderScope(order, state.orderScope)
+            && matchesOrderSearch(order, state.orderSearch);
+    });
 
-    return state.orders.filter((order) => order.status === state.orderFilter);
+    return sortOrders(filteredOrders);
 }
 
 function renderOrderFilters() {
@@ -831,6 +991,12 @@ function renderOrderFilters() {
             ${escapeHtml(filter === "all" ? "All orders" : statusLabel(filter))}
         </button>
     `).join("");
+
+    orderSearchInput.value = state.orderSearch;
+    orderSortSelect.value = state.orderSort;
+    orderQuickFilters.querySelectorAll("[data-order-scope]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.orderScope === state.orderScope);
+    });
 }
 
 function renderOrdersList() {
@@ -1019,6 +1185,117 @@ function getDefaultProductDraft() {
     };
 }
 
+function createDuplicateProductDraft(product) {
+    const duplicatedName = `${product.name} Copy`;
+    return {
+        ...product,
+        id: null,
+        name: duplicatedName,
+        slug: getUniqueProductSlug(generateSlug(duplicatedName), product.id),
+        badge: product.badge || "",
+        featured: false,
+        options: {
+            flavors: [...(product.options?.flavors || [""])],
+            sizes: [...(product.options?.sizes || [{ label: "", servings: "", price: "" }])].map((size) => ({ ...size })),
+            addOns: [...(product.options?.addOns || [""])]
+        }
+    };
+}
+
+function syncProductSlugFromName() {
+    if (productSlug.dataset.userModified === "true") {
+        return;
+    }
+
+    const excludedProductId = state.isCreatingProduct ? null : state.activeProductId;
+    productSlug.value = getUniqueProductSlug(productName.value, excludedProductId);
+}
+
+function setProductSlugMode(product, userModified) {
+    productSlug.dataset.userModified = userModified ? "true" : "false";
+    productSlug.dataset.initialValue = product.slug || "";
+}
+
+function estimateDataUrlBytes(dataUrl) {
+    const encoded = String(dataUrl || "").split(",", 2)[1] || "";
+    return Math.floor((encoded.length * 3) / 4);
+}
+
+function loadImageElement(source) {
+    return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error("The selected image could not be processed."));
+        image.src = source;
+    });
+}
+
+function readFileAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ""));
+        reader.onerror = () => reject(new Error("The selected image could not be read."));
+        reader.readAsDataURL(file);
+    });
+}
+
+async function compressProductImage(file) {
+    const originalDataUrl = await readFileAsDataUrl(file);
+    const image = await loadImageElement(originalDataUrl);
+
+    let width = image.naturalWidth || image.width;
+    let height = image.naturalHeight || image.height;
+    const longestEdge = Math.max(width, height);
+
+    if (longestEdge > PRODUCT_IMAGE_MAX_DIMENSION) {
+        const scale = PRODUCT_IMAGE_MAX_DIMENSION / longestEdge;
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+    }
+
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+        throw new Error("Image processing is not available in this browser.");
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+    context.drawImage(image, 0, 0, width, height);
+
+    let quality = 0.88;
+    let currentWidth = width;
+    let currentHeight = height;
+    let dataUrl = canvas.toDataURL("image/jpeg", quality);
+
+    while (estimateDataUrlBytes(dataUrl) > PRODUCT_IMAGE_UPLOAD_MAX_BYTES && quality > 0.45) {
+        quality -= 0.08;
+        dataUrl = canvas.toDataURL("image/jpeg", quality);
+    }
+
+    while (estimateDataUrlBytes(dataUrl) > PRODUCT_IMAGE_UPLOAD_MAX_BYTES && currentWidth > 720) {
+        currentWidth = Math.round(currentWidth * 0.88);
+        currentHeight = Math.round(currentHeight * 0.88);
+        canvas.width = currentWidth;
+        canvas.height = currentHeight;
+        context.clearRect(0, 0, currentWidth, currentHeight);
+        context.drawImage(image, 0, 0, currentWidth, currentHeight);
+        dataUrl = canvas.toDataURL("image/jpeg", Math.max(quality, 0.5));
+    }
+
+    if (estimateDataUrlBytes(dataUrl) > PRODUCT_IMAGE_UPLOAD_MAX_BYTES) {
+        throw new Error("This photo is still too large after compression. Try a smaller image.");
+    }
+
+    return {
+        dataUrl,
+        width: currentWidth,
+        height: currentHeight,
+        bytes: estimateDataUrlBytes(dataUrl)
+    };
+}
+
 function renderProductsGrid() {
     if (!state.products.length) {
         productsGrid.innerHTML = `<div class="detail-empty"><i class="fa-solid fa-box-open"></i><p>No products available yet. Use the editor to create your first catalog item.</p></div>`;
@@ -1055,24 +1332,34 @@ function fillProductForm(product) {
     productAvailability.value = product.availabilityStatus || PRODUCT_AVAILABILITY[0];
     productImageUrl.value = product.imageUrl || "";
     productFeatured.checked = Boolean(product.featured);
+    productImageFile.value = "";
+    productImageMeta.textContent = product.imageUrl
+        ? "This product currently has a saved image. Uploading a new one will replace it."
+        : "Photos are resized in the browser for faster loading before they are saved with the product.";
     fillDynamicList(flavorList, "flavor", product.options?.flavors || []);
     fillDynamicList(sizeList, "size", product.options?.sizes || []);
     fillDynamicList(addonList, "addon", product.options?.addOns || []);
+    renderProductPreview();
 }
 
 function renderProductEditor() {
     let product;
 
     if (state.isCreatingProduct) {
-        productEditorLabel.textContent = "Creating a new product";
-        product = getDefaultProductDraft();
+        product = state.productDraft || getDefaultProductDraft();
+        productEditorLabel.textContent = product.name
+            ? `Drafting ${product.name}`
+            : "Creating a new product";
+        duplicateProductButton.disabled = true;
     } else {
         product = state.products.find((item) => item.id === state.activeProductId) || state.products[0] || getDefaultProductDraft();
         state.activeProductId = product.id || null;
         productEditorLabel.textContent = product.id ? `Editing ${product.name}` : "Select a product or create a new one";
+        duplicateProductButton.disabled = !product.id;
     }
 
     fillProductForm(product);
+    setProductSlugMode(product, !state.isCreatingProduct);
     setFormBaseline("product");
 }
 
@@ -1508,6 +1795,59 @@ async function handleCopyOrderSummary() {
     await copyTextToClipboard(buildOrderSummaryText(order), "Inquiry summary copied.");
 }
 
+function handleDuplicateProduct() {
+    const sourceProduct = state.products.find((item) => item.id === state.activeProductId);
+
+    if (!sourceProduct) {
+        showToast("Select a product before duplicating it.", "error");
+        return;
+    }
+
+    state.isCreatingProduct = true;
+    state.activeProductId = null;
+    state.productDraft = createDuplicateProductDraft(sourceProduct);
+    renderProductsGrid();
+    renderProductEditor();
+    showToast("Product duplicated into a new draft. Review it, then save when ready.", "success");
+}
+
+async function handleProductImageUpload(event) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+        return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+        showToast("Please choose an image file.", "error");
+        return;
+    }
+
+    setButtonBusy(productImageUploadButton, true, "Processing photo...");
+
+    try {
+        const result = await compressProductImage(file);
+        productImageUrl.value = result.dataUrl;
+        productImageMeta.textContent = `Uploaded from device and resized to ${result.width}x${result.height} (${Math.round(result.bytes / 1024)} KB).`;
+        renderProductPreview();
+        updateFormSaveMeta("product");
+        showToast("Cake photo added to the product draft.", "success");
+    } catch (error) {
+        showToast(error.message || "Unable to process that photo.", "error");
+    } finally {
+        setButtonBusy(productImageUploadButton, false, "Upload photo");
+        productImageFile.value = "";
+    }
+}
+
+function handleProductImageClear() {
+    productImageUrl.value = "";
+    productImageFile.value = "";
+    productImageMeta.textContent = "No image selected. You can paste a hosted URL or upload a photo from this device.";
+    renderProductPreview();
+    updateFormSaveMeta("product");
+}
+
 async function handleProductSave(event) {
     event.preventDefault();
 
@@ -1523,6 +1863,7 @@ async function handleProductSave(event) {
             state.products.unshift(response.product);
             state.activeProductId = response.product.id;
             state.isCreatingProduct = false;
+            state.productDraft = null;
             showToast("Product created successfully.", "success");
         } else {
             state.products = state.products.map((product) => (product.id === response.product.id ? response.product : product));
@@ -1673,6 +2014,7 @@ function bindInteractions() {
         }
 
         await loadProducts();
+        state.productDraft = null;
         renderOverview();
         renderProductsGrid();
         renderProductEditor();
@@ -1697,6 +2039,30 @@ function bindInteractions() {
 
         state.orderFilter = button.dataset.orderFilter;
         renderOrderFilters();
+        renderOrdersList();
+        renderOrderDetail();
+    });
+
+    orderQuickFilters.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-order-scope]");
+        if (!button) {
+            return;
+        }
+
+        state.orderScope = button.dataset.orderScope;
+        renderOrderFilters();
+        renderOrdersList();
+        renderOrderDetail();
+    });
+
+    orderSearchInput.addEventListener("input", () => {
+        state.orderSearch = orderSearchInput.value.trim();
+        renderOrdersList();
+        renderOrderDetail();
+    });
+
+    orderSortSelect.addEventListener("change", () => {
+        state.orderSort = orderSortSelect.value;
         renderOrdersList();
         renderOrderDetail();
     });
@@ -1728,6 +2094,7 @@ function bindInteractions() {
 
         state.activeProductId = Number(item.dataset.productId);
         state.isCreatingProduct = false;
+        state.productDraft = null;
         renderProductsGrid();
         renderProductEditor();
         setView("products");
@@ -1761,6 +2128,7 @@ function bindInteractions() {
 
         state.activeProductId = Number(item.dataset.openProduct);
         state.isCreatingProduct = false;
+        state.productDraft = null;
         setView("products");
         renderProductsGrid();
         renderProductEditor();
@@ -1773,9 +2141,25 @@ function bindInteractions() {
 
         state.isCreatingProduct = true;
         state.activeProductId = null;
+        state.productDraft = null;
         renderProductsGrid();
         renderProductEditor();
     });
+
+    duplicateProductButton.addEventListener("click", () => {
+        if (!confirmDiscardChanges("duplicate this product into a draft")) {
+            return;
+        }
+
+        handleDuplicateProduct();
+    });
+
+    productImageUploadButton.addEventListener("click", () => {
+        productImageFile.click();
+    });
+
+    productImageFile.addEventListener("change", handleProductImageUpload);
+    productImageClearButton.addEventListener("click", handleProductImageClear);
 
     addTestimonialButton.addEventListener("click", () => {
         testimonialList.appendChild(createTestimonialInput());
@@ -1863,8 +2247,39 @@ function bindInteractions() {
         field.addEventListener("change", () => updateFormSaveMeta("order"));
     });
 
-    productForm.addEventListener("input", () => updateFormSaveMeta("product"));
-    productForm.addEventListener("change", () => updateFormSaveMeta("product"));
+    productName.addEventListener("input", () => {
+        syncProductSlugFromName();
+        renderProductPreview();
+    });
+
+    productSlug.addEventListener("input", () => {
+        const generatedSlug = getUniqueProductSlug(productName.value, state.isCreatingProduct ? null : state.activeProductId);
+        productSlug.dataset.userModified = productSlug.value.trim() !== generatedSlug && productSlug.value.trim() !== "";
+        renderProductPreview();
+    });
+
+    [
+        productCategory,
+        productBadge,
+        productDescription,
+        productStartingPrice,
+        productLeadTime,
+        productAvailability,
+        productImageUrl,
+        productFeatured
+    ].forEach((field) => {
+        field.addEventListener("input", renderProductPreview);
+        field.addEventListener("change", renderProductPreview);
+    });
+
+    productForm.addEventListener("input", () => {
+        updateFormSaveMeta("product");
+        renderProductPreview();
+    });
+    productForm.addEventListener("change", () => {
+        updateFormSaveMeta("product");
+        renderProductPreview();
+    });
     settingsForm.addEventListener("input", () => updateFormSaveMeta("settings"));
     settingsForm.addEventListener("change", () => updateFormSaveMeta("settings"));
     testimonialsForm.addEventListener("input", () => updateFormSaveMeta("testimonials"));

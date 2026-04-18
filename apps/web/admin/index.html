@@ -163,6 +163,28 @@
 
                         <div class="filter-row" id="orderFilters"></div>
 
+                        <div class="toolbar-row">
+                            <label class="search-field">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="search" id="orderSearchInput" placeholder="Search customer, phone, reference, or cake">
+                            </label>
+                            <label class="sort-field">
+                                <span>Sort by</span>
+                                <select id="orderSortSelect">
+                                    <option value="attention_desc">Urgency first</option>
+                                    <option value="event_asc">Event date soonest</option>
+                                    <option value="created_desc">Newest inquiries</option>
+                                </select>
+                            </label>
+                        </div>
+
+                        <div class="filter-row" id="orderQuickFilters">
+                            <button class="filter-chip active" type="button" data-order-scope="all">All attention</button>
+                            <button class="filter-chip" type="button" data-order-scope="needs_quote">Only needs quote</button>
+                            <button class="filter-chip" type="button" data-order-scope="event_this_week">Event this week</button>
+                            <button class="filter-chip" type="button" data-order-scope="waiting_customer">Waiting on customer</button>
+                        </div>
+
                         <div class="orders-layout">
                             <article class="content-card">
                                 <div class="card-head">
@@ -289,8 +311,16 @@
 
                             <article class="content-card detail-card">
                                 <div class="card-head">
-                                    <h3>Product editor</h3>
-                                    <span class="meta-label" id="productEditorLabel">Select a product or create a new one</span>
+                                    <div>
+                                        <h3>Product editor</h3>
+                                        <span class="meta-label" id="productEditorLabel">Select a product or create a new one</span>
+                                    </div>
+                                    <div class="panel-actions">
+                                        <button class="btn btn-secondary ghost" type="button" id="duplicateProductButton">
+                                            <i class="fa-regular fa-clone"></i>
+                                            <span>Duplicate into draft</span>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <form class="editor-form" id="productForm">
@@ -302,6 +332,7 @@
                                         <label>
                                             <span>Slug</span>
                                             <input type="text" id="productSlug" required>
+                                            <small class="helper-note">Auto-generated for new and duplicated products until you edit it yourself.</small>
                                         </label>
                                     </div>
 
@@ -343,14 +374,41 @@
                                         </label>
                                         <label>
                                             <span>Image URL</span>
-                                            <input type="url" id="productImageUrl" placeholder="https://...">
+                                            <input type="text" id="productImageUrl" placeholder="https://... or upload a photo below">
                                         </label>
+                                    </div>
+
+                                    <div class="editor-group">
+                                        <div class="group-head">
+                                            <h4>Cake photo</h4>
+                                            <span class="meta-label">Upload from your device or keep using a hosted image URL.</span>
+                                        </div>
+                                        <div class="quick-action-row">
+                                            <input type="file" id="productImageFile" accept="image/*" class="hidden">
+                                            <button class="btn btn-secondary ghost" type="button" id="productImageUploadButton">
+                                                <i class="fa-solid fa-image"></i>
+                                                <span>Upload photo</span>
+                                            </button>
+                                            <button class="btn btn-secondary ghost" type="button" id="productImageClearButton">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                                <span>Clear photo</span>
+                                            </button>
+                                        </div>
+                                        <p class="meta-label" id="productImageMeta">Photos are resized in the browser for faster loading before they are saved with the product.</p>
                                     </div>
 
                                     <label class="checkbox-row">
                                         <input type="checkbox" id="productFeatured">
                                         <span>Feature this product on the dashboard and public catalog</span>
                                     </label>
+
+                                    <div class="editor-group">
+                                        <div class="group-head">
+                                            <h4>Public card preview</h4>
+                                            <span class="meta-label">This preview mirrors the style customers see on the storefront.</span>
+                                        </div>
+                                        <div class="product-preview-card" id="productPreviewCard"></div>
+                                    </div>
 
                                     <div class="editor-group">
                                         <div class="group-head">
