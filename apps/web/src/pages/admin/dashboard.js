@@ -235,15 +235,22 @@ function showToast(message, type = "info") {
 }
 
 async function apiRequest(path, options = {}) {
+    const method = (options.method || "GET").toUpperCase();
+    const headers = {
+        "Content-Type": "application/json",
+        ...(options.headers || {})
+    };
+
+    if (!["GET", "HEAD"].includes(method)) {
+        headers["X-Admin-Intent"] = "mutate";
+    }
+
     let response;
 
     try {
         response = await fetch(`${apiBase}${path}`, {
-            method: options.method || "GET",
-            headers: {
-                "Content-Type": "application/json",
-                ...(options.headers || {})
-            },
+            method,
+            headers,
             body: options.body ? JSON.stringify(options.body) : undefined,
             credentials: "include"
         });

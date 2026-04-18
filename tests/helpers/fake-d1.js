@@ -187,6 +187,41 @@ export class FakeD1Database {
       return this.adminUsers.find((admin) => admin.email === boundValues[0]) || null;
     }
 
+    if (query.includes("update admin_users set password_hash = ?")) {
+      const [passwordHash, adminId] = boundValues;
+      const adminIndex = this.adminUsers.findIndex((admin) => Number(admin.id) === Number(adminId));
+
+      if (adminIndex === -1) {
+        return null;
+      }
+
+      this.adminUsers[adminIndex] = {
+        ...this.adminUsers[adminIndex],
+        password_hash: passwordHash,
+        updated_at: createTimestamp(2)
+      };
+
+      return this.adminUsers[adminIndex];
+    }
+
+    if (query.includes("update admin_users set session_version = coalesce(session_version, 1) + 1")) {
+      const [adminId] = boundValues;
+      const adminIndex = this.adminUsers.findIndex((admin) => Number(admin.id) === Number(adminId));
+
+      if (adminIndex === -1) {
+        return null;
+      }
+
+      const currentSessionVersion = Number(this.adminUsers[adminIndex].session_version || 1);
+      this.adminUsers[adminIndex] = {
+        ...this.adminUsers[adminIndex],
+        session_version: currentSessionVersion + 1,
+        updated_at: createTimestamp(2)
+      };
+
+      return this.adminUsers[adminIndex];
+    }
+
     if (query.includes("select * from business_settings order by id asc limit 1")) {
       return this.businessSettings || null;
     }

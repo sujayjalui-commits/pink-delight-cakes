@@ -2,11 +2,18 @@ const jsonHeaders = {
   "content-type": "application/json; charset=utf-8"
 };
 
+const securityHeaders = {
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY"
+};
+
 export function createJsonResponse(payload, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(payload, null, 2), {
     status,
     headers: {
       ...jsonHeaders,
+      ...securityHeaders,
       ...extraHeaders
     }
   });
@@ -109,6 +116,10 @@ export function withCors(response, request, env) {
   const headers = new Headers(response.headers);
   const corsHeaders = createCorsHeaders(request, env);
 
+  Object.entries(securityHeaders).forEach(([key, value]) => {
+    headers.set(key, value);
+  });
+
   Object.entries(corsHeaders).forEach(([key, value]) => {
     headers.set(key, value);
   });
@@ -140,7 +151,10 @@ export function createPreflightResponse(request, env) {
 
   return new Response(null, {
     status: 204,
-    headers: createCorsHeaders(request, env)
+    headers: {
+      ...securityHeaders,
+      ...createCorsHeaders(request, env)
+    }
   });
 }
 

@@ -60,10 +60,12 @@ export async function createAdminSessionToken(admin, env) {
   }
 
   const now = Math.floor(Date.now() / 1000);
+  const sessionVersion = Number(admin.session_version || admin.sessionVersion || 1);
   const payload = {
     sub: admin.id,
     email: admin.email,
     role: admin.role,
+    ver: Number.isInteger(sessionVersion) && sessionVersion > 0 ? sessionVersion : 1,
     iat: now,
     exp: now + apiConfig.adminSessionMaxAgeSeconds
   };

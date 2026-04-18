@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 import worker from "../../apps/api/worker.js";
 import { createAdminSessionToken } from "../../apps/api/src/auth/sessions.js";
+import { hashAdminPassword } from "../../apps/api/src/auth/passwords.js";
 import { apiConfig } from "../../apps/api/src/config/api-config.js";
 import { createExecutionContext, createTestEnv } from "../helpers/fake-d1.js";
 
@@ -126,6 +127,9 @@ await runTest("public inquiry submission persists a database-backed request", as
   assert.equal(payload.persistence, "database");
   assert.equal(payload.orderRequest.customer_name, "Amiya");
   assert.equal(JSON.parse(payload.orderRequest.product_snapshot).slug, "signature-black-forest");
+  assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+  assert.equal(response.headers.get("x-frame-options"), "DENY");
+  assert.equal(response.headers.get("referrer-policy"), "strict-origin-when-cross-origin");
   assert.equal(env.DB.orderRequests.length, 1);
   assert.equal(env.DB.rateLimitEvents.length, 1);
 });
@@ -287,6 +291,7 @@ await runTest("admin settings route reads and updates business settings for an a
       method: "PATCH",
       headers: {
         "content-type": "application/json",
+        "x-admin-intent": "mutate",
         origin: "https://pink-delight-cakes.pages.dev",
         cookie: cookieHeader
       },
@@ -331,6 +336,65 @@ await runTest("admin settings route reads and updates business settings for an a
   assert.equal(env.DB.businessSettings.country_code, "IN");
 });
 
+await runTest("admin settings mutation rejects requests without the protected dashboard intent header", async () => {
+  const admin = {
+    id: 9,
+    email: "owner@pinkdelightcakes.com",
+    role: "owner",
+    is_active: 1
+  };
+  const env = createTestEnv({
+    adminUsers: [admin],
+    businessSettings: createBusinessSettingsSeed()
+  });
+  const sessionToken = await createAdminSessionToken(admin, env);
+  const cookieHeader = `${apiConfig.adminSessionCookieName}=${sessionToken}`;
+
+  const response = await worker.fetch(
+    new Request("https://pink-delight-cakes.pages.dev/api/admin/settings", {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+        origin: "https://pink-delight-cakes.pages.dev",
+        cookie: cookieHeader
+      },
+      body: JSON.stringify({
+        brandName: "Pink Delight Cakes",
+        contactEmail: "hello@pinkdelightcakes.com",
+        contactPhone: "+91 87678 12121",
+        instagramHandle: "@pinkdelightcakes",
+        city: "Pune",
+        addressLine1: "",
+        addressLine2: "",
+        stateRegion: "Maharashtra",
+        postalCode: "",
+        countryCode: "IN",
+        currency: "INR",
+        inquiryChannel: "website",
+        deliveryPickupCopy: "Pickup and local delivery across Pune.",
+        noticePeriodCopy: "Standard celebration cakes usually need 24 to 48 hours notice.",
+        bakeryIntroTitle: "Fresh, careful, and celebration-ready.",
+        bakeryIntroParagraph1: "Home bakery rooted in warm celebrations.",
+        bakeryIntroParagraph2: "Every inquiry is handled personally.",
+        responseTimeCopy: "Share your date, design idea, and servings for a quick quote.",
+        weekdayOpenTime: "10:00",
+        weekdayCloseTime: "20:00",
+        saturdayOpenTime: "10:00",
+        saturdayCloseTime: "20:00",
+        sundayOpenTime: "",
+        sundayCloseTime: ""
+      })
+    }),
+    env,
+    createExecutionContext()
+  );
+  const payload = await response.json();
+
+  assert.equal(response.status, 400);
+  assert.equal(payload.ok, false);
+  assert.match(payload.error, /protected dashboard flow/i);
+});
+
 await runTest("admin testimonials route replaces and reorders the published testimonial list", async () => {
   const admin = {
     id: 8,
@@ -350,6 +414,7 @@ await runTest("admin testimonials route replaces and reorders the published test
       method: "PATCH",
       headers: {
         "content-type": "application/json",
+        "x-admin-intent": "mutate",
         origin: "https://pink-delight-cakes.pages.dev",
         cookie: cookieHeader
       },
@@ -385,6 +450,110 @@ await runTest("admin testimonials route replaces and reorders the published test
   assert.equal(payload.testimonials[1].isPublished, false);
   assert.equal(env.DB.testimonials.length, 2);
   assert.equal(env.DB.testimonials[0].customer_name, "Mitali");
+});
+
+await runTest("admin login and logout rotate session versions so older cookies stop working", async () => {
+  const passwordHash = await hashAdminPassword("strong-password");
+  const admin = {
+    id: 10,
+    email: "owner@pinkdelightcakes.com",
+    role: "owner",
+    is_active: 1,
+    password_hash: passwordHash,
+    session_version: 1
+  };
+  const env = createTestEnv({
+    adminUsers: [admin]
+  });
+  const staleToken = await createAdminSessionToken(admin, env);
+  const staleCookie = `${apiConfig.adminSessionCookieName}=${staleToken}`;
+
+  const loginResponse = await worker.fetch(
+    new Request("https://pink-delight-cakes.pages.dev/api/admin/auth/login", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-admin-intent": "mutate",
+        origin: "https://pink-delight-cakes.pages.dev"
+      },
+      body: JSON.stringify({
+        email: admin.email,
+        password: "strong-password"
+      })
+    }),
+    env,
+    createExecutionContext()
+  );
+  const loginPayload = await loginResponse.json();
+  const issuedCookie = loginResponse.headers.get("set-cookie")?.split(";")[0] || "";
+
+  assert.equal(loginResponse.status, 200);
+  assert.equal(loginPayload.ok, true);
+  assert.equal(env.DB.adminUsers[0].session_version, 2);
+  assert.notEqual(issuedCookie, "");
+
+  const staleSessionResponse = await worker.fetch(
+    new Request("https://pink-delight-cakes.pages.dev/api/admin/auth/session", {
+      headers: {
+        origin: "https://pink-delight-cakes.pages.dev",
+        cookie: staleCookie
+      }
+    }),
+    env,
+    createExecutionContext()
+  );
+  const staleSessionPayload = await staleSessionResponse.json();
+
+  assert.equal(staleSessionResponse.status, 401);
+  assert.equal(staleSessionPayload.error, "Admin session is no longer active");
+
+  const freshSessionResponse = await worker.fetch(
+    new Request("https://pink-delight-cakes.pages.dev/api/admin/auth/session", {
+      headers: {
+        origin: "https://pink-delight-cakes.pages.dev",
+        cookie: issuedCookie
+      }
+    }),
+    env,
+    createExecutionContext()
+  );
+  const freshSessionPayload = await freshSessionResponse.json();
+
+  assert.equal(freshSessionResponse.status, 200);
+  assert.equal(freshSessionPayload.ok, true);
+
+  const logoutResponse = await worker.fetch(
+    new Request("https://pink-delight-cakes.pages.dev/api/admin/auth/logout", {
+      method: "POST",
+      headers: {
+        "x-admin-intent": "mutate",
+        origin: "https://pink-delight-cakes.pages.dev",
+        cookie: issuedCookie
+      }
+    }),
+    env,
+    createExecutionContext()
+  );
+  const logoutPayload = await logoutResponse.json();
+
+  assert.equal(logoutResponse.status, 200);
+  assert.equal(logoutPayload.ok, true);
+  assert.equal(env.DB.adminUsers[0].session_version, 3);
+
+  const postLogoutSessionResponse = await worker.fetch(
+    new Request("https://pink-delight-cakes.pages.dev/api/admin/auth/session", {
+      headers: {
+        origin: "https://pink-delight-cakes.pages.dev",
+        cookie: issuedCookie
+      }
+    }),
+    env,
+    createExecutionContext()
+  );
+  const postLogoutPayload = await postLogoutSessionResponse.json();
+
+  assert.equal(postLogoutSessionResponse.status, 401);
+  assert.equal(postLogoutPayload.error, "Admin session is no longer active");
 });
 
 console.log("All API flow tests passed.");

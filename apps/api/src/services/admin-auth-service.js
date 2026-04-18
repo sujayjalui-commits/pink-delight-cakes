@@ -3,7 +3,11 @@ import { apiConfig } from "../config/api-config.js";
 import { createCookie } from "../utils/http.js";
 import { hashAdminPassword, verifyAdminPassword } from "../auth/passwords.js";
 import { createAdminSessionToken } from "../auth/sessions.js";
-import { getAdminUserByEmail, setAdminUserPasswordHash } from "../db/d1-client.js";
+import {
+  getAdminUserByEmail,
+  rotateAdminUserSessionVersion,
+  setAdminUserPasswordHash
+} from "../db/d1-client.js";
 
 function mapAdmin(admin) {
   return {
@@ -134,11 +138,13 @@ export async function loginAdminUser(env, input) {
     };
   }
 
-  const sessionToken = await createAdminSessionToken(admin, env);
+  const rotatedAdmin = await rotateAdminUserSessionVersion(env, admin.id);
+  const sessionAdmin = rotatedAdmin || admin;
+  const sessionToken = await createAdminSessionToken(sessionAdmin, env);
 
   return {
     ok: true,
-    admin: mapAdmin(admin),
+    admin: mapAdmin(sessionAdmin),
     sessionToken
   };
 }

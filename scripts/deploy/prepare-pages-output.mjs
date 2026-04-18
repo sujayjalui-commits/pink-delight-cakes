@@ -38,6 +38,7 @@ const replacements = new Map([
 ]);
 
 const filesToStamp = [
+  "_headers",
   "index.html",
   path.join("track", "index.html"),
   path.join("admin", "index.html"),
@@ -56,8 +57,16 @@ function replaceTokens(contents) {
   return nextContents;
 }
 
-fs.rmSync(outputDir, { recursive: true, force: true });
 fs.mkdirSync(path.dirname(outputDir), { recursive: true });
+try {
+  fs.rmSync(outputDir, { recursive: true, force: true });
+} catch (error) {
+  if (error?.code !== "EPERM") {
+    throw error;
+  }
+}
+
+fs.mkdirSync(outputDir, { recursive: true });
 fs.cpSync(sourceDir, outputDir, { recursive: true });
 
 for (const relativeFile of filesToStamp) {

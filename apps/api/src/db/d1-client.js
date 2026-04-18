@@ -190,6 +190,21 @@ export async function setAdminUserPasswordHash(env, adminId, passwordHash) {
   return env.DB.prepare(query).bind(passwordHash, adminId).first();
 }
 
+export async function rotateAdminUserSessionVersion(env, adminId) {
+  if (!hasDatabase(env)) {
+    return null;
+  }
+
+  const query = `
+    UPDATE ${tables.adminUsers}
+    SET session_version = COALESCE(session_version, 1) + 1, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+    RETURNING *
+  `;
+
+  return env.DB.prepare(query).bind(adminId).first();
+}
+
 export async function saveBusinessSettings(env, payload) {
   if (!hasDatabase(env)) {
     return null;

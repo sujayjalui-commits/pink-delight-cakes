@@ -112,7 +112,7 @@ export default {
       }
 
       if (pathname === adminRoutes.logout && method === "POST") {
-        return withCors(await handleAdminLogout(request), request, env);
+        return withCors(await handleAdminLogout(request, env), request, env);
       }
 
       if (pathname === adminRoutes.session && method === "GET") {

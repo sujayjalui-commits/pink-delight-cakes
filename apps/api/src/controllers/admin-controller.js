@@ -1,5 +1,9 @@
 import { apiConfig } from "../config/api-config.js";
-import { requireAdmin, requireSameOriginAdminBrowserRequest } from "../middleware/admin-auth.js";
+import {
+  requireAdmin,
+  requireProtectedAdminMutationRequest,
+  requireSameOriginAdminBrowserRequest
+} from "../middleware/admin-auth.js";
 import {
   createAdminAuthCookie,
   createClearedAdminAuthCookie,
@@ -33,6 +37,7 @@ import {
 } from "../services/rate-limit-service.js";
 import { createJsonResponse } from "../utils/http.js";
 import { readJsonBody } from "../validators/request-body.js";
+import { rotateAdminUserSessionVersion } from "../db/d1-client.js";
 
 async function readRequiredJsonBody(request) {
   const body = await readJsonBody(request);
@@ -51,7 +56,7 @@ async function readRequiredJsonBody(request) {
 }
 
 export async function handleAdminSetup(request, env) {
-  const sameOriginViolation = requireSameOriginAdminBrowserRequest(request);
+  const sameOriginViolation = requireProtectedAdminMutationRequest(request);
 
   if (sameOriginViolation) {
     return sameOriginViolation;
@@ -74,7 +79,7 @@ export async function handleAdminSetup(request, env) {
 }
 
 export async function handleAdminLogin(request, env) {
-  const sameOriginViolation = requireSameOriginAdminBrowserRequest(request);
+  const sameOriginViolation = requireProtectedAdminMutationRequest(request);
 
   if (sameOriginViolation) {
     return sameOriginViolation;
@@ -111,11 +116,17 @@ export async function handleAdminLogin(request, env) {
   );
 }
 
-export async function handleAdminLogout(request) {
-  const sameOriginViolation = requireSameOriginAdminBrowserRequest(request);
+export async function handleAdminLogout(request, env) {
+  const sameOriginViolation = requireProtectedAdminMutationRequest(request);
 
   if (sameOriginViolation) {
     return sameOriginViolation;
+  }
+
+  const auth = await requireAdmin(request, env);
+
+  if (auth.ok) {
+    await rotateAdminUserSessionVersion(env, auth.admin.id);
   }
 
   return createJsonResponse(
@@ -178,6 +189,12 @@ export async function handleGetAdminProductById(request, env, productId) {
 }
 
 export async function handleCreateAdminProduct(request, env) {
+  const mutationViolation = requireProtectedAdminMutationRequest(request);
+
+  if (mutationViolation) {
+    return mutationViolation;
+  }
+
   const auth = await requireAdmin(request, env);
 
   if (!auth.ok) {
@@ -195,6 +212,12 @@ export async function handleCreateAdminProduct(request, env) {
 }
 
 export async function handleUpdateAdminProduct(request, env, productId) {
+  const mutationViolation = requireProtectedAdminMutationRequest(request);
+
+  if (mutationViolation) {
+    return mutationViolation;
+  }
+
   const auth = await requireAdmin(request, env);
 
   if (!auth.ok) {
@@ -242,6 +265,12 @@ export async function handleGetAdminOrderById(request, env, orderId) {
 }
 
 export async function handleUpdateAdminOrder(request, env, orderId) {
+  const mutationViolation = requireProtectedAdminMutationRequest(request);
+
+  if (mutationViolation) {
+    return mutationViolation;
+  }
+
   const auth = await requireAdmin(request, env);
 
   if (!auth.ok) {
@@ -270,6 +299,12 @@ export async function handleGetAdminSettings(request, env) {
 }
 
 export async function handleUpdateAdminSettings(request, env) {
+  const mutationViolation = requireProtectedAdminMutationRequest(request);
+
+  if (mutationViolation) {
+    return mutationViolation;
+  }
+
   const auth = await requireAdmin(request, env);
 
   if (!auth.ok) {
@@ -298,6 +333,12 @@ export async function handleGetAdminTestimonials(request, env) {
 }
 
 export async function handleUpdateAdminTestimonials(request, env) {
+  const mutationViolation = requireProtectedAdminMutationRequest(request);
+
+  if (mutationViolation) {
+    return mutationViolation;
+  }
+
   const auth = await requireAdmin(request, env);
 
   if (!auth.ok) {

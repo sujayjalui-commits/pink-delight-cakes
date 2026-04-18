@@ -2,6 +2,10 @@ import { getAdminUserById, hasDatabase } from "../db/d1-client.js";
 import { readAdminSessionFromRequest } from "../auth/sessions.js";
 import { createJsonResponse, getRequestOrigin, parseRequestUrl } from "../utils/http.js";
 
+function isMutatingMethod(request) {
+  return ["POST", "PATCH", "PUT", "DELETE"].includes(request.method.toUpperCase());
+}
+
 export function requireSameOriginAdminBrowserRequest(request) {
   const requestOrigin = getRequestOrigin(request);
 
@@ -20,6 +24,44 @@ export function requireSameOriginAdminBrowserRequest(request) {
     },
     400
   );
+}
+
+export function requireProtectedAdminMutationRequest(request) {
+  if (!isMutatingMethod(request)) {
+    return null;
+  }
+
+  const sameOriginViolation = requireSameOriginAdminBrowserRequest(request);
+
+  if (sameOriginViolation) {
+    return sameOriginViolation;
+  }
+
+  const intentHeader = request.headers.get("x-admin-intent");
+
+  if (intentHeader !== "mutate") {
+    return createJsonResponse(
+      {
+        ok: false,
+        error: "Admin write requests must come from the protected dashboard flow."
+      },
+      400
+    );
+  }
+
+  const fetchSite = request.headers.get("sec-fetch-site");
+
+  if (fetchSite && fetchSite !== "same-origin") {
+    return createJsonResponse(
+      {
+        ok: false,
+        error: "Cross-site admin write requests are not allowed."
+      },
+      400
+    );
+  }
+
+  return null;
 }
 
 export async function requireAdmin(request, env) {
@@ -54,6 +96,16 @@ export async function requireAdmin(request, env) {
     return {
       ok: false,
       response: createJsonResponse({ ok: false, error: "Admin account is unavailable" }, 401)
+    };
+  }
+
+  const sessionVersion = Number(session.ver || 1);
+  const adminSessionVersion = Number(admin.session_version || 1);
+
+  if (sessionVersion !== adminSessionVersion) {
+    return {
+      ok: false,
+      response: createJsonResponse({ ok: false, error: "Admin session is no longer active" }, 401)
     };
   }
 
