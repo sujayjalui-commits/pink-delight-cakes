@@ -29,6 +29,7 @@ jobs:
       - name: Run production checks
         run: |
           node scripts/maintenance/check-production.mjs
+          node scripts/maintenance/check-browser-smoke.mjs
           node scripts/maintenance/check-admin-auth.mjs
 
       - name: Send failure alert

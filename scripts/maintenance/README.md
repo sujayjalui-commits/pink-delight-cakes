@@ -6,6 +6,7 @@ One-off cleanup, migration-assist, and support scripts.
 
 - `check-production.mjs` verifies the live API health endpoint, public products endpoint, public settings endpoint, and storefront page
 - `check-admin-auth.mjs` verifies the live admin page wiring plus admin auth CORS/session endpoints without submitting a real login
+- `check-browser-smoke.mjs` verifies that the live storefront, tracking page, and admin page load the extracted asset files, serve the tightened CSP, and still expose the same-origin admin session path
 - `send-webhook-alert.mjs` posts failure notifications to Slack, Discord, or a generic webhook endpoint
 
 Run from the repo root:
@@ -13,6 +14,7 @@ Run from the repo root:
 ```bash
 npm run ops:check:production
 npm run ops:check:admin-auth
+npm run ops:check:browser-smoke
 ```
 
 Expected environment variables for checks:

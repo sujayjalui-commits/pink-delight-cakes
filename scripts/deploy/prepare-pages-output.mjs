@@ -43,6 +43,8 @@ const filesToStamp = [
   path.join("track", "index.html"),
   path.join("admin", "index.html"),
   "admin.html",
+  path.join("src", "pages", "storefront.js"),
+  path.join("src", "pages", "tracking.js"),
   "robots.txt",
   "sitemap.xml"
 ];
