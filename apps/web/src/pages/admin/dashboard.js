@@ -10,6 +10,7 @@ const ORDER_STATUSES = [
 ];
 
 const PRODUCT_AVAILABILITY = ["available", "limited", "unavailable"];
+const FORM_KEYS = ["order", "product", "settings", "testimonials"];
 
 const state = {
     session: null,
@@ -21,7 +22,13 @@ const state = {
     activeOrderId: null,
     activeProductId: null,
     orderFilter: "all",
-    isCreatingProduct: false
+    isCreatingProduct: false,
+    formMeta: {
+        order: { baseline: "", savedAt: null },
+        product: { baseline: "", savedAt: null },
+        settings: { baseline: "", savedAt: null },
+        testimonials: { baseline: "", savedAt: null }
+    }
 };
 
 const body = document.body;
@@ -75,6 +82,7 @@ const sidebarNav = document.getElementById("sidebarNav");
 const overviewStats = document.getElementById("overviewStats");
 const recentOrders = document.getElementById("recentOrders");
 const productHealth = document.getElementById("productHealth");
+const needsAttentionList = document.getElementById("needsAttentionList");
 const refreshOverview = document.getElementById("refreshOverview");
 const refreshOrders = document.getElementById("refreshOrders");
 const refreshProducts = document.getElementById("refreshProducts");
@@ -89,6 +97,11 @@ const orderStatus = document.getElementById("orderStatus");
 const orderQuotedAmount = document.getElementById("orderQuotedAmount");
 const orderInternalNote = document.getElementById("orderInternalNote");
 const orderSaveButton = document.getElementById("orderSaveButton");
+const orderSaveMeta = document.getElementById("orderSaveMeta");
+const orderQuickActions = document.getElementById("orderQuickActions");
+const openOrderWhatsAppButton = document.getElementById("openOrderWhatsAppButton");
+const copyOrderReplyButton = document.getElementById("copyOrderReplyButton");
+const copyOrderSummaryButton = document.getElementById("copyOrderSummaryButton");
 const productsGrid = document.getElementById("productsGrid");
 const newProductButton = document.getElementById("newProductButton");
 const productEditorLabel = document.getElementById("productEditorLabel");
@@ -103,6 +116,8 @@ const productLeadTime = document.getElementById("productLeadTime");
 const productAvailability = document.getElementById("productAvailability");
 const productImageUrl = document.getElementById("productImageUrl");
 const productFeatured = document.getElementById("productFeatured");
+const productSaveButton = document.getElementById("productSaveButton");
+const productSaveMeta = document.getElementById("productSaveMeta");
 const flavorList = document.getElementById("flavorList");
 const sizeList = document.getElementById("sizeList");
 const addonList = document.getElementById("addonList");
@@ -134,10 +149,12 @@ const settingsSundayOpenTime = document.getElementById("settingsSundayOpenTime")
 const settingsSundayCloseTime = document.getElementById("settingsSundayCloseTime");
 const settingsSummary = document.getElementById("settingsSummary");
 const settingsSaveButton = document.getElementById("settingsSaveButton");
+const settingsSaveMeta = document.getElementById("settingsSaveMeta");
 const testimonialsForm = document.getElementById("testimonialsForm");
 const testimonialList = document.getElementById("testimonialList");
 const addTestimonialButton = document.getElementById("addTestimonialButton");
 const testimonialsSaveButton = document.getElementById("testimonialsSaveButton");
+const testimonialsSaveMeta = document.getElementById("testimonialsSaveMeta");
 const toastStack = document.getElementById("toastStack");
 
 function escapeHtml(value) {
@@ -182,6 +199,189 @@ function formatDate(value) {
         month: "short",
         year: "numeric"
     }).format(parsed);
+}
+
+function formatDateTime(value) {
+    if (!value) {
+        return "Not available";
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+        return value;
+    }
+
+    return new Intl.DateTimeFormat("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+    }).format(parsed);
+}
+
+function slugLabel(value) {
+    return String(value || "")
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+function normalizePhoneNumber(value) {
+    const digits = String(value || "").replace(/\D+/g, "");
+
+    if (!digits) {
+        return "";
+    }
+
+    if (digits.startsWith("91")) {
+        return digits;
+    }
+
+    return `91${digits}`;
+}
+
+function createWhatsAppLink(phoneNumber, message) {
+    const digits = normalizePhoneNumber(phoneNumber);
+
+    if (!digits) {
+        return "";
+    }
+
+    return message
+        ? `https://wa.me/${digits}?text=${encodeURIComponent(message)}`
+        : `https://wa.me/${digits}`;
+}
+
+function daysUntilDate(value) {
+    if (!value) {
+        return Number.POSITIVE_INFINITY;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const eventDate = new Date(value);
+    eventDate.setHours(0, 0, 0, 0);
+
+    if (Number.isNaN(eventDate.getTime())) {
+        return Number.POSITIVE_INFINITY;
+    }
+
+    return Math.round((eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function createStableSnapshot(value) {
+    return JSON.stringify(value);
+}
+
+function formatSavedMessage(savedAt) {
+    if (!savedAt) {
+        return "No changes yet.";
+    }
+
+    const elapsedSeconds = Math.max(0, Math.round((Date.now() - new Date(savedAt).getTime()) / 1000));
+
+    if (elapsedSeconds < 60) {
+        return "Saved just now.";
+    }
+
+    const elapsedMinutes = Math.round(elapsedSeconds / 60);
+    return `Saved ${elapsedMinutes} minute${elapsedMinutes === 1 ? "" : "s"} ago.`;
+}
+
+function getOrderAttentionMeta(order) {
+    const daysUntilEvent = daysUntilDate(order.eventDate);
+    const hasQuote = order.quotedAmount !== null && order.quotedAmount !== undefined && order.quotedAmount !== "";
+
+    if (["cancelled", "completed"].includes(order.status)) {
+        return {
+            tone: "resolved",
+            label: order.status === "completed" ? "Completed" : "Cancelled",
+            priority: 0
+        };
+    }
+
+    if (daysUntilEvent < 0) {
+        return {
+            tone: "urgent",
+            label: "Past event date",
+            priority: 100
+        };
+    }
+
+    if (daysUntilEvent <= 2) {
+        return {
+            tone: "urgent",
+            label: `Event in ${Math.max(daysUntilEvent, 0)} day${Math.max(daysUntilEvent, 0) === 1 ? "" : "s"}`,
+            priority: 95 - Math.max(daysUntilEvent, 0)
+        };
+    }
+
+    if ((order.status === "new" || order.status === "reviewing") && !hasQuote) {
+        return {
+            tone: "warning",
+            label: "Needs quote",
+            priority: order.status === "new" ? 90 : 82
+        };
+    }
+
+    if (["quoted", "payment_pending", "paid"].includes(order.status)) {
+        return {
+            tone: "watch",
+            label: "Waiting on customer",
+            priority: 72
+        };
+    }
+
+    if (order.status === "scheduled") {
+        return {
+            tone: "good",
+            label: "Scheduled",
+            priority: 40
+        };
+    }
+
+    return {
+        tone: "good",
+        label: slugLabel(order.status),
+        priority: 20
+    };
+}
+
+function getNeedsAttentionItems() {
+    const orderItems = state.orders.map((order) => {
+        const attention = getOrderAttentionMeta(order);
+
+        return {
+            id: `order-${order.id}`,
+            targetId: order.id,
+            kind: "order",
+            priority: attention.priority,
+            tone: attention.tone,
+            title: `${order.customerName} · ${order.productSnapshot?.name || "Custom request"}`,
+            description: `${attention.label} · ${formatDate(order.eventDate)} · ${slugLabel(order.fulfillmentType)}`,
+            actionLabel: "Open order"
+        };
+    }).filter((item) => item.priority >= 70);
+
+    const productItems = state.products
+        .filter((product) => !product.imageUrl || !product.shortDescription)
+        .map((product) => ({
+            id: `product-${product.id}`,
+            targetId: product.id,
+            kind: "product",
+            priority: 48,
+            tone: "warning",
+            title: `${product.name} needs cleanup`,
+            description: !product.imageUrl
+                ? "Missing product image"
+                : "Short description should be reviewed",
+            actionLabel: "Open product"
+        }));
+
+    return [...orderItems, ...productItems]
+        .sort((left, right) => right.priority - left.priority)
+        .slice(0, 6);
 }
 
 function setAuthState(message, type = "info") {
@@ -232,6 +432,152 @@ function showToast(message, type = "info") {
     window.setTimeout(() => {
         toast.remove();
     }, 3200);
+}
+
+function getOrderDraftPayload() {
+    const activeOrder = state.orders.find((item) => item.id === state.activeOrderId);
+
+    if (!activeOrder) {
+        return null;
+    }
+
+    return {
+        id: activeOrder.id,
+        status: orderStatus.value,
+        quotedAmount: orderQuotedAmount.value ? Number(orderQuotedAmount.value) : null,
+        internalNote: orderInternalNote.value.trim()
+    };
+}
+
+function getProductDraftPayload() {
+    return {
+        activeProductId: state.isCreatingProduct ? null : state.activeProductId,
+        isCreatingProduct: state.isCreatingProduct,
+        payload: collectProductPayload()
+    };
+}
+
+function getSettingsDraftPayload() {
+    return collectSettingsPayload();
+}
+
+function getTestimonialsDraftPayload() {
+    return collectTestimonialsPayload();
+}
+
+function getFormSnapshot(formKey) {
+    if (formKey === "order") {
+        return createStableSnapshot(getOrderDraftPayload());
+    }
+
+    if (formKey === "product") {
+        return createStableSnapshot(getProductDraftPayload());
+    }
+
+    if (formKey === "settings") {
+        return createStableSnapshot(getSettingsDraftPayload());
+    }
+
+    if (formKey === "testimonials") {
+        return createStableSnapshot(getTestimonialsDraftPayload());
+    }
+
+    return "";
+}
+
+function getSaveMetaElement(formKey) {
+    return {
+        order: orderSaveMeta,
+        product: productSaveMeta,
+        settings: settingsSaveMeta,
+        testimonials: testimonialsSaveMeta
+    }[formKey] || null;
+}
+
+function getFormLabel(formKey) {
+    return {
+        order: "order",
+        product: "product",
+        settings: "settings",
+        testimonials: "testimonial"
+    }[formKey] || "form";
+}
+
+function isFormDirty(formKey) {
+    const meta = state.formMeta[formKey];
+
+    if (!meta || !meta.baseline) {
+        return false;
+    }
+
+    return meta.baseline !== getFormSnapshot(formKey);
+}
+
+function setFormBaseline(formKey) {
+    state.formMeta[formKey].baseline = getFormSnapshot(formKey);
+    updateFormSaveMeta(formKey);
+}
+
+function markFormSaved(formKey) {
+    state.formMeta[formKey].savedAt = new Date().toISOString();
+    setFormBaseline(formKey);
+}
+
+function updateFormSaveMeta(formKey) {
+    const element = getSaveMetaElement(formKey);
+
+    if (!element) {
+        return;
+    }
+
+    if (formKey === "order" && !state.activeOrderId) {
+        element.textContent = "No order selected yet.";
+        element.className = "save-meta";
+        return;
+    }
+
+    if (formKey === "product" && !state.isCreatingProduct && !state.activeProductId && !state.products.length) {
+        element.textContent = "No product changes yet.";
+        element.className = "save-meta";
+        return;
+    }
+
+    const dirty = isFormDirty(formKey);
+    element.className = `save-meta ${dirty ? "dirty" : "saved"}`;
+    element.textContent = dirty
+        ? `Unsaved ${getFormLabel(formKey)} changes.`
+        : formatSavedMessage(state.formMeta[formKey].savedAt);
+}
+
+function updateAllFormSaveMeta() {
+    FORM_KEYS.forEach(updateFormSaveMeta);
+}
+
+function getDirtyFormLabels() {
+    return FORM_KEYS.filter((formKey) => isFormDirty(formKey)).map(getFormLabel);
+}
+
+function confirmDiscardChanges(actionLabel = "continue") {
+    const dirtyLabels = getDirtyFormLabels();
+
+    if (!dirtyLabels.length) {
+        return true;
+    }
+
+    const message = dirtyLabels.length === 1
+        ? `You have unsaved ${dirtyLabels[0]} changes. Leave them and ${actionLabel}?`
+        : `You have unsaved ${dirtyLabels.join(" and ")} changes. Leave them and ${actionLabel}?`;
+
+    return window.confirm(message);
+}
+
+async function copyTextToClipboard(text, successMessage) {
+    try {
+        await navigator.clipboard.writeText(text);
+        showToast(successMessage, "success");
+    } catch {
+        showToast("Clipboard access was blocked. Please copy manually.", "error");
+    }
 }
 
 async function apiRequest(path, options = {}) {
@@ -309,6 +655,82 @@ function buildStats() {
     return counts;
 }
 
+function getCurrentOrderDraft(order = state.orders.find((item) => item.id === state.activeOrderId)) {
+    if (!order) {
+        return null;
+    }
+
+    if (order.id !== state.activeOrderId) {
+        return order;
+    }
+
+    return {
+        ...order,
+        status: orderStatus.value || order.status,
+        quotedAmount: orderQuotedAmount.value ? Number(orderQuotedAmount.value) : null,
+        internalNote: orderInternalNote.value.trim()
+    };
+}
+
+function buildOrderReplyMessage(order) {
+    const draft = getCurrentOrderDraft(order);
+
+    if (!draft) {
+        return "";
+    }
+
+    const lines = [
+        `Hi ${draft.customerName}, this is Pink Delight Cakes.`,
+        `Your inquiry #${draft.id} for ${draft.productSnapshot?.name || "your custom cake"} is currently marked as ${slugLabel(draft.status)}.`
+    ];
+
+    if (draft.eventDate) {
+        lines.push(`Event date: ${formatDate(draft.eventDate)}.`);
+    }
+
+    if (draft.quotedAmount !== null && draft.quotedAmount !== undefined && draft.quotedAmount !== "") {
+        lines.push(`Current quote: ${formatCurrency(draft.quotedAmount)}.`);
+    }
+
+    if (draft.status === "reviewing") {
+        lines.push("We are reviewing your design details and will confirm the next step shortly.");
+    } else if (draft.status === "quoted") {
+        lines.push("Please let us know if you would like to go ahead with this quote or need any change.");
+    } else if (draft.status === "scheduled") {
+        lines.push("Your order is scheduled and we will stay in touch with the final bakery update.");
+    } else if (draft.status === "completed") {
+        lines.push("Thank you again for choosing Pink Delight Cakes.");
+    } else {
+        lines.push("Please reply here if you need any update or want to change anything.");
+    }
+
+    return lines.join("\n");
+}
+
+function buildOrderSummaryText(order) {
+    const draft = getCurrentOrderDraft(order);
+
+    if (!draft) {
+        return "";
+    }
+
+    return [
+        `Inquiry #${draft.id}`,
+        `Customer: ${draft.customerName}`,
+        `Phone: ${draft.customerPhone}`,
+        draft.customerEmail ? `Email: ${draft.customerEmail}` : "",
+        `Cake: ${draft.productSnapshot?.name || "Custom request"}`,
+        `Status: ${slugLabel(draft.status)}`,
+        `Event date: ${formatDate(draft.eventDate)}`,
+        `Fulfillment: ${slugLabel(draft.fulfillmentType)}`,
+        `Flavor: ${draft.flavor || "Not set"}`,
+        `Size: ${draft.sizeLabel || "Not set"}`,
+        `Quote: ${draft.quotedAmount ? formatCurrency(draft.quotedAmount) : "Not quoted yet"}`,
+        `Notes: ${draft.notes || "No customer notes"}`,
+        draft.internalNote ? `Internal note: ${draft.internalNote}` : ""
+    ].filter(Boolean).join("\n");
+}
+
 function renderOverview() {
     const counts = buildStats();
     overviewStats.innerHTML = [
@@ -373,6 +795,25 @@ function renderOverview() {
             </article>
         `).join("");
     }
+
+    const attentionItems = getNeedsAttentionItems();
+
+    if (!attentionItems.length) {
+        needsAttentionList.innerHTML = `<div class="detail-empty compact-empty"><i class="fa-solid fa-bell-slash"></i><p>No urgent follow-ups right now. The bakery board is caught up.</p></div>`;
+        return;
+    }
+
+    needsAttentionList.innerHTML = attentionItems.map((item) => `
+        <article class="stack-item attention-card attention-${escapeHtml(item.tone)}" data-attention-kind="${item.kind}" data-attention-id="${item.targetId}">
+            <header>
+                <div>
+                    <strong>${escapeHtml(item.title)}</strong>
+                    <span>${escapeHtml(item.description)}</span>
+                </div>
+                <span class="mini-pill">${escapeHtml(item.actionLabel)}</span>
+            </header>
+        </article>
+    `).join("");
 }
 
 function getVisibleOrders() {
@@ -406,7 +847,7 @@ function renderOrdersList() {
     }
 
     ordersList.innerHTML = orders.map((order) => `
-        <article class="stack-item ${state.activeOrderId === order.id ? "active" : ""}" data-order-id="${order.id}">
+        <article class="stack-item order-card attention-${escapeHtml(getOrderAttentionMeta(order).tone)} ${state.activeOrderId === order.id ? "active" : ""}" data-order-id="${order.id}">
             <header>
                 <div>
                     <strong>${escapeHtml(order.customerName)}</strong>
@@ -414,11 +855,15 @@ function renderOrdersList() {
                 </div>
                 <span class="status-pill ${escapeHtml(order.status)}">${escapeHtml(statusLabel(order.status))}</span>
             </header>
-            <p>${escapeHtml(order.customerPhone)}</p>
+            <div class="order-card-copy">
+                <p>${escapeHtml(order.customerPhone)}</p>
+                <span class="attention-note attention-${escapeHtml(getOrderAttentionMeta(order).tone)}">${escapeHtml(getOrderAttentionMeta(order).label)}</span>
+            </div>
             <footer>
                 <span class="mini-pill">${escapeHtml(formatDate(order.eventDate))}</span>
                 <span class="mini-pill">${escapeHtml(order.fulfillmentType)}</span>
                 <span class="mini-pill">${escapeHtml(order.sizeLabel || "No size")}</span>
+                <span class="mini-pill quote-pill ${order.quotedAmount ? "has-quote" : "missing-quote"}">${escapeHtml(order.quotedAmount ? formatCurrency(order.quotedAmount) : "No quote yet")}</span>
             </footer>
         </article>
     `).join("");
@@ -462,6 +907,14 @@ function renderOrderDetail() {
                 <strong>Customer notes</strong>
                 <span>${escapeHtml(order.notes || "No customer notes")}</span>
             </div>
+            <div class="summary-card">
+                <strong>Last updated</strong>
+                <span>${escapeHtml(formatDateTime(order.updatedAt || order.createdAt))}</span>
+            </div>
+            <div class="summary-card">
+                <strong>Reply status</strong>
+                <span>${escapeHtml(getOrderAttentionMeta(order).label)}</span>
+            </div>
         </div>
     `;
 
@@ -470,6 +923,7 @@ function renderOrderDetail() {
     `).join("");
     orderQuotedAmount.value = order.quotedAmount ?? "";
     orderInternalNote.value = order.internalNote ?? "";
+    setFormBaseline("order");
 }
 
 function createListInput(type, values = {}) {
@@ -619,6 +1073,7 @@ function renderProductEditor() {
     }
 
     fillProductForm(product);
+    setFormBaseline("product");
 }
 
 function serializeDynamicValues() {
@@ -696,12 +1151,15 @@ function renderTestimonialsEditor() {
 
     if (!Array.isArray(state.testimonials) || !state.testimonials.length) {
         testimonialList.appendChild(createTestimonialInput());
+        setFormBaseline("testimonials");
         return;
     }
 
     state.testimonials.forEach((testimonial) => {
         testimonialList.appendChild(createTestimonialInput(testimonial));
     });
+
+    setFormBaseline("testimonials");
 }
 
 function renderSettingsSummary() {
@@ -797,6 +1255,7 @@ function renderSettingsSummary() {
 function renderSettings() {
     fillSettingsForm(state.settings);
     renderSettingsSummary();
+    setFormBaseline("settings");
     renderTestimonialsEditor();
 }
 
@@ -853,6 +1312,7 @@ function renderAll() {
     renderProductsGrid();
     renderProductEditor();
     renderSettings();
+    updateAllFormSaveMeta();
 }
 
 function setView(view) {
@@ -926,6 +1386,10 @@ async function handleLogin(event) {
 }
 
 async function handleLogout() {
+    if (!confirmDiscardChanges("log out")) {
+        return;
+    }
+
     setButtonBusy(logoutButton, true, "Logging out...");
 
     try {
@@ -946,42 +1410,108 @@ async function handleLogout() {
     setButtonBusy(logoutButton, false, "Log out");
 }
 
-async function handleOrderSave(event) {
-    event.preventDefault();
-
+async function saveOrderPatch(patch, options = {}) {
     const orderId = state.activeOrderId;
     if (!orderId) {
         return;
     }
 
-    setButtonBusy(orderSaveButton, true, "Saving update...");
+    const nextPatch = {
+        status: patch.status ?? orderStatus.value,
+        quotedAmount: patch.quotedAmount ?? (orderQuotedAmount.value ? Number(orderQuotedAmount.value) : null),
+        internalNote: patch.internalNote ?? orderInternalNote.value.trim()
+    };
+
+    if (nextPatch.status === "quoted" && (nextPatch.quotedAmount === null || Number.isNaN(nextPatch.quotedAmount))) {
+        showToast("Add the quoted amount before marking this order as quoted.", "error");
+        return;
+    }
+
+    const actionButton = options.button || orderSaveButton;
+    const busyLabel = options.busyLabel || "Saving update...";
+    const defaultLabel = options.defaultLabel || "Save order update";
+    setButtonBusy(actionButton, true, busyLabel);
 
     try {
         const payload = await apiRequest(`/admin/orders/${orderId}`, {
             method: "PATCH",
-            body: {
-                status: orderStatus.value,
-                quotedAmount: orderQuotedAmount.value ? Number(orderQuotedAmount.value) : null,
-                internalNote: orderInternalNote.value.trim()
-            }
+            body: nextPatch
         });
 
         state.orders = state.orders.map((order) => (order.id === orderId ? payload.order : order));
         renderOverview();
         renderOrdersList();
         renderOrderDetail();
-        showToast("Order updated successfully.", "success");
+        markFormSaved("order");
+        showToast(options.successMessage || "Order updated successfully.", "success");
     } catch (error) {
         showToast(error.message || "Unable to update the order.", "error");
     } finally {
-        setButtonBusy(orderSaveButton, false, "Save order update");
+        setButtonBusy(actionButton, false, defaultLabel);
     }
+}
+
+async function handleOrderSave(event) {
+    event.preventDefault();
+    await saveOrderPatch({});
+}
+
+async function handleOrderQuickAction(statusValue, button) {
+    await saveOrderPatch({
+        status: statusValue
+    }, {
+        button,
+        busyLabel: `${statusLabel(statusValue)}...`,
+        defaultLabel: button.querySelector("span")?.textContent || statusLabel(statusValue),
+        successMessage: `Order marked ${statusLabel(statusValue).toLowerCase()}.`
+    });
+}
+
+function getOrderCustomerPhone(order) {
+    return order?.customerPhone || "";
+}
+
+function openOrderWhatsAppReply() {
+    const order = state.orders.find((item) => item.id === state.activeOrderId);
+
+    if (!order) {
+        return;
+    }
+
+    const link = createWhatsAppLink(getOrderCustomerPhone(order), buildOrderReplyMessage(order));
+
+    if (!link) {
+        showToast("No usable phone number was found for this inquiry.", "error");
+        return;
+    }
+
+    window.open(link, "_blank", "noopener,noreferrer");
+}
+
+async function handleCopyOrderReply() {
+    const order = state.orders.find((item) => item.id === state.activeOrderId);
+
+    if (!order) {
+        return;
+    }
+
+    await copyTextToClipboard(buildOrderReplyMessage(order), "Reply text copied.");
+}
+
+async function handleCopyOrderSummary() {
+    const order = state.orders.find((item) => item.id === state.activeOrderId);
+
+    if (!order) {
+        return;
+    }
+
+    await copyTextToClipboard(buildOrderSummaryText(order), "Inquiry summary copied.");
 }
 
 async function handleProductSave(event) {
     event.preventDefault();
 
-    setButtonBusy(document.getElementById("productSaveButton"), true, state.isCreatingProduct ? "Creating product..." : "Saving product...");
+    setButtonBusy(productSaveButton, true, state.isCreatingProduct ? "Creating product..." : "Saving product...");
 
     try {
         const payload = collectProductPayload();
@@ -1003,10 +1533,11 @@ async function handleProductSave(event) {
         renderOverview();
         renderProductsGrid();
         renderProductEditor();
+        markFormSaved("product");
     } catch (error) {
         showToast(error.message || "Unable to save the product.", "error");
     } finally {
-        setButtonBusy(document.getElementById("productSaveButton"), false, "Save product");
+        setButtonBusy(productSaveButton, false, "Save product");
     }
 }
 
@@ -1023,6 +1554,7 @@ async function handleSettingsSave(event) {
 
         state.settings = payload.settings;
         renderSettings();
+        markFormSaved("settings");
         showToast("Business settings updated successfully.", "success");
     } catch (error) {
         showToast(error.message || "Unable to save business settings.", "error");
@@ -1046,6 +1578,7 @@ async function handleTestimonialsSave(event) {
 
         state.testimonials = payload.testimonials || [];
         renderTestimonialsEditor();
+        markFormSaved("testimonials");
         showToast("Testimonials updated successfully.", "success");
     } catch (error) {
         showToast(error.message || "Unable to save testimonials.", "error");
@@ -1070,6 +1603,8 @@ function bindDynamicListButtons() {
             if (type === "addon") {
                 addonList.appendChild(createListInput("addon"));
             }
+
+            updateFormSaveMeta("product");
         });
     });
 
@@ -1082,6 +1617,7 @@ function bindDynamicListButtons() {
 
             const row = button.closest(".dynamic-row");
             row?.remove();
+            updateFormSaveMeta("product");
         });
     });
 }
@@ -1103,15 +1639,27 @@ function bindInteractions() {
             return;
         }
 
+        if (button.dataset.view !== state.activeView && !confirmDiscardChanges(`switch to ${button.dataset.view}`)) {
+            return;
+        }
+
         setView(button.dataset.view);
     });
 
     refreshOverview.addEventListener("click", async () => {
+        if (!confirmDiscardChanges("refresh the dashboard")) {
+            return;
+        }
+
         await refreshDashboardData();
         showToast("Dashboard data refreshed.", "info");
     });
 
     refreshOrders.addEventListener("click", async () => {
+        if (!confirmDiscardChanges("refresh orders")) {
+            return;
+        }
+
         await loadOrders();
         renderOverview();
         renderOrdersList();
@@ -1120,6 +1668,10 @@ function bindInteractions() {
     });
 
     refreshProducts.addEventListener("click", async () => {
+        if (!confirmDiscardChanges("refresh products")) {
+            return;
+        }
+
         await loadProducts();
         renderOverview();
         renderProductsGrid();
@@ -1128,6 +1680,10 @@ function bindInteractions() {
     });
 
     refreshSettings.addEventListener("click", async () => {
+        if (!confirmDiscardChanges("refresh settings")) {
+            return;
+        }
+
         await Promise.all([loadSettings(), loadTestimonials()]);
         renderSettings();
         showToast("Business settings and testimonials refreshed.", "info");
@@ -1151,6 +1707,10 @@ function bindInteractions() {
             return;
         }
 
+        if (Number(item.dataset.orderId) !== state.activeOrderId && !confirmDiscardChanges("open another order")) {
+            return;
+        }
+
         state.activeOrderId = Number(item.dataset.orderId);
         renderOrdersList();
         renderOrderDetail();
@@ -1159,6 +1719,10 @@ function bindInteractions() {
     productsGrid.addEventListener("click", (event) => {
         const item = event.target.closest("[data-product-id]");
         if (!item) {
+            return;
+        }
+
+        if (Number(item.dataset.productId) !== state.activeProductId && !confirmDiscardChanges("open another product")) {
             return;
         }
 
@@ -1175,6 +1739,10 @@ function bindInteractions() {
             return;
         }
 
+        if (!confirmDiscardChanges("open that order")) {
+            return;
+        }
+
         state.activeOrderId = Number(item.dataset.openOrder);
         setView("orders");
         renderOrdersList();
@@ -1187,6 +1755,10 @@ function bindInteractions() {
             return;
         }
 
+        if (!confirmDiscardChanges("open that product")) {
+            return;
+        }
+
         state.activeProductId = Number(item.dataset.openProduct);
         state.isCreatingProduct = false;
         setView("products");
@@ -1195,6 +1767,10 @@ function bindInteractions() {
     });
 
     newProductButton.addEventListener("click", () => {
+        if (!confirmDiscardChanges("start a new product")) {
+            return;
+        }
+
         state.isCreatingProduct = true;
         state.activeProductId = null;
         renderProductsGrid();
@@ -1203,6 +1779,7 @@ function bindInteractions() {
 
     addTestimonialButton.addEventListener("click", () => {
         testimonialList.appendChild(createTestimonialInput());
+        updateFormSaveMeta("testimonials");
     });
 
     testimonialList.addEventListener("click", (event) => {
@@ -1216,14 +1793,82 @@ function bindInteractions() {
         if (!testimonialList.querySelector(".testimonial-row")) {
             testimonialList.appendChild(createTestimonialInput());
         }
+
+        updateFormSaveMeta("testimonials");
     });
 
     window.addEventListener("hashchange", () => {
         const nextView = window.location.hash.replace("#", "");
         if (["overview", "orders", "products", "settings"].includes(nextView)) {
+            if (nextView !== state.activeView && !confirmDiscardChanges(`switch to ${nextView}`)) {
+                window.location.hash = state.activeView;
+                return;
+            }
+
             setView(nextView);
         }
     });
+
+    window.addEventListener("beforeunload", (event) => {
+        if (!getDirtyFormLabels().length) {
+            return;
+        }
+
+        event.preventDefault();
+        event.returnValue = "";
+    });
+
+    orderQuickActions.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-quick-status]");
+
+        if (!button) {
+            return;
+        }
+
+        handleOrderQuickAction(button.dataset.quickStatus, button);
+    });
+
+    openOrderWhatsAppButton.addEventListener("click", openOrderWhatsAppReply);
+    copyOrderReplyButton.addEventListener("click", handleCopyOrderReply);
+    copyOrderSummaryButton.addEventListener("click", handleCopyOrderSummary);
+
+    needsAttentionList.addEventListener("click", (event) => {
+        const item = event.target.closest("[data-attention-kind]");
+
+        if (!item) {
+            return;
+        }
+
+        if (!confirmDiscardChanges("open that task")) {
+            return;
+        }
+
+        if (item.dataset.attentionKind === "order") {
+            state.activeOrderId = Number(item.dataset.attentionId);
+            setView("orders");
+            renderOrdersList();
+            renderOrderDetail();
+            return;
+        }
+
+        state.activeProductId = Number(item.dataset.attentionId);
+        state.isCreatingProduct = false;
+        setView("products");
+        renderProductsGrid();
+        renderProductEditor();
+    });
+
+    [orderStatus, orderQuotedAmount, orderInternalNote].forEach((field) => {
+        field.addEventListener("input", () => updateFormSaveMeta("order"));
+        field.addEventListener("change", () => updateFormSaveMeta("order"));
+    });
+
+    productForm.addEventListener("input", () => updateFormSaveMeta("product"));
+    productForm.addEventListener("change", () => updateFormSaveMeta("product"));
+    settingsForm.addEventListener("input", () => updateFormSaveMeta("settings"));
+    settingsForm.addEventListener("change", () => updateFormSaveMeta("settings"));
+    testimonialsForm.addEventListener("input", () => updateFormSaveMeta("testimonials"));
+    testimonialsForm.addEventListener("change", () => updateFormSaveMeta("testimonials"));
 
     bindDynamicListButtons();
 }

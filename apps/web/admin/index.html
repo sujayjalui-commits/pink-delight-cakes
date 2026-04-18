@@ -138,6 +138,14 @@
                                 </div>
                                 <div class="stack-list" id="productHealth"></div>
                             </article>
+
+                            <article class="content-card overview-span-full">
+                                <div class="card-head">
+                                    <h3>Needs attention</h3>
+                                    <span class="meta-label">The next bakery tasks to move today forward</span>
+                                </div>
+                                <div class="stack-list" id="needsAttentionList"></div>
+                            </article>
                         </div>
                     </section>
 
@@ -178,6 +186,52 @@
                                 <form class="editor-form hidden" id="orderForm">
                                     <div class="detail-summary" id="orderSummary"></div>
 
+                                    <div class="editor-group">
+                                        <div class="group-head">
+                                            <h4>Quick actions</h4>
+                                            <span class="meta-label">Move the order forward in one click</span>
+                                        </div>
+                                        <div class="quick-action-row" id="orderQuickActions">
+                                            <button class="btn btn-secondary ghost" type="button" data-quick-status="reviewing">
+                                                <i class="fa-solid fa-magnifying-glass"></i>
+                                                <span>Mark reviewing</span>
+                                            </button>
+                                            <button class="btn btn-secondary ghost" type="button" data-quick-status="quoted">
+                                                <i class="fa-solid fa-indian-rupee-sign"></i>
+                                                <span>Mark quoted</span>
+                                            </button>
+                                            <button class="btn btn-secondary ghost" type="button" data-quick-status="scheduled">
+                                                <i class="fa-solid fa-calendar-check"></i>
+                                                <span>Mark scheduled</span>
+                                            </button>
+                                            <button class="btn btn-secondary ghost" type="button" data-quick-status="completed">
+                                                <i class="fa-solid fa-circle-check"></i>
+                                                <span>Mark completed</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="editor-group">
+                                        <div class="group-head">
+                                            <h4>Customer reply helpers</h4>
+                                            <span class="meta-label">Use the current order draft to respond faster</span>
+                                        </div>
+                                        <div class="quick-action-row" id="orderReplyActions">
+                                            <button class="btn btn-secondary ghost" type="button" id="openOrderWhatsAppButton">
+                                                <i class="fa-brands fa-whatsapp"></i>
+                                                <span>Open WhatsApp reply</span>
+                                            </button>
+                                            <button class="btn btn-secondary ghost" type="button" id="copyOrderReplyButton">
+                                                <i class="fa-solid fa-copy"></i>
+                                                <span>Copy reply text</span>
+                                            </button>
+                                            <button class="btn btn-secondary ghost" type="button" id="copyOrderSummaryButton">
+                                                <i class="fa-solid fa-clipboard-list"></i>
+                                                <span>Copy inquiry summary</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
                                     <div class="field-grid">
                                         <label>
                                             <span>Status</span>
@@ -194,10 +248,13 @@
                                         <textarea id="orderInternalNote" rows="5" placeholder="Add internal bakery notes, quote context, or follow-up reminders."></textarea>
                                     </label>
 
-                                    <button class="btn btn-primary" type="submit" id="orderSaveButton">
-                                        <i class="fa-solid fa-floppy-disk"></i>
-                                        <span>Save order update</span>
-                                    </button>
+                                    <div class="editor-save-row">
+                                        <p class="save-meta" id="orderSaveMeta">No order selected yet.</p>
+                                        <button class="btn btn-primary" type="submit" id="orderSaveButton">
+                                            <i class="fa-solid fa-floppy-disk"></i>
+                                            <span>Save order update</span>
+                                        </button>
+                                    </div>
                                 </form>
                             </article>
                         </div>
@@ -328,10 +385,13 @@
                                         <div class="dynamic-list" id="addonList"></div>
                                     </div>
 
-                                    <button class="btn btn-primary" type="submit" id="productSaveButton">
-                                        <i class="fa-solid fa-floppy-disk"></i>
-                                        <span>Save product</span>
-                                    </button>
+                                    <div class="editor-save-row">
+                                        <p class="save-meta" id="productSaveMeta">No product changes yet.</p>
+                                        <button class="btn btn-primary" type="submit" id="productSaveButton">
+                                            <i class="fa-solid fa-floppy-disk"></i>
+                                            <span>Save product</span>
+                                        </button>
+                                    </div>
                                 </form>
                             </article>
                         </div>
@@ -490,10 +550,13 @@
                                         <textarea id="settingsResponseTimeCopy" rows="3" placeholder="Example: Send your date and inspiration photo. We usually reply within 2 hours from 10 AM to 8 PM."></textarea>
                                     </label>
 
-                                    <button class="btn btn-primary" type="submit" id="settingsSaveButton">
-                                        <i class="fa-solid fa-floppy-disk"></i>
-                                        <span>Save settings</span>
-                                    </button>
+                                    <div class="editor-save-row">
+                                        <p class="save-meta" id="settingsSaveMeta">No settings changes yet.</p>
+                                        <button class="btn btn-primary" type="submit" id="settingsSaveButton">
+                                            <i class="fa-solid fa-floppy-disk"></i>
+                                            <span>Save settings</span>
+                                        </button>
+                                    </div>
                                 </form>
                             </article>
 
@@ -527,10 +590,13 @@
 
                                     <div class="dynamic-list testimonial-list" id="testimonialList"></div>
 
-                                    <button class="btn btn-primary" type="submit" id="testimonialsSaveButton">
-                                        <i class="fa-solid fa-floppy-disk"></i>
-                                        <span>Save testimonials</span>
-                                    </button>
+                                    <div class="editor-save-row">
+                                        <p class="save-meta" id="testimonialsSaveMeta">No testimonial changes yet.</p>
+                                        <button class="btn btn-primary" type="submit" id="testimonialsSaveButton">
+                                            <i class="fa-solid fa-floppy-disk"></i>
+                                            <span>Save testimonials</span>
+                                        </button>
+                                    </div>
                                 </form>
                             </article>
                         </div>

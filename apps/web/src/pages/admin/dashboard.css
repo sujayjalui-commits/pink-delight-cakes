@@ -461,6 +461,7 @@ select:focus {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.overview-span-full,
 .settings-span-full {
     grid-column: 1 / -1;
 }
@@ -528,10 +529,55 @@ select:focus {
     transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
 }
 
+.order-card {
+    position: relative;
+    gap: 0.8rem;
+    overflow: hidden;
+}
+
+.order-card::before,
+.attention-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    border-radius: 999px;
+    background: rgba(111, 78, 55, 0.12);
+}
+
+.order-card.attention-urgent::before,
+.attention-card.attention-urgent::before {
+    background: var(--danger);
+}
+
+.order-card.attention-warning::before,
+.attention-card.attention-warning::before {
+    background: var(--warning);
+}
+
+.order-card.attention-watch::before,
+.attention-card.attention-watch::before {
+    background: var(--info);
+}
+
+.order-card.attention-good::before,
+.attention-card.attention-good::before {
+    background: var(--success);
+}
+
+.order-card.attention-resolved::before,
+.attention-card.attention-resolved::before {
+    background: rgba(111, 78, 55, 0.16);
+}
+
 .stack-item.active,
 .product-card.active {
     border-color: rgba(217, 121, 131, 0.26);
     box-shadow: 0 18px 28px rgba(96, 67, 53, 0.12);
+}
+
+.order-card.active {
+    background: rgba(255, 248, 244, 0.94);
 }
 
 .stack-item header,
@@ -546,6 +592,11 @@ select:focus {
 .stack-item strong,
 .product-card strong {
     display: block;
+}
+
+.order-card-copy {
+    display: grid;
+    gap: 0.35rem;
 }
 
 .stack-item p,
@@ -614,6 +665,51 @@ select:focus {
     color: var(--warning);
 }
 
+.quote-pill.has-quote {
+    background: rgba(75, 139, 104, 0.14);
+    color: var(--success);
+}
+
+.quote-pill.missing-quote {
+    background: rgba(211, 139, 79, 0.16);
+    color: var(--warning);
+}
+
+.attention-note {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 0.36rem 0.68rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
+.attention-note.attention-urgent {
+    background: rgba(201, 95, 106, 0.14);
+    color: var(--danger);
+}
+
+.attention-note.attention-warning {
+    background: rgba(211, 139, 79, 0.16);
+    color: var(--warning);
+}
+
+.attention-note.attention-watch {
+    background: rgba(125, 108, 243, 0.12);
+    color: var(--info);
+}
+
+.attention-note.attention-good {
+    background: rgba(75, 139, 104, 0.14);
+    color: var(--success);
+}
+
+.attention-note.attention-resolved {
+    background: rgba(111, 78, 55, 0.08);
+    color: var(--secondary);
+}
+
 .detail-card {
     min-height: 540px;
 }
@@ -631,6 +727,11 @@ select:focus {
 .detail-empty i {
     font-size: 2rem;
     color: var(--accent-dark);
+}
+
+.compact-empty {
+    min-height: 180px;
+    padding: 1.5rem;
 }
 
 .editor-form {
@@ -677,6 +778,42 @@ select:focus {
 
 .editor-group h4 {
     font-size: 1rem;
+}
+
+.quick-action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.quick-action-row .btn {
+    flex: 1 1 180px;
+}
+
+.editor-save-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.save-meta {
+    color: var(--muted);
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+.save-meta.saved {
+    color: var(--success);
+}
+
+.save-meta.dirty {
+    color: var(--warning);
+}
+
+.attention-card {
+    position: relative;
 }
 
 .dynamic-list {
@@ -876,6 +1013,16 @@ select:focus {
 
     .dynamic-row.testimonial-row {
         grid-template-columns: 1fr;
+    }
+
+    .editor-save-row {
+        align-items: stretch;
+    }
+
+    .editor-save-row .btn,
+    .quick-action-row .btn {
+        width: 100%;
+        flex-basis: 100%;
     }
 
     .card-head,
