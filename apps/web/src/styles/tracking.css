@@ -345,6 +345,36 @@
             margin-bottom: 0.25rem;
         }
 
+        .status-meta small {
+            display: block;
+            margin-top: 0.25rem;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .recovery-panel {
+            margin-top: 1.2rem;
+            padding: 1rem 1.1rem;
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(111, 78, 55, 0.08);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .recovery-panel[hidden] {
+            display: none;
+        }
+
+        .recovery-panel strong {
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+
+        .recovery-panel p {
+            margin-bottom: 0.9rem;
+            color: var(--muted);
+        }
+
         .timeline-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));

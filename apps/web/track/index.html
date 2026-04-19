@@ -76,12 +76,26 @@
                     <div class="form-status" id="lookupStatus">Enter your details to check the latest status of your request.</div>
                 </form>
 
+                <section class="recovery-panel" id="recoveryPanel" hidden>
+                    <strong id="recoveryTitle">Need help finding your inquiry?</strong>
+                    <p id="recoveryMessage">We will show the best recovery step here if the lookup does not work.</p>
+                    <a class="btn btn-secondary" id="recoveryWhatsAppLink" href="https://wa.me/918767812121" target="_blank" rel="noreferrer">
+                        <i class="fa-brands fa-whatsapp"></i>
+                        <span id="recoveryWhatsAppLabel">Ask on WhatsApp</span>
+                    </a>
+                </section>
+
                 <section class="status-panel" id="statusPanel" hidden>
                     <div class="status-kicker"><i class="fa-solid fa-receipt"></i> <span id="statusReferenceLabel">Reference</span></div>
                     <h3 id="statusHeading">Request received</h3>
                     <p id="statusMessage">We will show the latest status here once your inquiry is matched.</p>
 
                     <div class="status-grid">
+                        <div class="status-meta">
+                            <strong>Tracking signal</strong>
+                            <span id="statusConfidenceLabel">-</span>
+                            <small id="statusConfidenceMessage">-</small>
+                        </div>
                         <div class="status-meta">
                             <strong>Selected cake</strong>
                             <span id="statusProductName">-</span>
@@ -91,8 +105,24 @@
                             <span id="statusEventDate">-</span>
                         </div>
                         <div class="status-meta">
+                            <strong>Timing</strong>
+                            <span id="statusTimingLabel">-</span>
+                        </div>
+                        <div class="status-meta">
                             <strong>Fulfillment</strong>
                             <span id="statusFulfillment">-</span>
+                        </div>
+                        <div class="status-meta" id="statusFlavorCard" hidden>
+                            <strong>Flavor</strong>
+                            <span id="statusFlavor">-</span>
+                        </div>
+                        <div class="status-meta" id="statusServingCard" hidden>
+                            <strong>Size & servings</strong>
+                            <span id="statusServingPlan">-</span>
+                        </div>
+                        <div class="status-meta" id="statusAddOnCard" hidden>
+                            <strong>Add-on</strong>
+                            <span id="statusAddOn">-</span>
                         </div>
                         <div class="status-meta">
                             <strong>Last updated</strong>

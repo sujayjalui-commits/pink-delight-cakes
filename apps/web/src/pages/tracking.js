@@ -122,6 +122,10 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             return value === "local_delivery" ? "Local delivery" : "Pickup";
         }
 
+        function formatServingPlan(order) {
+            return [order.sizeLabel, order.servings].filter(Boolean).join(" · ");
+        }
+
         const SITE_URL = resolveSiteUrl();
         const apiBase = resolveApiBaseUrl();
         const trackForm = document.getElementById("trackForm");
@@ -129,13 +133,27 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         const phoneNumber = document.getElementById("phoneNumber");
         const trackButton = document.getElementById("trackButton");
         const lookupStatus = document.getElementById("lookupStatus");
+        const recoveryPanel = document.getElementById("recoveryPanel");
+        const recoveryTitle = document.getElementById("recoveryTitle");
+        const recoveryMessage = document.getElementById("recoveryMessage");
+        const recoveryWhatsAppLink = document.getElementById("recoveryWhatsAppLink");
+        const recoveryWhatsAppLabel = document.getElementById("recoveryWhatsAppLabel");
         const statusPanel = document.getElementById("statusPanel");
         const statusReferenceLabel = document.getElementById("statusReferenceLabel");
         const statusHeading = document.getElementById("statusHeading");
         const statusMessage = document.getElementById("statusMessage");
+        const statusConfidenceLabel = document.getElementById("statusConfidenceLabel");
+        const statusConfidenceMessage = document.getElementById("statusConfidenceMessage");
         const statusProductName = document.getElementById("statusProductName");
         const statusEventDate = document.getElementById("statusEventDate");
+        const statusTimingLabel = document.getElementById("statusTimingLabel");
         const statusFulfillment = document.getElementById("statusFulfillment");
+        const statusFlavorCard = document.getElementById("statusFlavorCard");
+        const statusFlavor = document.getElementById("statusFlavor");
+        const statusServingCard = document.getElementById("statusServingCard");
+        const statusServingPlan = document.getElementById("statusServingPlan");
+        const statusAddOnCard = document.getElementById("statusAddOnCard");
+        const statusAddOn = document.getElementById("statusAddOn");
         const statusUpdatedAt = document.getElementById("statusUpdatedAt");
         const statusCreatedAt = document.getElementById("statusCreatedAt");
         const statusQuotedAmountCard = document.getElementById("statusQuotedAmountCard");
@@ -194,6 +212,18 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             }
         }
 
+        function setRecoveryState({ title, message, label, whatsappMessage }) {
+            recoveryTitle.textContent = title;
+            recoveryMessage.textContent = message;
+            recoveryWhatsAppLabel.textContent = label;
+            recoveryWhatsAppLink.href = createWhatsAppLink(DEFAULT_PHONE, whatsappMessage);
+            recoveryPanel.hidden = false;
+        }
+
+        function hideRecoveryState() {
+            recoveryPanel.hidden = true;
+        }
+
         function setBusy(busy) {
             trackButton.disabled = busy;
             trackButton.innerHTML = busy
@@ -215,11 +245,15 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         }
 
         function applyLookupResult(order) {
+            hideRecoveryState();
             statusReferenceLabel.textContent = `Reference #${order.id}`;
             statusHeading.textContent = order.statusLabel;
             statusMessage.textContent = order.statusMessage;
+            statusConfidenceLabel.textContent = order.confidenceLabel || "In progress";
+            statusConfidenceMessage.textContent = order.confidenceMessage || "The bakery is actively working through this inquiry.";
             statusProductName.textContent = order.productName || "Custom cake request";
             statusEventDate.textContent = formatDate(order.eventDate);
+            statusTimingLabel.textContent = order.timingLabel || "Date to be confirmed";
             statusFulfillment.textContent = formatFulfillment(order.fulfillmentType);
             statusUpdatedAt.textContent = formatDateTime(order.updatedAt || order.createdAt);
             statusCreatedAt.textContent = formatDateTime(order.createdAt);
@@ -232,6 +266,31 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             followUpTitle.textContent = order.followUpTitle || "When to follow up";
             followUpMessage.textContent = order.followUpMessage || "Message the bakery if you need help or if the status looks unexpected.";
             statusPanel.className = `status-panel status-${order.statusTone || "active"}`;
+
+            if (order.flavor) {
+                statusFlavorCard.hidden = false;
+                statusFlavor.textContent = order.flavor;
+            } else {
+                statusFlavorCard.hidden = true;
+                statusFlavor.textContent = "-";
+            }
+
+            const servingPlan = formatServingPlan(order);
+            if (servingPlan) {
+                statusServingCard.hidden = false;
+                statusServingPlan.textContent = servingPlan;
+            } else {
+                statusServingCard.hidden = true;
+                statusServingPlan.textContent = "-";
+            }
+
+            if (order.addOn) {
+                statusAddOnCard.hidden = false;
+                statusAddOn.textContent = order.addOn;
+            } else {
+                statusAddOnCard.hidden = true;
+                statusAddOn.textContent = "-";
+            }
 
             if (order.quotedAmount !== null && order.quotedAmount !== undefined && order.quotedAmount !== "") {
                 statusQuotedAmountCard.hidden = false;
@@ -246,7 +305,11 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             const supportMessage = [
                 `Hi Pink Delight Cakes, I want to ask about inquiry #${order.id}.`,
                 `Current status shown: ${order.statusLabel}.`,
+                order.supportIntent ? `I need help with: ${order.supportIntent}.` : "",
                 order.productName ? `Cake: ${order.productName}` : "",
+                order.flavor ? `Flavor: ${order.flavor}` : "",
+                servingPlan ? `Size: ${servingPlan}` : "",
+                order.addOn ? `Add-on: ${order.addOn}` : "",
                 order.eventDate ? `Event date: ${order.eventDate}` : "",
                 order.customerActionMessage ? `Help needed: ${order.customerActionMessage}` : ""
             ].filter(Boolean).join("\n");
@@ -265,17 +328,30 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             if (!/^\d+$/.test(referenceValue)) {
                 setLookupStatus("Please enter a valid numeric reference number.", "error");
                 statusPanel.hidden = true;
+                setRecoveryState({
+                    title: "Double-check the reference number",
+                    message: "Reference numbers only use digits. If you still need help, message the bakery and mention the name used in the inquiry.",
+                    label: "Ask for help on WhatsApp",
+                    whatsappMessage: "Hi Pink Delight Cakes, I need help finding my inquiry because I may have the wrong reference number."
+                });
                 return;
             }
 
             if (!isValidPhoneNumber(phoneValue)) {
                 setLookupStatus("Please enter the same phone or WhatsApp number used in your inquiry.", "error");
                 statusPanel.hidden = true;
+                setRecoveryState({
+                    title: "Use the original phone number",
+                    message: "The lookup only works with the same phone or WhatsApp number used in the original inquiry. If you changed numbers, ask the bakery to help match the request manually.",
+                    label: "Message the bakery",
+                    whatsappMessage: `Hi Pink Delight Cakes, I need help finding inquiry #${referenceValue} because I may be using a different phone number now.`
+                });
                 return;
             }
 
             setBusy(true);
             setLookupStatus("Checking the latest bakery update...");
+            hideRecoveryState();
 
             try {
                 const payload = await apiRequest(`/api/order-requests/lookup?referenceId=${encodeURIComponent(referenceValue)}&phone=${encodeURIComponent(phoneValue)}`);
@@ -285,6 +361,30 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             } catch (error) {
                 statusPanel.hidden = true;
                 setLookupStatus(`${error.message} If you still need help, message the bakery directly on WhatsApp and mention your reference number.`, "error");
+
+                const normalizedMessage = String(error.message || "").toLowerCase();
+                if (normalizedMessage.includes("could not match")) {
+                    setRecoveryState({
+                        title: "We could not match those details",
+                        message: "This usually means the phone number is different from the original inquiry or the reference number was typed incorrectly. If you need help quickly, message the bakery and mention the attempted reference.",
+                        label: "Ask about this reference",
+                        whatsappMessage: `Hi Pink Delight Cakes, I need help matching inquiry #${referenceValue}. I may have used a different phone number or copied the reference incorrectly.`
+                    });
+                } else if (normalizedMessage.includes("too long to respond")) {
+                    setRecoveryState({
+                        title: "The bakery service is taking too long",
+                        message: "The tracking service did not respond in time. You can try again in a moment or message the bakery directly with your reference number.",
+                        label: "Message the bakery now",
+                        whatsappMessage: `Hi Pink Delight Cakes, the tracking page timed out while checking inquiry #${referenceValue}. Can you please help me with the latest update?`
+                    });
+                } else {
+                    setRecoveryState({
+                        title: "Need help with this inquiry?",
+                        message: "If the tracker still does not work, message the bakery directly and include your reference number plus the phone number used in the inquiry.",
+                        label: "Continue on WhatsApp",
+                        whatsappMessage: `Hi Pink Delight Cakes, I need help checking inquiry #${referenceValue}. The tracking page did not work for me.`
+                    });
+                }
             } finally {
                 setBusy(false);
             }
@@ -292,6 +392,7 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
 
         trackForm.addEventListener("submit", handleTrackSubmit);
         whatsAppSupportLink.href = createWhatsAppLink(DEFAULT_PHONE, "Hi Pink Delight Cakes, I need help with an existing inquiry.");
+        hideRecoveryState();
 
         const detailCards = document.querySelectorAll(".details-grid .detail-card strong");
         if (detailCards[1]) {

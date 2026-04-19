@@ -175,6 +175,166 @@ function parseProductSnapshot(value) {
   }
 }
 
+function getDaysUntilEvent(value) {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = new Date(`${value}T00:00:00Z`);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  const now = new Date();
+  const todayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const eventUtc = Date.UTC(parsed.getUTCFullYear(), parsed.getUTCMonth(), parsed.getUTCDate());
+  return Math.round((eventUtc - todayUtc) / 86400000);
+}
+
+function getEventUrgency(order) {
+  const daysUntilEvent = getDaysUntilEvent(order.event_date);
+
+  if (daysUntilEvent === null) {
+    return {
+      daysUntilEvent: null,
+      timingLabel: "Date to be confirmed",
+      timingTone: "steady",
+      timingMessage: "The event date is not confirmed yet, so it is worth keeping the bakery updated if your celebration timeline changes."
+    };
+  }
+
+  if (daysUntilEvent < 0) {
+    return {
+      daysUntilEvent,
+      timingLabel: "Event date has passed",
+      timingTone: "muted",
+      timingMessage: "This reference is already past its event date, so only follow up if you need help with a completed or missed celebration."
+    };
+  }
+
+  if (daysUntilEvent === 0) {
+    return {
+      daysUntilEvent,
+      timingLabel: "Event is today",
+      timingTone: "urgent",
+      timingMessage: "Because the celebration is today, use WhatsApp right away if anything still needs confirmation."
+    };
+  }
+
+  if (daysUntilEvent === 1) {
+    return {
+      daysUntilEvent,
+      timingLabel: "Event is tomorrow",
+      timingTone: "urgent",
+      timingMessage: "The celebration is very close now, so urgent changes or clarifications should be shared on WhatsApp as soon as possible."
+    };
+  }
+
+  if (daysUntilEvent <= 3) {
+    return {
+      daysUntilEvent,
+      timingLabel: `Event is in ${daysUntilEvent} days`,
+      timingTone: "soon",
+      timingMessage: "Your celebration is coming up soon. It is a good idea to avoid waiting if any detail still needs confirmation."
+    };
+  }
+
+  if (daysUntilEvent <= 7) {
+    return {
+      daysUntilEvent,
+      timingLabel: `Event is in ${daysUntilEvent} days`,
+      timingTone: "steady",
+      timingMessage: "The event is approaching, but there is still some room to clarify details without last-minute pressure."
+    };
+  }
+
+  return {
+    daysUntilEvent,
+    timingLabel: `Event is in ${daysUntilEvent} days`,
+    timingTone: "calm",
+    timingMessage: "There is still comfortable time before the celebration date, so you usually only need to follow up if details change."
+  };
+}
+
+function buildConfidenceSignal(status, urgency) {
+  if (status === "cancelled") {
+    return {
+      confidenceLabel: "Needs attention",
+      confidenceTone: "warning",
+      confidenceMessage: "This inquiry is no longer active, so the safest next step is to message the bakery directly if you still need help."
+    };
+  }
+
+  if (status === "completed") {
+    return {
+      confidenceLabel: "Completed",
+      confidenceTone: "success",
+      confidenceMessage: "This inquiry has already reached its final step."
+    };
+  }
+
+  if (urgency.daysUntilEvent !== null && urgency.daysUntilEvent <= 1 && ["new", "reviewing", "quoted", "payment_pending"].includes(status)) {
+    return {
+      confidenceLabel: "Action needed soon",
+      confidenceTone: "warning",
+      confidenceMessage: "The event is very close and the inquiry is still not fully settled, so quick follow-up is the safest path."
+    };
+  }
+
+  if (["paid", "scheduled"].includes(status)) {
+    return {
+      confidenceLabel: "On track",
+      confidenceTone: "success",
+      confidenceMessage: "The inquiry is in a healthy state and usually only needs follow-up if details have changed."
+    };
+  }
+
+  return {
+    confidenceLabel: "In progress",
+    confidenceTone: "active",
+    confidenceMessage: "The bakery is actively working through this inquiry."
+  };
+}
+
+function buildTrackingGuidance(order, statusMeta) {
+  const urgency = getEventUrgency(order);
+  const confidence = buildConfidenceSignal(order.status, urgency);
+  const customerMessages = [statusMeta.customerActionMessage].filter(Boolean);
+  const followUpMessages = [statusMeta.followUpMessage].filter(Boolean);
+
+  if (urgency.daysUntilEvent !== null && urgency.daysUntilEvent <= 3 && ["new", "reviewing"].includes(order.status)) {
+    customerMessages.unshift("Because the event is close, share any missing design or timing details now instead of waiting for a later reply.");
+    followUpMessages.unshift("Do not wait for the next automatic update if this celebration is urgent.");
+  }
+
+  if (urgency.daysUntilEvent !== null && urgency.daysUntilEvent <= 3 && ["quoted", "payment_pending"].includes(order.status)) {
+    customerMessages.unshift("If you want this cake to move ahead, confirm as soon as you can so the bakery can plan around the event date.");
+  }
+
+  if (urgency.daysUntilEvent !== null && urgency.daysUntilEvent > 7 && ["paid", "scheduled"].includes(order.status)) {
+    followUpMessages.unshift("There is still comfortable time before the celebration, so you usually only need to message the bakery if something changes.");
+  }
+
+  const supportIntent = order.status === "quoted"
+    ? "I want to confirm or discuss this quote"
+    : order.status === "payment_pending"
+      ? "I need help completing the final confirmation"
+      : ["paid", "scheduled"].includes(order.status)
+        ? "I need to confirm or update my event details"
+        : order.status === "completed"
+          ? "I need help with a completed order or want to place a new one"
+          : "I need help with this inquiry";
+
+  return {
+    ...urgency,
+    ...confidence,
+    customerActionMessage: customerMessages.join(" "),
+    followUpMessage: followUpMessages.join(" "),
+    bakeryActionMessage: [statusMeta.bakeryActionMessage, urgency.timingMessage].filter(Boolean).join(" "),
+    supportIntent
+  };
+}
+
 function buildTimeline(stage, tone) {
   if (stage === "cancelled") {
     return PUBLIC_TIMELINE_STEPS.map((step) => ({
@@ -203,13 +363,25 @@ function mapPublicLookupOrder(order) {
     label: "In progress",
     message: "The bakery is still working through this request.",
     nextStepTitle: "Next step",
-    nextStepMessage: "Please check back later or message the bakery directly if you need help."
+    nextStepMessage: "Please check back later or message the bakery directly if you need help.",
+    customerActionTitle: "What you can do now",
+    customerActionMessage: "Keep your reference number handy in case you need to follow up.",
+    bakeryActionTitle: "What the bakery is doing",
+    bakeryActionMessage: "The bakery is still working through this inquiry.",
+    followUpTitle: "When to follow up",
+    followUpMessage: "If the timing feels urgent, message the bakery directly and mention your reference number.",
+    whatsAppCtaLabel: "Ask about this inquiry"
   };
+  const guidance = buildTrackingGuidance(order, statusMeta);
 
   return {
     id: order.id,
     productName: snapshot?.name || "Custom cake request",
     eventDate: order.event_date || null,
+    flavor: order.flavor || "",
+    sizeLabel: order.size_label || "",
+    servings: order.servings || "",
+    addOn: order.add_on || "",
     fulfillmentType: order.fulfillment_type,
     status: order.status,
     statusTone: statusMeta.tone,
@@ -218,12 +390,18 @@ function mapPublicLookupOrder(order) {
     nextStepTitle: statusMeta.nextStepTitle,
     nextStepMessage: statusMeta.nextStepMessage,
     customerActionTitle: statusMeta.customerActionTitle,
-    customerActionMessage: statusMeta.customerActionMessage,
+    customerActionMessage: guidance.customerActionMessage,
     bakeryActionTitle: statusMeta.bakeryActionTitle,
-    bakeryActionMessage: statusMeta.bakeryActionMessage,
+    bakeryActionMessage: guidance.bakeryActionMessage,
     followUpTitle: statusMeta.followUpTitle,
-    followUpMessage: statusMeta.followUpMessage,
+    followUpMessage: guidance.followUpMessage,
     whatsAppCtaLabel: statusMeta.whatsAppCtaLabel,
+    supportIntent: guidance.supportIntent,
+    timingLabel: guidance.timingLabel,
+    timingTone: guidance.timingTone,
+    confidenceLabel: guidance.confidenceLabel,
+    confidenceTone: guidance.confidenceTone,
+    confidenceMessage: guidance.confidenceMessage,
     quotedAmount: order.quoted_amount ?? null,
     createdAt: order.created_at,
     updatedAt: order.updated_at,
