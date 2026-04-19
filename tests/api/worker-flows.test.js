@@ -44,6 +44,10 @@ function createBusinessSettingsSeed() {
     bakery_intro_paragraph_1: "Home bakery rooted in warm celebrations.",
     bakery_intro_paragraph_2: "Every inquiry is handled personally.",
     response_time_copy: "Share your date, design idea, and servings for a quick quote.",
+    featured_spotlight_title: "Baat Pakki engagement cake",
+    featured_spotlight_description: "A customized engagement cake adorned with edible pearls and a fresh gypsy flower wreath at the base.",
+    featured_spotlight_image_url: "src/assets/baat-pakki-engagement-cake.webp",
+    featured_spotlight_source_url: "https://www.instagram.com/p/DXQtqPNjB1L/",
     weekday_open_time: "10:00",
     weekday_close_time: "20:00",
     saturday_open_time: "10:00",
@@ -202,6 +206,29 @@ await runTest("public testimonials endpoint returns only published testimonials"
   assert.equal(payload.ok, true);
   assert.equal(payload.testimonials.length, 1);
   assert.equal(payload.testimonials[0].customerName, "Riya S.");
+});
+
+await runTest("public settings endpoint exposes the featured spotlight fields", async () => {
+  const env = createTestEnv({
+    businessSettings: createBusinessSettingsSeed()
+  });
+
+  const response = await worker.fetch(
+    new Request("https://pink-delight-cakes-api.sujayjalui.workers.dev/api/settings/public", {
+      headers: {
+        origin: "https://pink-delight-cakes.pages.dev"
+      }
+    }),
+    env,
+    createExecutionContext()
+  );
+  const payload = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(payload.ok, true);
+  assert.equal(payload.settings.featuredSpotlightTitle, "Baat Pakki engagement cake");
+  assert.equal(payload.settings.featuredSpotlightImageUrl, "src/assets/baat-pakki-engagement-cake.webp");
+  assert.equal(payload.settings.featuredSpotlightSourceUrl, "https://www.instagram.com/p/DXQtqPNjB1L/");
 });
 
 await runTest("public tracking lookup returns customer-facing status metadata for a matching inquiry", async () => {
@@ -401,6 +428,7 @@ await runTest("admin settings route reads and updates business settings for an a
   assert.equal(getResponse.status, 200);
   assert.equal(getPayload.ok, true);
   assert.equal(getPayload.settings.city, "Pune");
+  assert.equal(getPayload.settings.featuredSpotlightTitle, "Baat Pakki engagement cake");
 
   const patchResponse = await worker.fetch(
     new Request("https://pink-delight-cakes.pages.dev/api/admin/settings", {
@@ -430,6 +458,10 @@ await runTest("admin settings route reads and updates business settings for an a
         bakeryIntroParagraph1: " Pink Delight Cakes is led by Pinky Sangoi. ",
         bakeryIntroParagraph2: " Each celebration gets thoughtful attention. ",
         responseTimeCopy: " Send your date, design notes, and servings for a quick quote. ",
+        featuredSpotlightTitle: " Pearl engagement cake ",
+        featuredSpotlightDescription: " Soft pearls and florals with a clean engagement finish. ",
+        featuredSpotlightImageUrl: " data:image/jpeg;base64,spotlight-demo ",
+        featuredSpotlightSourceUrl: " https://www.instagram.com/p/example-featured-cake/ ",
         weekdayOpenTime: "10:00",
         weekdayCloseTime: "20:00",
         saturdayOpenTime: "10:00",
@@ -448,8 +480,12 @@ await runTest("admin settings route reads and updates business settings for an a
   assert.equal(patchPayload.settings.city, "Pune City");
   assert.equal(patchPayload.settings.countryCode, "IN");
   assert.equal(patchPayload.settings.deliveryPickupCopy, "Pickup and local delivery across Pune city.");
+  assert.equal(patchPayload.settings.featuredSpotlightTitle, "Pearl engagement cake");
+  assert.equal(patchPayload.settings.featuredSpotlightImageUrl, "data:image/jpeg;base64,spotlight-demo");
+  assert.equal(patchPayload.settings.featuredSpotlightSourceUrl, "https://www.instagram.com/p/example-featured-cake/");
   assert.equal(env.DB.businessSettings.city, "Pune City");
   assert.equal(env.DB.businessSettings.country_code, "IN");
+  assert.equal(env.DB.businessSettings.featured_spotlight_title, "Pearl engagement cake");
 });
 
 await runTest("admin settings mutation rejects requests without the protected dashboard intent header", async () => {
@@ -493,6 +529,10 @@ await runTest("admin settings mutation rejects requests without the protected da
         bakeryIntroParagraph1: "Home bakery rooted in warm celebrations.",
         bakeryIntroParagraph2: "Every inquiry is handled personally.",
         responseTimeCopy: "Share your date, design idea, and servings for a quick quote.",
+        featuredSpotlightTitle: "Baat Pakki engagement cake",
+        featuredSpotlightDescription: "A customized engagement cake adorned with edible pearls and a fresh gypsy flower wreath at the base.",
+        featuredSpotlightImageUrl: "src/assets/baat-pakki-engagement-cake.webp",
+        featuredSpotlightSourceUrl: "https://www.instagram.com/p/DXQtqPNjB1L/",
         weekdayOpenTime: "10:00",
         weekdayCloseTime: "20:00",
         saturdayOpenTime: "10:00",

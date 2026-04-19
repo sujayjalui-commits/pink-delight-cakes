@@ -32,6 +32,10 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             bakeryIntroParagraph1: "Pink Delight Cakes is led by Pinky Sangoi and began as a home bakery rooted in family celebrations, soft finishes, and cakes that feel personal from the very first conversation.",
             bakeryIntroParagraph2: DEFAULT_WARM_FOUNDER_PARAGRAPH,
             responseTimeCopy: "Share your date, servings, flavor preference, and inspiration photo. We usually reply with design options and pricing within 2 hours during bakery hours.",
+            featuredSpotlightTitle: "",
+            featuredSpotlightDescription: "",
+            featuredSpotlightImageUrl: "",
+            featuredSpotlightSourceUrl: "",
             weekdayOpenTime: "10:00",
             weekdayCloseTime: "20:00",
             saturdayOpenTime: "10:00",
@@ -109,7 +113,8 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             settings: { ...DEFAULT_SETTINGS },
             testimonials: [],
             products: [],
-            productsStatus: "loading"
+            productsStatus: "loading",
+            settingsResolved: false
         };
 
         const apiBase = resolveApiBaseUrl();
@@ -154,6 +159,13 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         const referenceCard = document.getElementById("referenceCard");
         const trackReferenceLink = document.getElementById("trackReferenceLink");
         const catalogNote = document.getElementById("catalogNote");
+        const featuredSpotlight = document.getElementById("featuredSpotlight");
+        const featuredSpotlightImage = document.getElementById("featuredSpotlightImage");
+        const featuredSpotlightEyebrow = document.getElementById("featuredSpotlightEyebrow");
+        const featuredSpotlightTitle = document.getElementById("featuredSpotlightTitle");
+        const featuredSpotlightDescription = document.getElementById("featuredSpotlightDescription");
+        const featuredSpotlightInquiryLink = document.getElementById("featuredSpotlightInquiryLink");
+        const featuredSpotlightSourceLink = document.getElementById("featuredSpotlightSourceLink");
         function getStructuredDataScript() {
             let script = document.getElementById("structuredDataScript");
 
@@ -270,6 +282,20 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
 
         function getApiUrl(pathname) {
             return `${apiBase}${pathname}`;
+        }
+
+        function normalizeSpotlightImageUrl(value) {
+            const trimmedValue = String(value || "").trim();
+
+            if (!trimmedValue) {
+                return "";
+            }
+
+            if (trimmedValue.startsWith("data:image/") || trimmedValue.startsWith("/") || trimmedValue.startsWith("src/")) {
+                return trimmedValue;
+            }
+
+            return normalizeAbsoluteUrl(trimmedValue);
         }
 
         async function apiRequest(pathname, options = {}) {
@@ -389,6 +415,55 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             }
 
             catalogNote.textContent = "Every signature cake can still be tailored with flavors, serving sizes, topper ideas, and celebration notes once you send your inquiry.";
+        }
+
+        function getFeaturedSpotlightSettings() {
+            return {
+                title: String(state.settings.featuredSpotlightTitle || "").trim(),
+                description: String(state.settings.featuredSpotlightDescription || "").trim(),
+                imageUrl: normalizeSpotlightImageUrl(state.settings.featuredSpotlightImageUrl),
+                sourceUrl: normalizeAbsoluteUrl(state.settings.featuredSpotlightSourceUrl || "")
+            };
+        }
+
+        function renderFeaturedSpotlight() {
+            if (!featuredSpotlight) {
+                return;
+            }
+
+            const spotlight = getFeaturedSpotlightSettings();
+            const hasContent = Boolean(spotlight.title || spotlight.description || spotlight.imageUrl);
+
+            if (!hasContent && !state.settingsResolved) {
+                return;
+            }
+
+            featuredSpotlight.hidden = !hasContent;
+
+            if (!hasContent) {
+                return;
+            }
+
+            const title = spotlight.title || "Featured cake spotlight";
+            const description = spotlight.description || "Ask about this featured design for your next celebration.";
+            const imageUrl = spotlight.imageUrl || "src/assets/baat-pakki-engagement-cake.webp";
+            const sourceLabel = /instagram\.com/i.test(spotlight.sourceUrl) ? "View Instagram post" : "View source link";
+
+            featuredSpotlightEyebrow.textContent = "Latest featured cake";
+            featuredSpotlightTitle.textContent = title;
+            featuredSpotlightDescription.textContent = description;
+            featuredSpotlightImage.src = imageUrl;
+            featuredSpotlightImage.alt = `${title} by ${state.settings.brandName || DEFAULT_SETTINGS.brandName}`;
+            featuredSpotlightInquiryLink.setAttribute("href", "#contact");
+
+            if (spotlight.sourceUrl) {
+                featuredSpotlightSourceLink.hidden = false;
+                featuredSpotlightSourceLink.setAttribute("href", spotlight.sourceUrl);
+                featuredSpotlightSourceLink.innerHTML = `<i class="fa-brands fa-instagram"></i> ${escapeHtml(sourceLabel)}`;
+            } else {
+                featuredSpotlightSourceLink.hidden = true;
+                featuredSpotlightSourceLink.removeAttribute("href");
+            }
         }
 
         function renderProducts() {
@@ -951,6 +1026,7 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             });
 
             applyHomepageMedia();
+            renderFeaturedSpotlight();
             applySeoMetadata();
         }
 
@@ -981,6 +1057,7 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
                     ...DEFAULT_SETTINGS,
                     ...(payload?.settings || {})
                 };
+                state.settingsResolved = true;
             } catch (error) {
                 console.warn("Settings fallback in use:", error.message);
             }

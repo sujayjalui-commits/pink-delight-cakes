@@ -176,6 +176,14 @@ const settingsBakeryIntroTitle = document.getElementById("settingsBakeryIntroTit
 const settingsBakeryIntroParagraph1 = document.getElementById("settingsBakeryIntroParagraph1");
 const settingsBakeryIntroParagraph2 = document.getElementById("settingsBakeryIntroParagraph2");
 const settingsResponseTimeCopy = document.getElementById("settingsResponseTimeCopy");
+const settingsSpotlightTitle = document.getElementById("settingsSpotlightTitle");
+const settingsSpotlightDescription = document.getElementById("settingsSpotlightDescription");
+const settingsSpotlightImageUrl = document.getElementById("settingsSpotlightImageUrl");
+const settingsSpotlightSourceUrl = document.getElementById("settingsSpotlightSourceUrl");
+const settingsSpotlightImageFile = document.getElementById("settingsSpotlightImageFile");
+const settingsSpotlightUploadButton = document.getElementById("settingsSpotlightUploadButton");
+const settingsSpotlightClearButton = document.getElementById("settingsSpotlightClearButton");
+const settingsSpotlightImageMeta = document.getElementById("settingsSpotlightImageMeta");
 const settingsWeekdayOpenTime = document.getElementById("settingsWeekdayOpenTime");
 const settingsWeekdayCloseTime = document.getElementById("settingsWeekdayCloseTime");
 const settingsSaturdayOpenTime = document.getElementById("settingsSaturdayOpenTime");
@@ -194,6 +202,7 @@ const settingsPreviewPhone = document.getElementById("settingsPreviewPhone");
 const settingsPreviewEmail = document.getElementById("settingsPreviewEmail");
 const settingsPreviewLocation = document.getElementById("settingsPreviewLocation");
 const settingsPreviewResponse = document.getElementById("settingsPreviewResponse");
+const settingsPreviewSpotlight = document.getElementById("settingsPreviewSpotlight");
 const settingsSaveButton = document.getElementById("settingsSaveButton");
 const settingsSaveMeta = document.getElementById("settingsSaveMeta");
 const testimonialsForm = document.getElementById("testimonialsForm");
@@ -651,6 +660,25 @@ function getProductImagePreviewSource(value) {
             <text x="320" y="390" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="28" fill="#8d6561">Cake photo preview</text>
         </svg>
     `);
+}
+
+function getSettingsSpotlightImageMetaText(value) {
+    return String(value || "").trim()
+        ? "Current spotlight image is ready for the storefront. Upload a new photo or paste another image URL to replace it."
+        : "No spotlight image selected yet. Upload from your device or paste a hosted image URL.";
+}
+
+function getFeaturedSpotlightDraftFromSettings(settings) {
+    return {
+        title: String(settings?.featuredSpotlightTitle || "").trim(),
+        description: String(settings?.featuredSpotlightDescription || "").trim(),
+        imageUrl: String(settings?.featuredSpotlightImageUrl || "").trim(),
+        sourceUrl: String(settings?.featuredSpotlightSourceUrl || "").trim()
+    };
+}
+
+function hasFeaturedSpotlightContent(spotlight) {
+    return Boolean(spotlight.title || spotlight.description || spotlight.imageUrl);
 }
 
 function renderProductPreview() {
@@ -1683,6 +1711,12 @@ function fillSettingsForm(settings) {
     settingsBakeryIntroParagraph1.value = settings?.bakeryIntroParagraph1 || "";
     settingsBakeryIntroParagraph2.value = settings?.bakeryIntroParagraph2 || "";
     settingsResponseTimeCopy.value = settings?.responseTimeCopy || "";
+    settingsSpotlightTitle.value = settings?.featuredSpotlightTitle || "";
+    settingsSpotlightDescription.value = settings?.featuredSpotlightDescription || "";
+    settingsSpotlightImageUrl.value = settings?.featuredSpotlightImageUrl || "";
+    settingsSpotlightSourceUrl.value = settings?.featuredSpotlightSourceUrl || "";
+    settingsSpotlightImageMeta.textContent = getSettingsSpotlightImageMetaText(settings?.featuredSpotlightImageUrl);
+    settingsSpotlightImageFile.value = "";
     settingsWeekdayOpenTime.value = settings?.weekdayOpenTime || "";
     settingsWeekdayCloseTime.value = settings?.weekdayCloseTime || "";
     settingsSaturdayOpenTime.value = settings?.saturdayOpenTime || "";
@@ -1711,6 +1745,7 @@ function renderTestimonialsEditor() {
 
 function renderSettingsSummary() {
     const settings = state.settings;
+    const spotlight = getFeaturedSpotlightDraftFromSettings(settings);
 
     if (!settings) {
         settingsSummary.innerHTML = `
@@ -1774,6 +1809,12 @@ function renderSettingsSummary() {
             value: settings.responseTimeCopy || "Not set"
         },
         {
+            label: "Featured spotlight",
+            value: hasFeaturedSpotlightContent(spotlight)
+                ? (spotlight.title || "Configured")
+                : "Hidden"
+        },
+        {
             label: "Weekday hours",
             value: settings.weekdayOpenTime && settings.weekdayCloseTime
                 ? `${settings.weekdayOpenTime} to ${settings.weekdayCloseTime}`
@@ -1803,6 +1844,11 @@ function renderSettingsPreview() {
     const settings = collectSettingsPayload();
     const city = String(settings.city || "").trim();
     const deliveryCopy = personalizeDeliveryCopy(settings.deliveryPickupCopy, city);
+    const spotlight = getFeaturedSpotlightDraftFromSettings(settings);
+    const spotlightSourceUrl = normalizeAbsoluteUrl(spotlight.sourceUrl);
+    const spotlightImageUrl = getProductImagePreviewSource(spotlight.imageUrl);
+    const spotlightTitle = spotlight.title || "Featured cake spotlight";
+    const spotlightDescription = spotlight.description || "Add a featured cake photo and copy here to spotlight one special design above the signature cake grid.";
 
     settingsPreviewHeroTitle.textContent = settings.brandName || "Pink Delight Cakes";
     settingsPreviewHeroCity.textContent = getHeroCityLabel(city);
@@ -1815,6 +1861,33 @@ function renderSettingsPreview() {
     settingsPreviewEmail.textContent = settings.contactEmail || "hello@pinkdelightcakes.com";
     settingsPreviewLocation.textContent = deliveryCopy || getContactLocationLabel(city);
     settingsPreviewResponse.textContent = settings.responseTimeCopy || "We usually reply with design options and pricing within 2 hours during bakery hours.";
+
+    if (!hasFeaturedSpotlightContent(spotlight)) {
+        settingsPreviewSpotlight.innerHTML = `
+            <span class="empty-preview-label">Spotlight hidden</span>
+            <strong>No featured cake spotlight is published right now.</strong>
+            <p>Add a title, description, and photo to show a featured design card above the signature cakes.</p>
+            <span>Leaving all spotlight fields empty keeps this section off the storefront.</span>
+        `;
+        settingsPreviewSpotlight.classList.add("empty-preview");
+        return;
+    }
+
+    settingsPreviewSpotlight.classList.remove("empty-preview");
+    settingsPreviewSpotlight.innerHTML = `
+        <div class="settings-spotlight-preview-media">
+            <img src="${escapeHtml(spotlightImageUrl)}" alt="${escapeHtml(spotlightTitle)}">
+        </div>
+        <div class="settings-spotlight-preview-content">
+            <span class="eyebrow">Featured spotlight</span>
+            <strong>${escapeHtml(spotlightTitle)}</strong>
+            <p>${escapeHtml(spotlightDescription)}</p>
+            <div class="settings-spotlight-preview-actions">
+                <span class="preview-highlight">Ask about this design</span>
+                ${spotlightSourceUrl ? `<a class="preview-link" href="${escapeHtml(spotlightSourceUrl)}" target="_blank" rel="noreferrer">View source link</a>` : ""}
+            </div>
+        </div>
+    `;
 }
 
 function renderTestimonialsPreview() {
@@ -1870,6 +1943,10 @@ function collectSettingsPayload() {
         bakeryIntroParagraph1: settingsBakeryIntroParagraph1.value.trim(),
         bakeryIntroParagraph2: settingsBakeryIntroParagraph2.value.trim(),
         responseTimeCopy: settingsResponseTimeCopy.value.trim(),
+        featuredSpotlightTitle: settingsSpotlightTitle.value.trim(),
+        featuredSpotlightDescription: settingsSpotlightDescription.value.trim(),
+        featuredSpotlightImageUrl: settingsSpotlightImageUrl.value.trim(),
+        featuredSpotlightSourceUrl: settingsSpotlightSourceUrl.value.trim(),
         weekdayOpenTime: settingsWeekdayOpenTime.value,
         weekdayCloseTime: settingsWeekdayCloseTime.value,
         saturdayOpenTime: settingsSaturdayOpenTime.value,
@@ -2312,6 +2389,43 @@ function handleProductImageClear() {
     updateFormSaveMeta("product");
 }
 
+async function handleSettingsSpotlightImageUpload(event) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+        return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+        showToast("Please choose an image file.", "error");
+        return;
+    }
+
+    setButtonBusy(settingsSpotlightUploadButton, true, "Processing photo...");
+
+    try {
+        const result = await compressProductImage(file);
+        settingsSpotlightImageUrl.value = result.dataUrl;
+        settingsSpotlightImageMeta.textContent = `Uploaded from device and resized to ${result.width}x${result.height} (${Math.round(result.bytes / 1024)} KB).`;
+        renderSettingsPreview();
+        updateFormSaveMeta("settings");
+        showToast("Featured spotlight photo updated in the settings draft.", "success");
+    } catch (error) {
+        showToast(error.message || "Unable to process that photo.", "error");
+    } finally {
+        setButtonBusy(settingsSpotlightUploadButton, false, "Upload spotlight photo");
+        settingsSpotlightImageFile.value = "";
+    }
+}
+
+function handleSettingsSpotlightImageClear() {
+    settingsSpotlightImageUrl.value = "";
+    settingsSpotlightImageFile.value = "";
+    settingsSpotlightImageMeta.textContent = getSettingsSpotlightImageMetaText("");
+    renderSettingsPreview();
+    updateFormSaveMeta("settings");
+}
+
 async function handleProductSave(event) {
     event.preventDefault();
 
@@ -2741,6 +2855,23 @@ function bindInteractions() {
 
     productImageFile.addEventListener("change", handleProductImageUpload);
     productImageClearButton.addEventListener("click", handleProductImageClear);
+    settingsSpotlightUploadButton.addEventListener("click", () => {
+        settingsSpotlightImageFile.click();
+    });
+    settingsSpotlightImageFile.addEventListener("change", handleSettingsSpotlightImageUpload);
+    settingsSpotlightClearButton.addEventListener("click", handleSettingsSpotlightImageClear);
+    [settingsSpotlightImageUrl].forEach((field) => {
+        field.addEventListener("input", () => {
+            settingsSpotlightImageMeta.textContent = String(settingsSpotlightImageUrl.value || "").trim()
+                ? "Using the pasted image URL for the featured spotlight."
+                : getSettingsSpotlightImageMetaText("");
+        });
+        field.addEventListener("change", () => {
+            settingsSpotlightImageMeta.textContent = String(settingsSpotlightImageUrl.value || "").trim()
+                ? "Using the pasted image URL for the featured spotlight."
+                : getSettingsSpotlightImageMetaText("");
+        });
+    });
 
     addTestimonialButton.addEventListener("click", () => {
         testimonialList.appendChild(createTestimonialInput());

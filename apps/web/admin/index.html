@@ -692,6 +692,48 @@
                                         <textarea id="settingsResponseTimeCopy" rows="3" placeholder="Example: Send your date and inspiration photo. We usually reply within 2 hours from 10 AM to 8 PM."></textarea>
                                     </label>
 
+                                    <div class="editor-group">
+                                        <div class="group-head">
+                                            <h4>Featured spotlight</h4>
+                                            <span class="meta-label">Swap the special featured cake photo and copy without editing code.</span>
+                                        </div>
+
+                                        <div class="field-grid">
+                                            <label>
+                                                <span>Spotlight title</span>
+                                                <input type="text" id="settingsSpotlightTitle" placeholder="Baat Pakki engagement cake">
+                                            </label>
+                                            <label>
+                                                <span>Source link</span>
+                                                <input type="url" id="settingsSpotlightSourceUrl" placeholder="https://www.instagram.com/p/...">
+                                            </label>
+                                        </div>
+
+                                        <label>
+                                            <span>Spotlight description</span>
+                                            <textarea id="settingsSpotlightDescription" rows="4" placeholder="Describe the cake design, styling, and why it is featured."></textarea>
+                                        </label>
+
+                                        <label>
+                                            <span>Spotlight image URL</span>
+                                            <input type="text" id="settingsSpotlightImageUrl" placeholder="https://... or upload a photo below">
+                                        </label>
+
+                                        <div class="quick-action-row">
+                                            <input type="file" id="settingsSpotlightImageFile" accept="image/*" class="hidden">
+                                            <button class="btn btn-secondary ghost" type="button" id="settingsSpotlightUploadButton">
+                                                <i class="fa-solid fa-image"></i>
+                                                <span>Upload spotlight photo</span>
+                                            </button>
+                                            <button class="btn btn-secondary ghost" type="button" id="settingsSpotlightClearButton">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                                <span>Clear spotlight photo</span>
+                                            </button>
+                                        </div>
+
+                                        <p class="meta-label" id="settingsSpotlightImageMeta">Upload from your device or paste a hosted image URL for the featured spotlight.</p>
+                                    </div>
+
                                     <div class="editor-save-row">
                                         <p class="save-meta" id="settingsSaveMeta">No settings changes yet.</p>
                                         <button class="btn btn-primary" type="submit" id="settingsSaveButton">
@@ -737,6 +779,8 @@
                                         <p id="settingsPreviewLocation">Available across your local area</p>
                                         <p id="settingsPreviewResponse">We usually reply with design options and pricing within 2 hours during bakery hours.</p>
                                     </article>
+
+                                    <article class="settings-preview-card settings-preview-card--spotlight" id="settingsPreviewSpotlight"></article>
                                 </div>
                             </article>
 

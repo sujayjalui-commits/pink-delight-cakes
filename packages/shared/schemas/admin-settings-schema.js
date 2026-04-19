@@ -35,6 +35,10 @@ export function validateAdminSettingsInput(settings) {
   if (!isOptionalString(settings.bakeryIntroParagraph1)) errors.push("bakeryIntroParagraph1 must be a string");
   if (!isOptionalString(settings.bakeryIntroParagraph2)) errors.push("bakeryIntroParagraph2 must be a string");
   if (!isOptionalString(settings.responseTimeCopy)) errors.push("responseTimeCopy must be a string");
+  if (!isOptionalString(settings.featuredSpotlightTitle)) errors.push("featuredSpotlightTitle must be a string");
+  if (!isOptionalString(settings.featuredSpotlightDescription)) errors.push("featuredSpotlightDescription must be a string");
+  if (!isOptionalString(settings.featuredSpotlightImageUrl)) errors.push("featuredSpotlightImageUrl must be a string");
+  if (!isOptionalString(settings.featuredSpotlightSourceUrl)) errors.push("featuredSpotlightSourceUrl must be a string");
   if (!isOptionalString(settings.weekdayOpenTime)) errors.push("weekdayOpenTime must be a string");
   if (!isOptionalString(settings.weekdayCloseTime)) errors.push("weekdayCloseTime must be a string");
   if (!isOptionalString(settings.saturdayOpenTime)) errors.push("saturdayOpenTime must be a string");
@@ -58,6 +62,10 @@ export function validateAdminSettingsInput(settings) {
   validateOptionalLength(settings.bakeryIntroParagraph1, "bakeryIntroParagraph1", 500, errors);
   validateOptionalLength(settings.bakeryIntroParagraph2, "bakeryIntroParagraph2", 500, errors);
   validateOptionalLength(settings.responseTimeCopy, "responseTimeCopy", 220, errors);
+  validateOptionalLength(settings.featuredSpotlightTitle, "featuredSpotlightTitle", 160, errors);
+  validateOptionalLength(settings.featuredSpotlightDescription, "featuredSpotlightDescription", 500, errors);
+  validateOptionalLength(settings.featuredSpotlightImageUrl, "featuredSpotlightImageUrl", 600000, errors);
+  validateOptionalLength(settings.featuredSpotlightSourceUrl, "featuredSpotlightSourceUrl", 300, errors);
   validateOptionalLength(settings.weekdayOpenTime, "weekdayOpenTime", 8, errors);
   validateOptionalLength(settings.weekdayCloseTime, "weekdayCloseTime", 8, errors);
   validateOptionalLength(settings.saturdayOpenTime, "saturdayOpenTime", 8, errors);
@@ -67,6 +75,14 @@ export function validateAdminSettingsInput(settings) {
 
   if (typeof settings.countryCode === "string" && settings.countryCode.trim() && !/^[A-Za-z]{2}$/.test(settings.countryCode.trim())) {
     errors.push("countryCode must be a 2-letter country code");
+  }
+
+  if (
+    typeof settings.featuredSpotlightSourceUrl === "string" &&
+    settings.featuredSpotlightSourceUrl.trim() &&
+    !/^https?:\/\/\S+$/i.test(settings.featuredSpotlightSourceUrl.trim())
+  ) {
+    errors.push("featuredSpotlightSourceUrl must be a valid http or https URL");
   }
 
   [

@@ -7,7 +7,11 @@
     "city": "",
     "currency": "INR",
     "paymentMode": "manual_quote",
-    "inquiryChannel": "website"
+    "inquiryChannel": "website",
+    "featuredSpotlightTitle": "Baat Pakki engagement cake",
+    "featuredSpotlightDescription": "A customized engagement cake adorned with edible pearls and a fresh gypsy flower wreath at the base. This design is now featured on the storefront as a recent Pink Delight Cakes highlight.",
+    "featuredSpotlightImageUrl": "src/assets/baat-pakki-engagement-cake.webp",
+    "featuredSpotlightSourceUrl": "https://www.instagram.com/p/DXQtqPNjB1L/"
   },
   "adminUser": {
     "email": "admin@pinkdelightcakes.com",
