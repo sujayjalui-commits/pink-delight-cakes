@@ -26,7 +26,7 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             countryCode: "IN",
             currency: "INR",
             inquiryChannel: "website",
-            deliveryPickupCopy: "Pickup and local delivery across your city",
+            deliveryPickupCopy: "Pickup is scheduled by confirmation time, and nearby delivery can be arranged for select orders.",
             noticePeriodCopy: "Standard celebration cakes usually need 24 to 48 hours notice",
             bakeryIntroTitle: "Baked from home, designed with care, and made for real celebrations.",
             bakeryIntroParagraph1: "Pink Delight Cakes is led by Pinky Sangoi and began as a home bakery rooted in family celebrations, soft finishes, and cakes that feel personal from the very first conversation.",
@@ -39,27 +39,6 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             sundayOpenTime: "",
             sundayCloseTime: ""
         };
-        const DEFAULT_TESTIMONIALS = [
-            {
-                customerName: "Riya S.",
-                occasionLabel: "Birthday order",
-                quoteText: "The cake looked exactly like the reference I sent and tasted even better. Everyone asked where it was from.",
-                rating: 5
-            },
-            {
-                customerName: "Neha M.",
-                occasionLabel: "Baby shower cake",
-                quoteText: "The ordering process was so smooth on WhatsApp. The design felt premium, but still warm and homemade.",
-                rating: 5
-            },
-            {
-                customerName: "Arjun and Meera",
-                occasionLabel: "Anniversary order",
-                quoteText: "Beautiful finish, balanced sweetness, and on-time delivery. It made our anniversary table look special.",
-                rating: 5
-            }
-        ];
-
         function isRuntimePlaceholder(value) {
             return /^__.+__$/.test(String(value || "").trim());
         }
@@ -128,7 +107,7 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
 
         const state = {
             settings: { ...DEFAULT_SETTINGS },
-            testimonials: [...DEFAULT_TESTIMONIALS],
+            testimonials: [],
             products: [],
             productsStatus: "loading"
         };
@@ -438,18 +417,19 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             const testimonials = Array.isArray(state.testimonials) ? state.testimonials : [];
 
             if (!testimonials.length) {
+                reviewGrid.classList.add("review-grid--empty");
                 reviewGrid.innerHTML = `
-                    <article class="testimonial-card reveal">
-                        <div class="stars">${createStarsMarkup(5)}</div>
-                        <p>"Customer testimonials will appear here once they are published from the admin dashboard."</p>
-                        <strong>${escapeHtml(state.settings.brandName || DEFAULT_SETTINGS.brandName)}</strong>
-                        <span>Customer love</span>
+                    <article class="review-empty-state reveal" aria-live="polite">
+                        <span class="review-empty-state__eyebrow">Reviews not published yet</span>
+                        <h3>Customer reviews will appear here once Pink Delight Cakes is ready to publish them.</h3>
+                        <p>This section stays empty until real feedback is approved for the storefront.</p>
                     </article>
                 `;
                 observeRevealItems(reviewGrid);
                 return;
             }
 
+            reviewGrid.classList.remove("review-grid--empty");
             reviewGrid.innerHTML = testimonials.map((testimonial) => `
                 <article class="testimonial-card reveal">
                     <div class="stars">${createStarsMarkup(testimonial.rating)}</div>
@@ -589,7 +569,7 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
 
         function getHeroCityLabel(city) {
             if (!city || /^your city$/i.test(city.trim())) {
-                return "Home bakery in your city";
+                return "Founder-led home bakery";
             }
 
             return `Home bakery in ${city}`;
@@ -597,7 +577,7 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
 
         function getContactLocationLabel(city) {
             if (!city || /^your city$/i.test(city.trim())) {
-                return "Available across your local area";
+                return "Pickup by pre-arranged slot, with nearby delivery available";
             }
 
             return `Pickup and delivery across ${city}`;
@@ -823,7 +803,9 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
                 telephone: phone,
                 email,
                 sameAs,
-                areaServed: city && !/^your city$/i.test(city) ? city : "India"
+                areaServed: city && !/^your city$/i.test(city)
+                    ? city
+                    : (stateRegion || "India")
             };
 
             if (openingHoursSpecification.length) {
@@ -1007,7 +989,7 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
                     : [];
             } catch (error) {
                 console.warn("Testimonials fallback in use:", error.message);
-                state.testimonials = [...DEFAULT_TESTIMONIALS];
+                state.testimonials = [];
             }
 
             renderTestimonials();

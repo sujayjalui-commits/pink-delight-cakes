@@ -375,7 +375,7 @@ function getHeroCityLabel(city) {
     const normalizedCity = String(city || "").trim();
 
     if (!normalizedCity || /^your city$/i.test(normalizedCity)) {
-        return "Home bakery in your city";
+        return "Founder-led home bakery";
     }
 
     return `Home bakery in ${normalizedCity}`;
@@ -385,7 +385,7 @@ function getContactLocationLabel(city) {
     const normalizedCity = String(city || "").trim();
 
     if (!normalizedCity || /^your city$/i.test(normalizedCity)) {
-        return "Available across your local area";
+        return "Pickup by pre-arranged slot, with nearby delivery available";
     }
 
     return `Pickup and delivery across ${normalizedCity}`;
@@ -1806,7 +1806,7 @@ function renderSettingsPreview() {
 
     settingsPreviewHeroTitle.textContent = settings.brandName || "Pink Delight Cakes";
     settingsPreviewHeroCity.textContent = getHeroCityLabel(city);
-    settingsPreviewDelivery.textContent = deliveryCopy || "Pickup and local delivery across your city";
+    settingsPreviewDelivery.textContent = deliveryCopy || "Pickup is scheduled by confirmation time, and nearby delivery can be arranged for select orders.";
     settingsPreviewNotice.textContent = getNoticeHighlight(settings.noticePeriodCopy);
     settingsPreviewIntroTitle.textContent = settings.bakeryIntroTitle || "Baked from home, designed with care, and made for real celebrations.";
     settingsPreviewIntroOne.textContent = settings.bakeryIntroParagraph1 || "Share how the bakery started and what makes it personal.";
@@ -1823,10 +1823,10 @@ function renderTestimonialsPreview() {
     if (!testimonials.length) {
         testimonialsPreviewGrid.innerHTML = `
             <article class="testimonial-preview-card empty-preview">
-                <div class="stars">${createStarsMarkup(5)}</div>
-                <p>"Published testimonials will appear here once they are ready for the storefront."</p>
+                <span class="empty-preview-label">No published reviews yet</span>
                 <strong>${escapeHtml(settingsBrandName.value.trim() || "Pink Delight Cakes")}</strong>
-                <span>Customer love</span>
+                <p>Publish verified customer feedback here when you are ready for the storefront.</p>
+                <span>This preview stays neutral until a real review is marked public.</span>
             </article>
         `;
         return;

@@ -2,11 +2,11 @@
   "businessSettings": {
     "brandName": "Pink Delight Cakes",
     "contactEmail": "hello@pinkdelightcakes.com",
-    "contactPhone": "+91 98765 43210",
+    "contactPhone": "+91 87678 12121",
     "instagramHandle": "@pinkdelightcakes",
-    "city": "Your City",
+    "city": "",
     "currency": "INR",
-    "paymentMode": "hybrid_razorpay",
+    "paymentMode": "manual_quote",
     "inquiryChannel": "website"
   },
   "adminUser": {

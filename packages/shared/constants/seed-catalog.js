@@ -1,33 +1,11 @@
 export const seedCatalog = {
-  testimonials: [
-    {
-      customerName: "Riya S.",
-      occasionLabel: "Birthday order",
-      quoteText: "The cake looked exactly like the reference I sent and tasted even better. Everyone asked where it was from.",
-      rating: 5,
-      isPublished: true
-    },
-    {
-      customerName: "Neha M.",
-      occasionLabel: "Baby shower cake",
-      quoteText: "The ordering process was so smooth on WhatsApp. The design felt premium, but still warm and homemade.",
-      rating: 5,
-      isPublished: true
-    },
-    {
-      customerName: "Arjun and Meera",
-      occasionLabel: "Anniversary order",
-      quoteText: "Beautiful finish, balanced sweetness, and on-time delivery. It made our anniversary table look special.",
-      rating: 5,
-      isPublished: true
-    }
-  ],
+  testimonials: [],
   businessSettings: {
     brandName: "Pink Delight Cakes",
     contactEmail: "hello@pinkdelightcakes.com",
     contactPhone: "+91 87678 12121",
     instagramHandle: "@pinkdelightcake",
-    city: "Your City",
+    city: "",
     addressLine1: "",
     addressLine2: "",
     stateRegion: "Maharashtra",
@@ -36,7 +14,7 @@ export const seedCatalog = {
     currency: "INR",
     paymentMode: "manual_quote",
     inquiryChannel: "website",
-    deliveryPickupCopy: "Pickup and local delivery across your city",
+    deliveryPickupCopy: "Pickup is scheduled by confirmation time, and nearby delivery can be arranged for select orders.",
     noticePeriodCopy: "Standard celebration cakes usually need 24 to 48 hours notice",
     bakeryIntroTitle: "Baked from home, designed with care, and made for real celebrations.",
     bakeryIntroParagraph1: "Pink Delight Cakes is led by Pinky Sangoi and began as a home bakery rooted in family celebrations, soft finishes, and cakes that feel personal from the very first conversation.",

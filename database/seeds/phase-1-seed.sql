@@ -24,11 +24,11 @@ INSERT INTO business_settings (
 ) VALUES (
   'Pink Delight Cakes',
   'hello@pinkdelightcakes.com',
-  '+91 98765 43210',
+  '+91 87678 12121',
   '@pinkdelightcakes',
-  'Your City',
+  '',
   'INR',
-  'hybrid_razorpay',
+  'manual_quote',
   'website'
 );
 
