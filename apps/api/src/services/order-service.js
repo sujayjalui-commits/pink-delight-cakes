@@ -265,6 +265,14 @@ function buildConfidenceSignal(status, urgency) {
     };
   }
 
+  if (urgency.daysUntilEvent !== null && urgency.daysUntilEvent < 0) {
+    return {
+      confidenceLabel: "Needs a manual check",
+      confidenceTone: "warning",
+      confidenceMessage: "The event date has already passed, so it is best to message the bakery directly if this inquiry still needs action."
+    };
+  }
+
   if (status === "completed") {
     return {
       confidenceLabel: "Completed",

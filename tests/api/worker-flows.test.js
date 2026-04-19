@@ -268,6 +268,7 @@ await runTest("public tracking lookup returns customer-facing status metadata fo
 });
 
 await runTest("public tracking lookup falls back safely for unexpected statuses", async () => {
+  const nextDay = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
   const env = createTestEnv({
     orderRequests: [
       {
@@ -286,7 +287,7 @@ await runTest("public tracking lookup falls back safely for unexpected statuses"
         flavor: "",
         size_label: "",
         servings: "",
-        event_date: "2026-04-21",
+        event_date: nextDay,
         fulfillment_type: "pickup",
         add_on: "",
         notes: "",
@@ -318,6 +319,57 @@ await runTest("public tracking lookup falls back safely for unexpected statuses"
   assert.equal(payload.orderRequest.bakeryActionTitle, "What the bakery is doing");
   assert.equal(payload.orderRequest.followUpTitle, "When to follow up");
   assert.equal(payload.orderRequest.whatsAppCtaLabel, "Ask about this inquiry");
+});
+
+await runTest("public tracking lookup marks past event dates for manual follow-up", async () => {
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const env = createTestEnv({
+    orderRequests: [
+      {
+        id: 78,
+        customer_name: "Amiya",
+        customer_phone: "+91 87678 12121",
+        customer_email: "amiya@example.com",
+        product_id: 11,
+        product_snapshot: JSON.stringify({
+          id: 11,
+          slug: "signature-black-forest",
+          name: "Signature Black Forest",
+          category: "birthday",
+          startingPrice: 1800
+        }),
+        flavor: "Chocolate truffle",
+        size_label: "Half kg",
+        servings: "4 to 6",
+        event_date: yesterday,
+        fulfillment_type: "pickup",
+        add_on: "Message topper",
+        notes: "",
+        status: "new",
+        quoted_amount: null,
+        source_channel: "website",
+        created_at: "2026-04-18T00:00:00.000Z",
+        updated_at: "2026-04-18T01:00:00.000Z"
+      }
+    ]
+  });
+
+  const request = new Request(
+    "https://pink-delight-cakes-api.sujayjalui.workers.dev/api/order-requests/lookup?referenceId=78&phone=%2B91%2087678%2012121",
+    {
+      headers: {
+        origin: "https://pink-delight-cakes.pages.dev"
+      }
+    }
+  );
+
+  const response = await worker.fetch(request, env, createExecutionContext());
+  const payload = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(payload.ok, true);
+  assert.equal(payload.orderRequest.timingLabel, "Event date has passed");
+  assert.equal(payload.orderRequest.confidenceLabel, "Needs a manual check");
 });
 
 await runTest("admin settings route reads and updates business settings for an authenticated same-origin admin session", async () => {
