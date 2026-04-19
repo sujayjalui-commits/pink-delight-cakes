@@ -185,6 +185,38 @@
                             <button class="filter-chip" type="button" data-order-scope="waiting_customer">Waiting on customer</button>
                         </div>
 
+                        <div class="bulk-action-bar" id="orderBulkActions">
+                            <div class="bulk-action-summary">
+                                <label class="bulk-select-all">
+                                    <input type="checkbox" id="orderSelectAllVisible">
+                                    <span>Select visible</span>
+                                </label>
+                                <p class="meta-label" id="orderBulkCount">No orders selected</p>
+                            </div>
+                            <div class="quick-action-row">
+                                <button class="btn btn-secondary ghost" type="button" data-bulk-status="reviewing">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    <span>Bulk reviewing</span>
+                                </button>
+                                <button class="btn btn-secondary ghost" type="button" data-bulk-status="scheduled">
+                                    <i class="fa-solid fa-calendar-check"></i>
+                                    <span>Bulk scheduled</span>
+                                </button>
+                                <button class="btn btn-secondary ghost" type="button" data-bulk-status="completed">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                    <span>Bulk completed</span>
+                                </button>
+                                <button class="btn btn-secondary ghost" type="button" data-bulk-status="cancelled">
+                                    <i class="fa-solid fa-ban"></i>
+                                    <span>Bulk cancelled</span>
+                                </button>
+                                <button class="btn btn-secondary ghost" type="button" id="clearOrderSelectionButton">
+                                    <i class="fa-solid fa-xmark"></i>
+                                    <span>Clear selection</span>
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="orders-layout">
                             <article class="content-card">
                                 <div class="card-head">
@@ -236,7 +268,20 @@
                                     <div class="editor-group">
                                         <div class="group-head">
                                             <h4>Customer reply helpers</h4>
-                                            <span class="meta-label">Use the current order draft to respond faster</span>
+                                            <span class="meta-label">Use bakery-ready reply templates based on the current order draft</span>
+                                        </div>
+                                        <div class="reply-template-row" id="orderReplyTemplates">
+                                            <button class="filter-chip active" type="button" data-reply-template="status_update">Status update</button>
+                                            <button class="filter-chip" type="button" data-reply-template="quote_follow_up">Quote follow-up</button>
+                                            <button class="filter-chip" type="button" data-reply-template="pickup_ready">Pickup ready</button>
+                                            <button class="filter-chip" type="button" data-reply-template="delivery_ready">Delivery ready</button>
+                                        </div>
+                                        <div class="reply-preview-card">
+                                            <div class="group-head">
+                                                <h4 id="orderReplyTemplateLabel">Status update</h4>
+                                                <span class="meta-label" id="orderReplyTemplateHint">Template preview updates from the current order details.</span>
+                                            </div>
+                                            <pre class="reply-preview-text" id="orderReplyPreview">Select an order to preview a customer reply.</pre>
                                         </div>
                                         <div class="quick-action-row" id="orderReplyActions">
                                             <button class="btn btn-secondary ghost" type="button" id="openOrderWhatsAppButton">
@@ -415,10 +460,26 @@
                                             <h4>Flavors</h4>
                                             <button class="btn btn-secondary ghost" type="button" data-add-list="flavor">
                                                 <i class="fa-solid fa-plus"></i>
-                                                <span>Add flavor</span>
+                                                <span>Add typed flavors</span>
                                             </button>
                                         </div>
-                                        <div class="dynamic-list" id="flavorList"></div>
+                                        <p class="meta-label">Press Enter or use commas to add multiple flavors in one go.</p>
+                                        <div class="option-chip-editor">
+                                            <div class="option-composer">
+                                                <input type="text" id="flavorComposerInput" placeholder="Chocolate truffle, Vanilla bean">
+                                                <button class="btn btn-secondary ghost" type="button" id="addFlavorButton">
+                                                    <i class="fa-solid fa-plus"></i>
+                                                    <span>Add</span>
+                                                </button>
+                                            </div>
+                                            <div class="option-preset-row" id="flavorPresetRow">
+                                                <button class="preset-pill" type="button" data-option-type="flavor" data-add-option-preset="Chocolate truffle">Chocolate truffle</button>
+                                                <button class="preset-pill" type="button" data-option-type="flavor" data-add-option-preset="Vanilla bean">Vanilla bean</button>
+                                                <button class="preset-pill" type="button" data-option-type="flavor" data-add-option-preset="Red velvet">Red velvet</button>
+                                                <button class="preset-pill" type="button" data-option-type="flavor" data-add-option-preset="Butterscotch">Butterscotch</button>
+                                            </div>
+                                            <div class="dynamic-list option-chip-list" id="flavorList"></div>
+                                        </div>
                                     </div>
 
                                     <div class="editor-group">
@@ -426,10 +487,17 @@
                                             <h4>Sizes</h4>
                                             <button class="btn btn-secondary ghost" type="button" data-add-list="size">
                                                 <i class="fa-solid fa-plus"></i>
-                                                <span>Add size</span>
+                                                <span>Add custom size</span>
                                             </button>
                                         </div>
-                                        <div class="dynamic-list" id="sizeList"></div>
+                                        <p class="meta-label">Use a quick bakery preset or add a custom serving option with its own price.</p>
+                                        <div class="option-preset-row" id="sizePresetRow">
+                                            <button class="preset-pill" type="button" data-add-size-preset="true" data-size-label="Half kg" data-size-servings="Serves 4-6">Half kg</button>
+                                            <button class="preset-pill" type="button" data-add-size-preset="true" data-size-label="1 kg" data-size-servings="Serves 8-10">1 kg</button>
+                                            <button class="preset-pill" type="button" data-add-size-preset="true" data-size-label="1.5 kg" data-size-servings="Serves 12-15">1.5 kg</button>
+                                            <button class="preset-pill" type="button" data-add-size-preset="true" data-size-label="2 kg" data-size-servings="Serves 18-20">2 kg</button>
+                                        </div>
+                                        <div class="dynamic-list size-list" id="sizeList"></div>
                                     </div>
 
                                     <div class="editor-group">
@@ -437,10 +505,26 @@
                                             <h4>Add-ons</h4>
                                             <button class="btn btn-secondary ghost" type="button" data-add-list="addon">
                                                 <i class="fa-solid fa-plus"></i>
-                                                <span>Add add-on</span>
+                                                <span>Add typed add-ons</span>
                                             </button>
                                         </div>
-                                        <div class="dynamic-list" id="addonList"></div>
+                                        <p class="meta-label">Keep extras tidy with quick chips instead of a long stack of empty rows.</p>
+                                        <div class="option-chip-editor">
+                                            <div class="option-composer">
+                                                <input type="text" id="addonComposerInput" placeholder="Fondant topper, Candles">
+                                                <button class="btn btn-secondary ghost" type="button" id="addAddonButton">
+                                                    <i class="fa-solid fa-plus"></i>
+                                                    <span>Add</span>
+                                                </button>
+                                            </div>
+                                            <div class="option-preset-row" id="addonPresetRow">
+                                                <button class="preset-pill" type="button" data-option-type="addon" data-add-option-preset="Candles">Candles</button>
+                                                <button class="preset-pill" type="button" data-option-type="addon" data-add-option-preset="Message topper">Message topper</button>
+                                                <button class="preset-pill" type="button" data-option-type="addon" data-add-option-preset="Knife & plates">Knife & plates</button>
+                                                <button class="preset-pill" type="button" data-option-type="addon" data-add-option-preset="Fresh flowers">Fresh flowers</button>
+                                            </div>
+                                            <div class="dynamic-list option-chip-list" id="addonList"></div>
+                                        </div>
                                     </div>
 
                                     <div class="editor-save-row">
@@ -629,6 +713,31 @@
                                 </div>
 
                                 <p class="placeholder-copy">These fields feed the public settings API, storefront contact links, and bakery identity details without editing the public page again.</p>
+
+                                <div class="settings-preview-grid" id="settingsPreviewGrid">
+                                    <article class="settings-preview-card">
+                                        <span class="eyebrow">Hero copy</span>
+                                        <strong id="settingsPreviewHeroTitle">Pink Delight Cakes</strong>
+                                        <p id="settingsPreviewHeroCity">Home bakery in your city</p>
+                                        <p id="settingsPreviewDelivery">Pickup and local delivery across your city</p>
+                                        <p class="preview-highlight" id="settingsPreviewNotice">24 to 48 hrs</p>
+                                    </article>
+
+                                    <article class="settings-preview-card">
+                                        <span class="eyebrow">About section</span>
+                                        <strong id="settingsPreviewIntroTitle">Baked from home, designed with care, and made for real celebrations.</strong>
+                                        <p id="settingsPreviewIntroOne">Pink Delight Cakes is led by Pinky Sangoi and began as a home bakery rooted in family celebrations, soft finishes, and cakes that feel personal from the very first conversation.</p>
+                                        <p id="settingsPreviewIntroTwo">Pink Delight Cakes is led by Pinky Sangoi and grew from small family celebrations into a warm home bakery focused on soft finishes, homemade flavor, and cakes that feel truly personal.</p>
+                                    </article>
+
+                                    <article class="settings-preview-card">
+                                        <span class="eyebrow">Contact block</span>
+                                        <strong id="settingsPreviewPhone">+91 87678 12121</strong>
+                                        <p id="settingsPreviewEmail">hello@pinkdelightcakes.com</p>
+                                        <p id="settingsPreviewLocation">Available across your local area</p>
+                                        <p id="settingsPreviewResponse">We usually reply with design options and pricing within 2 hours during bakery hours.</p>
+                                    </article>
+                                </div>
                             </article>
 
                             <article class="content-card settings-span-full">
@@ -647,6 +756,14 @@
                                     </div>
 
                                     <div class="dynamic-list testimonial-list" id="testimonialList"></div>
+
+                                    <div class="editor-group">
+                                        <div class="group-head">
+                                            <h4>Storefront testimonial preview</h4>
+                                            <span class="meta-label">This mirrors the published testimonial cards customers see.</span>
+                                        </div>
+                                        <div class="testimonials-preview-grid" id="testimonialsPreviewGrid"></div>
+                                    </div>
 
                                     <div class="editor-save-row">
                                         <p class="save-meta" id="testimonialsSaveMeta">No testimonial changes yet.</p>

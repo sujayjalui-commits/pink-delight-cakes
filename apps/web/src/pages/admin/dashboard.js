@@ -13,6 +13,12 @@ const PRODUCT_AVAILABILITY = ["available", "limited", "unavailable"];
 const FORM_KEYS = ["order", "product", "settings", "testimonials"];
 const PRODUCT_IMAGE_UPLOAD_MAX_BYTES = 320 * 1024;
 const PRODUCT_IMAGE_MAX_DIMENSION = 1400;
+const ORDER_REPLY_TEMPLATE_OPTIONS = [
+    { key: "status_update", label: "Status update", hint: "A general bakery update based on the current inquiry status." },
+    { key: "quote_follow_up", label: "Quote follow-up", hint: "A follow-up for shared pricing or pending customer confirmation." },
+    { key: "pickup_ready", label: "Pickup ready", hint: "A pickup-ready note with timing and collection guidance." },
+    { key: "delivery_ready", label: "Delivery ready", hint: "A delivery-ready note with arrival and handoff guidance." }
+];
 
 const state = {
     session: null,
@@ -27,6 +33,8 @@ const state = {
     orderScope: "all",
     orderSearch: "",
     orderSort: "attention_desc",
+    selectedOrderIds: [],
+    activeReplyTemplate: "status_update",
     isCreatingProduct: false,
     productDraft: null,
     formMeta: {
@@ -97,6 +105,10 @@ const orderFilters = document.getElementById("orderFilters");
 const orderSearchInput = document.getElementById("orderSearchInput");
 const orderSortSelect = document.getElementById("orderSortSelect");
 const orderQuickFilters = document.getElementById("orderQuickFilters");
+const orderBulkActions = document.getElementById("orderBulkActions");
+const orderSelectAllVisible = document.getElementById("orderSelectAllVisible");
+const orderBulkCount = document.getElementById("orderBulkCount");
+const clearOrderSelectionButton = document.getElementById("clearOrderSelectionButton");
 const ordersList = document.getElementById("ordersList");
 const ordersCountLabel = document.getElementById("ordersCountLabel");
 const orderEmptyState = document.getElementById("orderEmptyState");
@@ -108,6 +120,10 @@ const orderInternalNote = document.getElementById("orderInternalNote");
 const orderSaveButton = document.getElementById("orderSaveButton");
 const orderSaveMeta = document.getElementById("orderSaveMeta");
 const orderQuickActions = document.getElementById("orderQuickActions");
+const orderReplyTemplates = document.getElementById("orderReplyTemplates");
+const orderReplyTemplateLabel = document.getElementById("orderReplyTemplateLabel");
+const orderReplyTemplateHint = document.getElementById("orderReplyTemplateHint");
+const orderReplyPreview = document.getElementById("orderReplyPreview");
 const openOrderWhatsAppButton = document.getElementById("openOrderWhatsAppButton");
 const copyOrderReplyButton = document.getElementById("copyOrderReplyButton");
 const copyOrderSummaryButton = document.getElementById("copyOrderSummaryButton");
@@ -134,8 +150,12 @@ const productSaveButton = document.getElementById("productSaveButton");
 const productSaveMeta = document.getElementById("productSaveMeta");
 const productPreviewCard = document.getElementById("productPreviewCard");
 const flavorList = document.getElementById("flavorList");
+const flavorComposerInput = document.getElementById("flavorComposerInput");
+const addFlavorButton = document.getElementById("addFlavorButton");
 const sizeList = document.getElementById("sizeList");
 const addonList = document.getElementById("addonList");
+const addonComposerInput = document.getElementById("addonComposerInput");
+const addAddonButton = document.getElementById("addAddonButton");
 const settingsForm = document.getElementById("settingsForm");
 const settingsBrandName = document.getElementById("settingsBrandName");
 const settingsCity = document.getElementById("settingsCity");
@@ -163,10 +183,22 @@ const settingsSaturdayCloseTime = document.getElementById("settingsSaturdayClose
 const settingsSundayOpenTime = document.getElementById("settingsSundayOpenTime");
 const settingsSundayCloseTime = document.getElementById("settingsSundayCloseTime");
 const settingsSummary = document.getElementById("settingsSummary");
+const settingsPreviewHeroTitle = document.getElementById("settingsPreviewHeroTitle");
+const settingsPreviewHeroCity = document.getElementById("settingsPreviewHeroCity");
+const settingsPreviewDelivery = document.getElementById("settingsPreviewDelivery");
+const settingsPreviewNotice = document.getElementById("settingsPreviewNotice");
+const settingsPreviewIntroTitle = document.getElementById("settingsPreviewIntroTitle");
+const settingsPreviewIntroOne = document.getElementById("settingsPreviewIntroOne");
+const settingsPreviewIntroTwo = document.getElementById("settingsPreviewIntroTwo");
+const settingsPreviewPhone = document.getElementById("settingsPreviewPhone");
+const settingsPreviewEmail = document.getElementById("settingsPreviewEmail");
+const settingsPreviewLocation = document.getElementById("settingsPreviewLocation");
+const settingsPreviewResponse = document.getElementById("settingsPreviewResponse");
 const settingsSaveButton = document.getElementById("settingsSaveButton");
 const settingsSaveMeta = document.getElementById("settingsSaveMeta");
 const testimonialsForm = document.getElementById("testimonialsForm");
 const testimonialList = document.getElementById("testimonialList");
+const testimonialsPreviewGrid = document.getElementById("testimonialsPreviewGrid");
 const addTestimonialButton = document.getElementById("addTestimonialButton");
 const testimonialsSaveButton = document.getElementById("testimonialsSaveButton");
 const testimonialsSaveMeta = document.getElementById("testimonialsSaveMeta");
@@ -233,6 +265,11 @@ function formatDateTime(value) {
         hour: "numeric",
         minute: "2-digit"
     }).format(parsed);
+}
+
+function createStarsMarkup(rating) {
+    const count = Math.max(1, Math.min(5, Number(rating) || 5));
+    return Array.from({ length: count }, () => '<i class="fa-solid fa-star"></i>').join("");
 }
 
 function slugLabel(value) {
@@ -332,6 +369,57 @@ function formatSavedMessage(savedAt) {
 
     const elapsedMinutes = Math.round(elapsedSeconds / 60);
     return `Saved ${elapsedMinutes} minute${elapsedMinutes === 1 ? "" : "s"} ago.`;
+}
+
+function getHeroCityLabel(city) {
+    const normalizedCity = String(city || "").trim();
+
+    if (!normalizedCity || /^your city$/i.test(normalizedCity)) {
+        return "Home bakery in your city";
+    }
+
+    return `Home bakery in ${normalizedCity}`;
+}
+
+function getContactLocationLabel(city) {
+    const normalizedCity = String(city || "").trim();
+
+    if (!normalizedCity || /^your city$/i.test(normalizedCity)) {
+        return "Available across your local area";
+    }
+
+    return `Pickup and delivery across ${normalizedCity}`;
+}
+
+function personalizeDeliveryCopy(value, city) {
+    const base = String(value || "").trim();
+    const normalizedCity = String(city || "").trim();
+
+    if (!base) {
+        return getContactLocationLabel(normalizedCity);
+    }
+
+    if (!normalizedCity) {
+        return base
+            .replace(/\byour local area\b/gi, "your area")
+            .replace(/\byour city\b/gi, "your area");
+    }
+
+    return base
+        .replace(/\byour local area\b/gi, normalizedCity)
+        .replace(/\byour area\b/gi, normalizedCity)
+        .replace(/\byour city\b/gi, normalizedCity);
+}
+
+function getNoticeHighlight(value) {
+    const trimmedValue = String(value || "").trim();
+    const match = trimmedValue.match(/(\d+\s*(?:to|-)\s*\d+\s*(?:hours?|days?)|\d+\s*(?:hours?|days?))/i);
+
+    if (!match) {
+        return "24 to 48 hrs";
+    }
+
+    return match[1].replace(/\s+/g, " ");
 }
 
 function getOrderAttentionMeta(order) {
@@ -493,6 +581,55 @@ function sortOrders(orders) {
     });
 }
 
+function syncSelectedOrderIds() {
+    const validIds = new Set(state.orders.map((order) => Number(order.id)));
+    state.selectedOrderIds = state.selectedOrderIds.filter((orderId) => validIds.has(Number(orderId)));
+}
+
+function isOrderSelected(orderId) {
+    return state.selectedOrderIds.includes(Number(orderId));
+}
+
+function toggleOrderSelection(orderId, selected) {
+    const normalizedId = Number(orderId);
+
+    if (!Number.isFinite(normalizedId)) {
+        return;
+    }
+
+    if (selected && !state.selectedOrderIds.includes(normalizedId)) {
+        state.selectedOrderIds = [...state.selectedOrderIds, normalizedId];
+        return;
+    }
+
+    if (!selected) {
+        state.selectedOrderIds = state.selectedOrderIds.filter((value) => value !== normalizedId);
+    }
+}
+
+function getVisibleSelectedOrderIds() {
+    const visibleIds = new Set(getVisibleOrders().map((order) => Number(order.id)));
+    return state.selectedOrderIds.filter((orderId) => visibleIds.has(Number(orderId)));
+}
+
+function renderOrderBulkActions() {
+    syncSelectedOrderIds();
+    const visibleOrders = getVisibleOrders();
+    const visibleSelectedIds = getVisibleSelectedOrderIds();
+    const allVisibleSelected = visibleOrders.length > 0 && visibleSelectedIds.length === visibleOrders.length;
+
+    orderSelectAllVisible.checked = allVisibleSelected;
+    orderSelectAllVisible.indeterminate = visibleSelectedIds.length > 0 && !allVisibleSelected;
+    orderBulkCount.textContent = visibleSelectedIds.length
+        ? `${visibleSelectedIds.length} visible order${visibleSelectedIds.length === 1 ? "" : "s"} selected`
+        : "No orders selected";
+
+    const disableBulkActions = visibleSelectedIds.length === 0;
+    orderBulkActions.querySelectorAll("[data-bulk-status], #clearOrderSelectionButton").forEach((button) => {
+        button.disabled = disableBulkActions;
+    });
+}
+
 function getProductImagePreviewSource(value) {
     const normalizedValue = String(value || "").trim();
 
@@ -610,6 +747,8 @@ function getProductDraftPayload() {
     return {
         activeProductId: state.isCreatingProduct ? null : state.activeProductId,
         isCreatingProduct: state.isCreatingProduct,
+        pendingFlavorComposer: flavorComposerInput.value.trim(),
+        pendingAddonComposer: addonComposerInput.value.trim(),
         payload: collectProductPayload()
     };
 }
@@ -829,41 +968,6 @@ function getCurrentOrderDraft(order = state.orders.find((item) => item.id === st
     };
 }
 
-function buildOrderReplyMessage(order) {
-    const draft = getCurrentOrderDraft(order);
-
-    if (!draft) {
-        return "";
-    }
-
-    const lines = [
-        `Hi ${draft.customerName}, this is Pink Delight Cakes.`,
-        `Your inquiry #${draft.id} for ${draft.productSnapshot?.name || "your custom cake"} is currently marked as ${slugLabel(draft.status)}.`
-    ];
-
-    if (draft.eventDate) {
-        lines.push(`Event date: ${formatDate(draft.eventDate)}.`);
-    }
-
-    if (draft.quotedAmount !== null && draft.quotedAmount !== undefined && draft.quotedAmount !== "") {
-        lines.push(`Current quote: ${formatCurrency(draft.quotedAmount)}.`);
-    }
-
-    if (draft.status === "reviewing") {
-        lines.push("We are reviewing your design details and will confirm the next step shortly.");
-    } else if (draft.status === "quoted") {
-        lines.push("Please let us know if you would like to go ahead with this quote or need any change.");
-    } else if (draft.status === "scheduled") {
-        lines.push("Your order is scheduled and we will stay in touch with the final bakery update.");
-    } else if (draft.status === "completed") {
-        lines.push("Thank you again for choosing Pink Delight Cakes.");
-    } else {
-        lines.push("Please reply here if you need any update or want to change anything.");
-    }
-
-    return lines.join("\n");
-}
-
 function buildOrderSummaryText(order) {
     const draft = getCurrentOrderDraft(order);
 
@@ -997,14 +1101,18 @@ function renderOrderFilters() {
     orderQuickFilters.querySelectorAll("[data-order-scope]").forEach((button) => {
         button.classList.toggle("active", button.dataset.orderScope === state.orderScope);
     });
+
+    renderOrderBulkActions();
 }
 
 function renderOrdersList() {
+    syncSelectedOrderIds();
     const orders = getVisibleOrders();
     ordersCountLabel.textContent = `${orders.length} order${orders.length === 1 ? "" : "s"} visible`;
 
     if (!orders.length) {
         ordersList.innerHTML = `<div class="detail-empty"><i class="fa-regular fa-folder-open"></i><p>No orders match the current filter yet.</p></div>`;
+        renderOrderBulkActions();
         return;
     }
 
@@ -1014,7 +1122,10 @@ function renderOrdersList() {
 
     ordersList.innerHTML = orders.map((order) => `
         <article class="stack-item order-card attention-${escapeHtml(getOrderAttentionMeta(order).tone)} ${state.activeOrderId === order.id ? "active" : ""}" data-order-id="${order.id}">
-            <header>
+            <header class="order-card-header">
+                <label class="order-select-label" aria-label="Select inquiry ${order.id}">
+                    <input class="order-select-toggle" type="checkbox" data-select-order="${order.id}" ${isOrderSelected(order.id) ? "checked" : ""}>
+                </label>
                 <div>
                     <strong>${escapeHtml(order.customerName)}</strong>
                     <span>${escapeHtml(order.productSnapshot?.name || "Custom request")}</span>
@@ -1033,6 +1144,8 @@ function renderOrdersList() {
             </footer>
         </article>
     `).join("");
+
+    renderOrderBulkActions();
 }
 
 function renderOrderDetail() {
@@ -1041,6 +1154,7 @@ function renderOrderDetail() {
     if (!order) {
         orderEmptyState.classList.remove("hidden");
         orderForm.classList.add("hidden");
+        renderReplyTemplatePreview();
         return;
     }
 
@@ -1089,29 +1203,188 @@ function renderOrderDetail() {
     `).join("");
     orderQuotedAmount.value = order.quotedAmount ?? "";
     orderInternalNote.value = order.internalNote ?? "";
+    state.activeReplyTemplate = getSuggestedReplyTemplate(order);
+    renderReplyTemplatePreview();
     setFormBaseline("order");
 }
 
 function createListInput(type, values = {}) {
-    const row = document.createElement("div");
-    row.className = `dynamic-row ${type}-row`;
-
-    if (type === "size") {
-        row.innerHTML = `
-            <input type="text" data-size-label placeholder="Label" value="${escapeHtml(values.label || "")}">
-            <input type="text" data-size-servings placeholder="Servings" value="${escapeHtml(values.servings || "")}">
-            <input type="number" data-size-price min="1" step="1" placeholder="Price" value="${escapeHtml(values.price ?? "")}">
-            <button class="icon-button" type="button" data-remove-row><i class="fa-solid fa-trash"></i></button>
-        `;
-    } else {
-        const placeholder = type === "flavor" ? "Flavor option" : "Add-on option";
-        row.innerHTML = `
-            <input type="text" data-item-value placeholder="${placeholder}" value="${escapeHtml(values.value || "")}">
-            <button class="icon-button" type="button" data-remove-row><i class="fa-solid fa-trash"></i></button>
-        `;
+    if (type !== "size") {
+        return document.createElement("div");
     }
 
+    const row = document.createElement("div");
+    row.className = "dynamic-row size-row";
+    row.innerHTML = `
+        <div class="size-row-fields">
+            <label>
+                <span>Label</span>
+                <input type="text" data-size-label placeholder="1 kg" value="${escapeHtml(values.label || "")}">
+            </label>
+            <label>
+                <span>Servings</span>
+                <input type="text" data-size-servings placeholder="Serves 8-10" value="${escapeHtml(values.servings || "")}">
+            </label>
+            <label>
+                <span>Starting price</span>
+                <input type="number" data-size-price min="1" step="1" placeholder="Price" value="${escapeHtml(values.price ?? "")}">
+            </label>
+        </div>
+        <div class="size-row-actions">
+            <button class="btn btn-secondary ghost size-inline-button" type="button" data-duplicate-size>
+                <i class="fa-regular fa-copy"></i>
+                <span>Duplicate</span>
+            </button>
+            <button class="icon-button" type="button" data-remove-row aria-label="Remove size option"><i class="fa-solid fa-trash"></i></button>
+        </div>
+    `;
     return row;
+}
+
+function parseOptionComposerValues(rawValue) {
+    return String(rawValue || "")
+        .split(/[\n,]+/)
+        .map((value) => value.trim())
+        .filter(Boolean);
+}
+
+function dedupeOptionValues(values) {
+    const seen = new Set();
+    return values.filter((value) => {
+        const key = value.toLowerCase();
+        if (seen.has(key)) {
+            return false;
+        }
+
+        seen.add(key);
+        return true;
+    });
+}
+
+function getOptionContainer(type) {
+    return type === "flavor" ? flavorList : addonList;
+}
+
+function getOptionComposer(type) {
+    return type === "flavor" ? flavorComposerInput : addonComposerInput;
+}
+
+function createOptionChip(type, value) {
+    const chip = document.createElement("div");
+    chip.className = `option-chip ${type}-chip`;
+    chip.dataset.optionChip = type;
+    chip.dataset.optionValue = value;
+    chip.innerHTML = `
+        <span>${escapeHtml(value)}</span>
+        <button class="icon-button chip-remove-button" type="button" data-remove-chip aria-label="Remove ${escapeHtml(value)}">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    `;
+    return chip;
+}
+
+function renderOptionList(type, items) {
+    const container = getOptionContainer(type);
+    const options = dedupeOptionValues(items);
+    container.innerHTML = "";
+
+    if (!options.length) {
+        container.innerHTML = `
+            <div class="empty-chip-state">
+                <i class="fa-regular fa-lightbulb"></i>
+                <p>${type === "flavor" ? "Add flavors customers can pick from." : "Add extras customers often request with this cake."}</p>
+            </div>
+        `;
+        return;
+    }
+
+    options.forEach((value) => {
+        container.appendChild(createOptionChip(type, value));
+    });
+}
+
+function getOptionValues(type) {
+    return Array.from(getOptionContainer(type).querySelectorAll("[data-option-value]"))
+        .map((chip) => chip.dataset.optionValue || "")
+        .filter(Boolean);
+}
+
+function applyOptionValues(type, values, { clearComposer = false, focusComposer = false } = {}) {
+    renderOptionList(type, values);
+
+    if (clearComposer) {
+        const composer = getOptionComposer(type);
+        if (composer) {
+            composer.value = "";
+        }
+    }
+
+    updateFormSaveMeta("product");
+    renderProductPreview();
+
+    if (focusComposer) {
+        getOptionComposer(type)?.focus();
+    }
+}
+
+function handleOptionComposerAdd(type, rawValue) {
+    const parsedValues = parseOptionComposerValues(rawValue);
+    if (!parsedValues.length) {
+        getOptionComposer(type)?.focus();
+        return;
+    }
+
+    applyOptionValues(type, [...getOptionValues(type), ...parsedValues], {
+        clearComposer: true,
+        focusComposer: true
+    });
+}
+
+function extractSizeRowValue(row) {
+    return {
+        label: row.querySelector("[data-size-label]")?.value.trim() || "",
+        servings: row.querySelector("[data-size-servings]")?.value.trim() || "",
+        price: Number(row.querySelector("[data-size-price]")?.value || 0)
+    };
+}
+
+function renderSizeList(items) {
+    sizeList.innerHTML = "";
+
+    if (!items.length) {
+        sizeList.innerHTML = `
+            <div class="empty-chip-state size-empty-state">
+                <i class="fa-solid fa-ruler-combined"></i>
+                <p>Add at least one serving option so inquiries can start from a clear size.</p>
+            </div>
+        `;
+        return;
+    }
+
+    items.forEach((item) => {
+        sizeList.appendChild(createListInput("size", item));
+    });
+}
+
+function addSizeOption(values = {}, { focus = true, afterRow = null } = {}) {
+    const sizeRow = createListInput("size", values);
+    const emptyState = sizeList.querySelector(".size-empty-state");
+    if (emptyState) {
+        emptyState.remove();
+    }
+
+    if (afterRow) {
+        afterRow.insertAdjacentElement("afterend", sizeRow);
+    } else {
+        sizeList.appendChild(sizeRow);
+    }
+
+    updateFormSaveMeta("product");
+    renderProductPreview();
+
+    if (focus) {
+        sizeRow.querySelector("[data-size-label]")?.focus();
+    }
 }
 
 function createTestimonialInput(values = {}) {
@@ -1149,20 +1422,12 @@ function createTestimonialInput(values = {}) {
 }
 
 function fillDynamicList(container, type, items) {
-    container.innerHTML = "";
-
-    if (!items.length) {
-        container.appendChild(createListInput(type));
+    if (type === "size") {
+        renderSizeList(items);
         return;
     }
 
-    items.forEach((item) => {
-        if (type === "size") {
-            container.appendChild(createListInput(type, item));
-        } else {
-            container.appendChild(createListInput(type, { value: item }));
-        }
-    });
+    renderOptionList(type, items);
 }
 
 function getDefaultProductDraft() {
@@ -1336,6 +1601,8 @@ function fillProductForm(product) {
     productImageMeta.textContent = product.imageUrl
         ? "This product currently has a saved image. Uploading a new one will replace it."
         : "Photos are resized in the browser for faster loading before they are saved with the product.";
+    flavorComposerInput.value = "";
+    addonComposerInput.value = "";
     fillDynamicList(flavorList, "flavor", product.options?.flavors || []);
     fillDynamicList(sizeList, "size", product.options?.sizes || []);
     fillDynamicList(addonList, "addon", product.options?.addOns || []);
@@ -1364,20 +1631,11 @@ function renderProductEditor() {
 }
 
 function serializeDynamicValues() {
-    const flavors = Array.from(flavorList.querySelectorAll('[data-item-value]'))
-        .map((input) => input.value.trim())
-        .filter(Boolean);
-
-    const addOns = Array.from(addonList.querySelectorAll('[data-item-value]'))
-        .map((input) => input.value.trim())
-        .filter(Boolean);
+    const flavors = getOptionValues("flavor");
+    const addOns = getOptionValues("addon");
 
     const sizes = Array.from(sizeList.querySelectorAll('.size-row'))
-        .map((row) => ({
-            label: row.querySelector('[data-size-label]')?.value.trim() || "",
-            servings: row.querySelector('[data-size-servings]')?.value.trim() || "",
-            price: Number(row.querySelector('[data-size-price]')?.value || 0)
-        }))
+        .map((row) => extractSizeRowValue(row))
         .filter((size) => size.label || size.servings || size.price);
 
     return { flavors, addOns, sizes };
@@ -1438,6 +1696,7 @@ function renderTestimonialsEditor() {
 
     if (!Array.isArray(state.testimonials) || !state.testimonials.length) {
         testimonialList.appendChild(createTestimonialInput());
+        renderTestimonialsPreview();
         setFormBaseline("testimonials");
         return;
     }
@@ -1446,6 +1705,7 @@ function renderTestimonialsEditor() {
         testimonialList.appendChild(createTestimonialInput(testimonial));
     });
 
+    renderTestimonialsPreview();
     setFormBaseline("testimonials");
 }
 
@@ -1539,9 +1799,53 @@ function renderSettingsSummary() {
     `).join("");
 }
 
+function renderSettingsPreview() {
+    const settings = collectSettingsPayload();
+    const city = String(settings.city || "").trim();
+    const deliveryCopy = personalizeDeliveryCopy(settings.deliveryPickupCopy, city);
+
+    settingsPreviewHeroTitle.textContent = settings.brandName || "Pink Delight Cakes";
+    settingsPreviewHeroCity.textContent = getHeroCityLabel(city);
+    settingsPreviewDelivery.textContent = deliveryCopy || "Pickup and local delivery across your city";
+    settingsPreviewNotice.textContent = getNoticeHighlight(settings.noticePeriodCopy);
+    settingsPreviewIntroTitle.textContent = settings.bakeryIntroTitle || "Baked from home, designed with care, and made for real celebrations.";
+    settingsPreviewIntroOne.textContent = settings.bakeryIntroParagraph1 || "Share how the bakery started and what makes it personal.";
+    settingsPreviewIntroTwo.textContent = settings.bakeryIntroParagraph2 || "Share what customers can expect from your cakes and service.";
+    settingsPreviewPhone.textContent = settings.contactPhone || "+91 87678 12121";
+    settingsPreviewEmail.textContent = settings.contactEmail || "hello@pinkdelightcakes.com";
+    settingsPreviewLocation.textContent = deliveryCopy || getContactLocationLabel(city);
+    settingsPreviewResponse.textContent = settings.responseTimeCopy || "We usually reply with design options and pricing within 2 hours during bakery hours.";
+}
+
+function renderTestimonialsPreview() {
+    const testimonials = collectTestimonialsPayload().filter((testimonial) => testimonial.isPublished);
+
+    if (!testimonials.length) {
+        testimonialsPreviewGrid.innerHTML = `
+            <article class="testimonial-preview-card empty-preview">
+                <div class="stars">${createStarsMarkup(5)}</div>
+                <p>"Published testimonials will appear here once they are ready for the storefront."</p>
+                <strong>${escapeHtml(settingsBrandName.value.trim() || "Pink Delight Cakes")}</strong>
+                <span>Customer love</span>
+            </article>
+        `;
+        return;
+    }
+
+    testimonialsPreviewGrid.innerHTML = testimonials.map((testimonial) => `
+        <article class="testimonial-preview-card">
+            <div class="stars">${createStarsMarkup(testimonial.rating)}</div>
+            <p>"${escapeHtml(testimonial.quoteText || "")}"</p>
+            <strong>${escapeHtml(testimonial.customerName || "Happy customer")}</strong>
+            <span>${escapeHtml(testimonial.occasionLabel || "Celebration order")}</span>
+        </article>
+    `).join("");
+}
+
 function renderSettings() {
     fillSettingsForm(state.settings);
     renderSettingsSummary();
+    renderSettingsPreview();
     setFormBaseline("settings");
     renderTestimonialsEditor();
 }
@@ -1691,6 +1995,7 @@ async function handleLogout() {
     state.settings = null;
     state.activeOrderId = null;
     state.activeProductId = null;
+    state.selectedOrderIds = [];
     state.isCreatingProduct = false;
     showLoginForm();
     showToast("Admin session closed.", "info");
@@ -1754,8 +2059,167 @@ async function handleOrderQuickAction(statusValue, button) {
     });
 }
 
+async function handleBulkOrderAction(statusValue, button) {
+    const selectedIds = getVisibleSelectedOrderIds();
+
+    if (!selectedIds.length) {
+        showToast("Select at least one visible order first.", "error");
+        return;
+    }
+
+    if (!confirmDiscardChanges("apply a bulk order update")) {
+        return;
+    }
+
+    setButtonBusy(button, true, `${statusLabel(statusValue)}...`);
+    orderBulkActions.querySelectorAll("[data-bulk-status], #clearOrderSelectionButton, #orderSelectAllVisible").forEach((element) => {
+        element.disabled = true;
+    });
+
+    try {
+        for (const orderId of selectedIds) {
+            await apiRequest(`/admin/orders/${orderId}`, {
+                method: "PATCH",
+                body: { status: statusValue }
+            });
+        }
+
+        await loadOrders();
+        state.selectedOrderIds = [];
+        renderOverview();
+        renderOrdersList();
+        renderOrderDetail();
+        showToast(`${selectedIds.length} order${selectedIds.length === 1 ? "" : "s"} marked ${statusLabel(statusValue).toLowerCase()}.`, "success");
+    } catch (error) {
+        showToast(error.message || "Unable to apply the bulk order update.", "error");
+    } finally {
+        setButtonBusy(button, false, button.dataset.defaultLabel || button.querySelector("span")?.textContent || statusLabel(statusValue));
+        renderOrderBulkActions();
+    }
+}
+
 function getOrderCustomerPhone(order) {
     return order?.customerPhone || "";
+}
+
+function getReplyTemplateMeta(templateKey = state.activeReplyTemplate) {
+    return ORDER_REPLY_TEMPLATE_OPTIONS.find((template) => template.key === templateKey)
+        || ORDER_REPLY_TEMPLATE_OPTIONS[0];
+}
+
+function getSuggestedReplyTemplate(order) {
+    const draft = getCurrentOrderDraft(order);
+
+    if (!draft) {
+        return "status_update";
+    }
+
+    if (draft.status === "quoted" || draft.status === "payment_pending") {
+        return "quote_follow_up";
+    }
+
+    if (draft.status === "scheduled" && draft.fulfillmentType === "pickup") {
+        return "pickup_ready";
+    }
+
+    if (draft.status === "scheduled" && draft.fulfillmentType === "local_delivery") {
+        return "delivery_ready";
+    }
+
+    return "status_update";
+}
+
+function buildOrderReplyMessage(order, templateKey = state.activeReplyTemplate) {
+    const draft = getCurrentOrderDraft(order);
+
+    if (!draft) {
+        return "";
+    }
+
+    const productName = draft.productSnapshot?.name || "your custom cake";
+    const eventDateLabel = formatDate(draft.eventDate);
+    const quoteLabel = draft.quotedAmount !== null && draft.quotedAmount !== undefined && draft.quotedAmount !== ""
+        ? formatCurrency(draft.quotedAmount)
+        : null;
+    const closingLine = "Please reply here if you need any change or have any question.";
+
+    if (templateKey === "quote_follow_up") {
+        return [
+            `Hi ${draft.customerName}, this is Pink Delight Cakes.`,
+            `Following up on your inquiry #${draft.id} for ${productName}.`,
+            quoteLabel
+                ? `Your current quote is ${quoteLabel} for the design discussed.`
+                : "We are ready to share the final quote once the last cake details are confirmed.",
+            draft.eventDate ? `The planned celebration date is ${eventDateLabel}.` : "",
+            "Let us know if you would like to confirm this order or if you want any change before we lock it in.",
+            closingLine
+        ].filter(Boolean).join("\n");
+    }
+
+    if (templateKey === "pickup_ready") {
+        return [
+            `Hi ${draft.customerName}, this is Pink Delight Cakes.`,
+            `Your order #${draft.id} for ${productName} is almost ready for pickup.`,
+            draft.eventDate ? `Pickup is planned around ${eventDateLabel}.` : "",
+            quoteLabel ? `Your current order total is ${quoteLabel}.` : "",
+            "Please message us before you leave so we can keep your cake packed and ready at handoff.",
+            "Carry the cake on a flat seat or floor surface and avoid direct heat during travel."
+        ].filter(Boolean).join("\n");
+    }
+
+    if (templateKey === "delivery_ready") {
+        return [
+            `Hi ${draft.customerName}, this is Pink Delight Cakes.`,
+            `Your order #${draft.id} for ${productName} is lined up for delivery.`,
+            draft.eventDate ? `Delivery is planned for ${eventDateLabel}.` : "",
+            quoteLabel ? `Your current order total is ${quoteLabel}.` : "",
+            "Please keep your phone reachable around the delivery window so we can coordinate the handoff smoothly.",
+            "Once the cake reaches you, place it in a cool indoor spot and avoid direct sunlight."
+        ].filter(Boolean).join("\n");
+    }
+
+    const lines = [
+        `Hi ${draft.customerName}, this is Pink Delight Cakes.`,
+        `Your inquiry #${draft.id} for ${productName} is currently marked as ${slugLabel(draft.status)}.`
+    ];
+
+    if (draft.eventDate) {
+        lines.push(`Event date: ${eventDateLabel}.`);
+    }
+
+    if (quoteLabel) {
+        lines.push(`Current quote: ${quoteLabel}.`);
+    }
+
+    if (draft.status === "reviewing") {
+        lines.push("We are reviewing your design details and will confirm the next step shortly.");
+    } else if (draft.status === "quoted") {
+        lines.push("Please let us know if you would like to go ahead with this quote or need any change.");
+    } else if (draft.status === "scheduled") {
+        lines.push("Your order is scheduled and we will stay in touch with the final bakery update.");
+    } else if (draft.status === "completed") {
+        lines.push("Thank you again for choosing Pink Delight Cakes.");
+    } else {
+        lines.push(closingLine);
+    }
+
+    return lines.join("\n");
+}
+
+function renderReplyTemplatePreview() {
+    const order = state.orders.find((item) => item.id === state.activeOrderId);
+    const template = getReplyTemplateMeta();
+
+    orderReplyTemplateLabel.textContent = template.label;
+    orderReplyTemplateHint.textContent = template.hint;
+
+    orderReplyTemplates.querySelectorAll("[data-reply-template]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.replyTemplate === state.activeReplyTemplate);
+    });
+
+    orderReplyPreview.textContent = order
+        ? buildOrderReplyMessage(order, state.activeReplyTemplate)
+        : "Select an order to preview a customer reply.";
 }
 
 function openOrderWhatsAppReply() {
@@ -1934,30 +2398,105 @@ function bindDynamicListButtons() {
             const type = button.dataset.addList;
 
             if (type === "flavor") {
-                flavorList.appendChild(createListInput("flavor"));
+                handleOptionComposerAdd("flavor", flavorComposerInput.value);
             }
 
             if (type === "size") {
-                sizeList.appendChild(createListInput("size"));
+                addSizeOption();
             }
 
             if (type === "addon") {
-                addonList.appendChild(createListInput("addon"));
+                handleOptionComposerAdd("addon", addonComposerInput.value);
             }
-
-            updateFormSaveMeta("product");
         });
     });
 
-    [flavorList, sizeList, addonList].forEach((container) => {
+    [flavorList, addonList].forEach((container) => {
         container.addEventListener("click", (event) => {
-            const button = event.target.closest("[data-remove-row]");
+            const button = event.target.closest("[data-remove-chip]");
             if (!button) {
                 return;
             }
 
-            const row = button.closest(".dynamic-row");
-            row?.remove();
+            const chip = button.closest("[data-option-value]");
+            if (!chip) {
+                return;
+            }
+
+            const type = chip.dataset.optionChip;
+            const value = chip.dataset.optionValue || "";
+            applyOptionValues(type, getOptionValues(type).filter((item) => item !== value), {
+                focusComposer: true
+            });
+        });
+    });
+
+    sizeList.addEventListener("click", (event) => {
+        const duplicateButton = event.target.closest("[data-duplicate-size]");
+        if (duplicateButton) {
+            const row = duplicateButton.closest(".size-row");
+            if (!row) {
+                return;
+            }
+
+            addSizeOption(extractSizeRowValue(row), {
+                focus: false,
+                afterRow: row
+            });
+            return;
+        }
+
+        const removeButton = event.target.closest("[data-remove-row]");
+        if (!removeButton) {
+            return;
+        }
+
+        const row = removeButton.closest(".size-row");
+        row?.remove();
+        if (!sizeList.querySelector(".size-row")) {
+            renderSizeList([]);
+        }
+        updateFormSaveMeta("product");
+        renderProductPreview();
+    });
+
+    [flavorComposerInput, addonComposerInput].forEach((input) => {
+        input.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter") {
+                return;
+            }
+
+            event.preventDefault();
+            handleOptionComposerAdd(input === flavorComposerInput ? "flavor" : "addon", input.value);
+        });
+    });
+
+    addFlavorButton.addEventListener("click", () => {
+        handleOptionComposerAdd("flavor", flavorComposerInput.value);
+    });
+
+    addAddonButton.addEventListener("click", () => {
+        handleOptionComposerAdd("addon", addonComposerInput.value);
+    });
+
+    document.querySelectorAll("[data-add-option-preset]").forEach((button) => {
+        button.addEventListener("click", () => {
+            handleOptionComposerAdd(button.dataset.optionType, button.dataset.addOptionPreset || "");
+        });
+    });
+
+    document.querySelectorAll("[data-add-size-preset]").forEach((button) => {
+        button.addEventListener("click", () => {
+            addSizeOption({
+                label: button.dataset.sizeLabel || "",
+                servings: button.dataset.sizeServings || "",
+                price: ""
+            });
+        });
+    });
+
+    [flavorComposerInput, addonComposerInput].forEach((input) => {
+        input.addEventListener("input", () => {
             updateFormSaveMeta("product");
         });
     });
@@ -2067,7 +2606,38 @@ function bindInteractions() {
         renderOrderDetail();
     });
 
+    orderSelectAllVisible.addEventListener("change", () => {
+        const visibleOrderIds = getVisibleOrders().map((order) => Number(order.id));
+        const checked = orderSelectAllVisible.checked;
+
+        visibleOrderIds.forEach((orderId) => {
+            toggleOrderSelection(orderId, checked);
+        });
+
+        renderOrdersList();
+    });
+
+    clearOrderSelectionButton.addEventListener("click", () => {
+        state.selectedOrderIds = [];
+        renderOrdersList();
+    });
+
+    orderBulkActions.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-bulk-status]");
+
+        if (!button) {
+            return;
+        }
+
+        button.dataset.defaultLabel = button.dataset.defaultLabel || button.querySelector("span")?.textContent || "";
+        handleBulkOrderAction(button.dataset.bulkStatus, button);
+    });
+
     ordersList.addEventListener("click", (event) => {
+        if (event.target.closest("[data-select-order]")) {
+            return;
+        }
+
         const item = event.target.closest("[data-order-id]");
         if (!item) {
             return;
@@ -2080,6 +2650,17 @@ function bindInteractions() {
         state.activeOrderId = Number(item.dataset.orderId);
         renderOrdersList();
         renderOrderDetail();
+    });
+
+    ordersList.addEventListener("change", (event) => {
+        const checkbox = event.target.closest("[data-select-order]");
+
+        if (!checkbox) {
+            return;
+        }
+
+        toggleOrderSelection(checkbox.dataset.selectOrder, checkbox.checked);
+        renderOrderBulkActions();
     });
 
     productsGrid.addEventListener("click", (event) => {
@@ -2164,6 +2745,7 @@ function bindInteractions() {
     addTestimonialButton.addEventListener("click", () => {
         testimonialList.appendChild(createTestimonialInput());
         updateFormSaveMeta("testimonials");
+        renderTestimonialsPreview();
     });
 
     testimonialList.addEventListener("click", (event) => {
@@ -2179,6 +2761,7 @@ function bindInteractions() {
         }
 
         updateFormSaveMeta("testimonials");
+        renderTestimonialsPreview();
     });
 
     window.addEventListener("hashchange", () => {
@@ -2212,6 +2795,17 @@ function bindInteractions() {
         handleOrderQuickAction(button.dataset.quickStatus, button);
     });
 
+    orderReplyTemplates.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-reply-template]");
+
+        if (!button) {
+            return;
+        }
+
+        state.activeReplyTemplate = button.dataset.replyTemplate;
+        renderReplyTemplatePreview();
+    });
+
     openOrderWhatsAppButton.addEventListener("click", openOrderWhatsAppReply);
     copyOrderReplyButton.addEventListener("click", handleCopyOrderReply);
     copyOrderSummaryButton.addEventListener("click", handleCopyOrderSummary);
@@ -2243,8 +2837,14 @@ function bindInteractions() {
     });
 
     [orderStatus, orderQuotedAmount, orderInternalNote].forEach((field) => {
-        field.addEventListener("input", () => updateFormSaveMeta("order"));
-        field.addEventListener("change", () => updateFormSaveMeta("order"));
+        field.addEventListener("input", () => {
+            updateFormSaveMeta("order");
+            renderReplyTemplatePreview();
+        });
+        field.addEventListener("change", () => {
+            updateFormSaveMeta("order");
+            renderReplyTemplatePreview();
+        });
     });
 
     productName.addEventListener("input", () => {
@@ -2280,10 +2880,24 @@ function bindInteractions() {
         updateFormSaveMeta("product");
         renderProductPreview();
     });
-    settingsForm.addEventListener("input", () => updateFormSaveMeta("settings"));
-    settingsForm.addEventListener("change", () => updateFormSaveMeta("settings"));
-    testimonialsForm.addEventListener("input", () => updateFormSaveMeta("testimonials"));
-    testimonialsForm.addEventListener("change", () => updateFormSaveMeta("testimonials"));
+    settingsForm.addEventListener("input", () => {
+        updateFormSaveMeta("settings");
+        renderSettingsPreview();
+        renderTestimonialsPreview();
+    });
+    settingsForm.addEventListener("change", () => {
+        updateFormSaveMeta("settings");
+        renderSettingsPreview();
+        renderTestimonialsPreview();
+    });
+    testimonialsForm.addEventListener("input", () => {
+        updateFormSaveMeta("testimonials");
+        renderTestimonialsPreview();
+    });
+    testimonialsForm.addEventListener("change", () => {
+        updateFormSaveMeta("testimonials");
+        renderTestimonialsPreview();
+    });
 
     bindDynamicListButtons();
 }
