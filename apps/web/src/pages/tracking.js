@@ -142,9 +142,16 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         const statusQuotedAmount = document.getElementById("statusQuotedAmount");
         const nextStepTitle = document.getElementById("nextStepTitle");
         const nextStepMessage = document.getElementById("nextStepMessage");
+        const customerActionTitle = document.getElementById("customerActionTitle");
+        const customerActionMessage = document.getElementById("customerActionMessage");
+        const bakeryActionTitle = document.getElementById("bakeryActionTitle");
+        const bakeryActionMessage = document.getElementById("bakeryActionMessage");
+        const followUpTitle = document.getElementById("followUpTitle");
+        const followUpMessage = document.getElementById("followUpMessage");
         const timelineGrid = document.getElementById("timelineGrid");
         const whatsAppSupportLink = document.getElementById("whatsAppSupportLink");
         const statusWhatsAppLink = document.getElementById("statusWhatsAppLink");
+        const statusWhatsAppLabel = document.getElementById("statusWhatsAppLabel");
 
         async function apiRequest(pathname) {
             const controller = new AbortController();
@@ -218,6 +225,12 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             statusCreatedAt.textContent = formatDateTime(order.createdAt);
             nextStepTitle.textContent = order.nextStepTitle || "Next step";
             nextStepMessage.textContent = order.nextStepMessage || "Please check back later for the next bakery update.";
+            customerActionTitle.textContent = order.customerActionTitle || "What you can do now";
+            customerActionMessage.textContent = order.customerActionMessage || "Keep this reference number handy in case you need to message the bakery.";
+            bakeryActionTitle.textContent = order.bakeryActionTitle || "What the bakery is doing";
+            bakeryActionMessage.textContent = order.bakeryActionMessage || "The bakery is still processing this inquiry.";
+            followUpTitle.textContent = order.followUpTitle || "When to follow up";
+            followUpMessage.textContent = order.followUpMessage || "Message the bakery if you need help or if the status looks unexpected.";
             statusPanel.className = `status-panel status-${order.statusTone || "active"}`;
 
             if (order.quotedAmount !== null && order.quotedAmount !== undefined && order.quotedAmount !== "") {
@@ -234,9 +247,11 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
                 `Hi Pink Delight Cakes, I want to ask about inquiry #${order.id}.`,
                 `Current status shown: ${order.statusLabel}.`,
                 order.productName ? `Cake: ${order.productName}` : "",
-                order.eventDate ? `Event date: ${order.eventDate}` : ""
+                order.eventDate ? `Event date: ${order.eventDate}` : "",
+                order.customerActionMessage ? `Help needed: ${order.customerActionMessage}` : ""
             ].filter(Boolean).join("\n");
 
+            statusWhatsAppLabel.textContent = order.whatsAppCtaLabel || "Ask about this inquiry";
             statusWhatsAppLink.href = createWhatsAppLink(DEFAULT_PHONE, supportMessage);
             statusPanel.hidden = false;
         }

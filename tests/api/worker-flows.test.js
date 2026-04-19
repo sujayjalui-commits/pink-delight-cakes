@@ -254,6 +254,10 @@ await runTest("public tracking lookup returns customer-facing status metadata fo
   assert.equal(payload.orderRequest.productName, "Signature Black Forest");
   assert.equal(payload.orderRequest.timeline[2].state, "current");
   assert.equal(payload.orderRequest.quotedAmount, 3200);
+  assert.equal(payload.orderRequest.customerActionTitle, "What you can do now");
+  assert.equal(payload.orderRequest.bakeryActionTitle, "What the bakery is doing");
+  assert.equal(payload.orderRequest.followUpTitle, "When to follow up");
+  assert.equal(payload.orderRequest.whatsAppCtaLabel, "Confirm or discuss this quote");
 });
 
 await runTest("admin settings route reads and updates business settings for an authenticated same-origin admin session", async () => {
