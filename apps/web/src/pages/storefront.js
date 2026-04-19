@@ -153,6 +153,7 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         const serviceAreaNoticeCopy = document.getElementById("serviceAreaNoticeCopy");
         const referenceCard = document.getElementById("referenceCard");
         const trackReferenceLink = document.getElementById("trackReferenceLink");
+        const catalogNote = document.getElementById("catalogNote");
         function getStructuredDataScript() {
             let script = document.getElementById("structuredDataScript");
 
@@ -358,6 +359,36 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
 
         function renderCatalogState(message) {
             menuGrid.innerHTML = `<div class="menu-state">${escapeHtml(message)}</div>`;
+
+            if (catalogNote) {
+                catalogNote.textContent = "More cake options can still be shared and customized during inquiry.";
+            }
+        }
+
+        function getSignatureProducts() {
+            const featuredProducts = state.products.filter((product) => product.featured);
+            return featuredProducts.length ? featuredProducts : state.products;
+        }
+
+        function renderCatalogNote(signatureProducts) {
+            if (!catalogNote) {
+                return;
+            }
+
+            const signatureCount = signatureProducts.length;
+            const hiddenCount = Math.max(state.products.length - signatureCount, 0);
+
+            if (!signatureCount) {
+                catalogNote.textContent = "More cake options can still be shared and customized during inquiry.";
+                return;
+            }
+
+            if (hiddenCount > 0) {
+                catalogNote.textContent = `${signatureCount} featured design${signatureCount === 1 ? "" : "s"} are showcased here, with ${hiddenCount} more option${hiddenCount === 1 ? "" : "s"} available through inquiry and custom planning.`;
+                return;
+            }
+
+            catalogNote.textContent = "Every signature cake can still be tailored with flavors, serving sizes, topper ideas, and celebration notes once you send your inquiry.";
         }
 
         function renderProducts() {
@@ -376,7 +407,10 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
                 return;
             }
 
-            menuGrid.innerHTML = state.products.map((product) => `
+            const signatureProducts = getSignatureProducts();
+            renderCatalogNote(signatureProducts);
+
+            menuGrid.innerHTML = signatureProducts.map((product) => `
                 <article class="menu-card reveal">
                     <div class="menu-image">
                         <img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.alt)}" loading="lazy">
