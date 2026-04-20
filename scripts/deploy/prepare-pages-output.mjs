@@ -40,6 +40,11 @@ const replacements = new Map([
 const filesToStamp = [
   "_headers",
   "index.html",
+  path.join("menu", "index.html"),
+  path.join("inquiry-model", "index.html"),
+  path.join("how-it-works", "index.html"),
+  path.join("about", "index.html"),
+  path.join("reviews", "index.html"),
   path.join("track", "index.html"),
   path.join("admin", "index.html"),
   "admin.html",

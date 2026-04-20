@@ -280,6 +280,14 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             return trackUrl.toString();
         }
 
+        function createSitePageLink(pathname) {
+            return new URL(pathname, SITE_URL).toString();
+        }
+
+        function getCurrentCanonicalUrl() {
+            return new URL(window.location.pathname || "/", SITE_URL).toString();
+        }
+
         function getApiUrl(pathname) {
             return `${apiBase}${pathname}`;
         }
@@ -371,10 +379,18 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         }
 
         function getSelectedProduct() {
+            if (!cakeProduct) {
+                return state.products[0] || null;
+            }
+
             return state.products.find((product) => product.slug === cakeProduct.value) || state.products[0] || null;
         }
 
         function getSelectedSize(product) {
+            if (!cakeSize) {
+                return product?.sizes[0] || null;
+            }
+
             return product?.sizes.find((size) => size.label === cakeSize.value) || product?.sizes[0] || null;
         }
 
@@ -384,6 +400,10 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         }
 
         function renderCatalogState(message) {
+            if (!menuGrid) {
+                return;
+            }
+
             menuGrid.innerHTML = `<div class="menu-state">${escapeHtml(message)}</div>`;
 
             if (catalogNote) {
@@ -454,7 +474,7 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             featuredSpotlightDescription.textContent = description;
             featuredSpotlightImage.src = imageUrl;
             featuredSpotlightImage.alt = `${title} by ${state.settings.brandName || DEFAULT_SETTINGS.brandName}`;
-            featuredSpotlightInquiryLink.setAttribute("href", "#contact");
+            featuredSpotlightInquiryLink.setAttribute("href", createSitePageLink("inquiry-model/#contact"));
 
             if (spotlight.sourceUrl) {
                 featuredSpotlightSourceLink.hidden = false;
@@ -467,6 +487,10 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         }
 
         function renderProducts() {
+            if (!menuGrid) {
+                return;
+            }
+
             if (state.productsStatus === "loading") {
                 renderCatalogState("Loading the live cake catalogue...");
                 return;
@@ -516,13 +540,17 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
                             </div>
                         </div>
                         <span class="availability-pill"><i class="fa-solid fa-circle"></i> ${escapeHtml(formatAvailability(product.availabilityStatus))}</span>
-                        <a class="btn btn-secondary" href="#contact" data-request-product="${escapeHtml(product.slug)}">Request this product</a>
+                        <a class="btn btn-secondary" href="${escapeHtml(createSitePageLink(`inquiry-model/?product=${encodeURIComponent(product.slug)}#contact`))}" data-request-product="${escapeHtml(product.slug)}">Request this product</a>
                     </div>
                 </article>
             `).join("");
         }
 
         function renderTestimonials() {
+            if (!reviewGrid) {
+                return;
+            }
+
             const testimonials = Array.isArray(state.testimonials) ? state.testimonials : [];
 
             if (!testimonials.length) {
@@ -552,6 +580,10 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         }
 
         function setInquiryEnabled(enabled) {
+            if (!orderForm) {
+                return;
+            }
+
             cakeProduct.disabled = !enabled;
             cakeFlavor.disabled = !enabled;
             cakeSize.disabled = !enabled;
@@ -561,6 +593,10 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         }
 
         function populateProductOptions() {
+            if (!cakeProduct || !cakeFlavor || !cakeSize || !addon) {
+                return;
+            }
+
             if (!state.products.length) {
                 cakeProduct.innerHTML = `<option value="">No live products available</option>`;
                 cakeFlavor.innerHTML = `<option value="">Waiting for products</option>`;
@@ -577,6 +613,10 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         }
 
         function syncProductFields() {
+            if (!cakeProduct || !cakeFlavor || !cakeSize || !addon) {
+                return;
+            }
+
             const product = getSelectedProduct();
 
             if (!product) {
@@ -600,6 +640,10 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         }
 
         function buildRequestPayload() {
+            if (!orderForm) {
+                return {};
+            }
+
             const product = getSelectedProduct();
             const size = getSelectedSize(product);
 
@@ -642,6 +686,10 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         }
 
         function updateRequestPreview() {
+            if (!orderForm || !requestPreview || !whatsAppOrderLink) {
+                return;
+            }
+
             const product = getSelectedProduct();
 
             if (!product) {
@@ -812,6 +860,27 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         function getSeoTitle() {
             const brandName = getSettingText("brandName");
             const city = String(state.settings.city || "").trim();
+            const pathname = window.location.pathname || "/";
+
+            if (pathname.startsWith("/menu")) {
+                return `Menu | ${brandName}`;
+            }
+
+            if (pathname.startsWith("/inquiry-model")) {
+                return `Inquiry Model Beta | ${brandName}`;
+            }
+
+            if (pathname.startsWith("/how-it-works")) {
+                return `How It Works | ${brandName}`;
+            }
+
+            if (pathname.startsWith("/about")) {
+                return `About | ${brandName}`;
+            }
+
+            if (pathname.startsWith("/reviews")) {
+                return `Reviews | ${brandName}`;
+            }
 
             if (city && !/^your city$/i.test(city)) {
                 return `${brandName} | Custom Cakes in ${city}`;
@@ -824,6 +893,27 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             const brandName = getSettingText("brandName");
             const city = String(state.settings.city || "").trim();
             const deliveryCopy = personalizeDeliveryCopy(getSettingText("deliveryPickupCopy"), city).toLowerCase();
+            const pathname = window.location.pathname || "/";
+
+            if (pathname.startsWith("/menu")) {
+                return `Browse featured and signature cakes from ${brandName}, then send an inquiry for flavor, size, and custom styling.`;
+            }
+
+            if (pathname.startsWith("/inquiry-model")) {
+                return `Send a cake inquiry through the ${brandName} beta inquiry model, then receive manual pricing, availability, and pickup or delivery guidance.`;
+            }
+
+            if (pathname.startsWith("/how-it-works")) {
+                return `Learn how ${brandName} handles custom cake inquiries, quotes, confirmation, pickup, and local delivery.`;
+            }
+
+            if (pathname.startsWith("/about")) {
+                return `Meet ${brandName}, a founder-led home bakery by ${DEFAULT_OWNER_NAME} for custom celebration cakes.`;
+            }
+
+            if (pathname.startsWith("/reviews")) {
+                return `Read published customer reviews for ${brandName} and custom celebration cake orders.`;
+            }
 
             if (city && !/^your city$/i.test(city)) {
                 return `Order custom birthday, anniversary, baby shower, and celebration cakes from ${brandName} in ${city}. Inquiry-first home bakery with ${deliveryCopy}.`;
@@ -954,7 +1044,7 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             setMetaContent('meta[name="description"]', description);
             setMetaContent('meta[property="og:title"]', title);
             setMetaContent('meta[property="og:description"]', description);
-            setMetaContent('meta[property="og:url"]', SITE_URL);
+            setMetaContent('meta[property="og:url"]', getCurrentCanonicalUrl());
             setMetaContent('meta[property="og:image"]', currentHeroImage || DEFAULT_SOCIAL_IMAGE);
             setMetaContent('meta[name="twitter:title"]', title);
             setMetaContent('meta[name="twitter:description"]', description);
@@ -962,7 +1052,7 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
 
             const canonical = document.querySelector('link[rel="canonical"]');
             if (canonical) {
-                canonical.setAttribute("href", SITE_URL);
+                canonical.setAttribute("href", getCurrentCanonicalUrl());
             }
 
             applyStructuredData();
@@ -985,25 +1075,69 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
                 node.textContent = state.settings.instagramHandle || DEFAULT_SETTINGS.instagramHandle;
             });
 
-            heroCityLabel.textContent = getHeroCityLabel(state.settings.city || "");
+            if (heroCityLabel) {
+                heroCityLabel.textContent = getHeroCityLabel(state.settings.city || "");
+            }
+
             const deliveryCopy = personalizeDeliveryCopy(getSettingText("deliveryPickupCopy"), state.settings.city || "");
 
-            heroDeliveryPickupCopy.textContent = deliveryCopy;
-            noticePeriodCopy.textContent = getSettingText("noticePeriodCopy");
-            heroNoticeHighlight.textContent = getNoticeHighlight(getSettingText("noticePeriodCopy"));
-            contactLocationText.textContent = deliveryCopy || getContactLocationLabel(state.settings.city || "");
-            footerLocationText.textContent = deliveryCopy || (state.settings.city
-                ? `Local delivery and pickup in ${state.settings.city}`
-                : "Local delivery and pickup available");
-            bakeryIntroTitle.textContent = getSettingText("bakeryIntroTitle");
-            bakeryIntroParagraph1.textContent = getSettingText("bakeryIntroParagraph1");
-            bakeryIntroParagraph2.textContent = getWarmBakeryParagraph();
-            founderNoteText.textContent = getFounderNote();
-            responseTimeCopy.textContent = getSettingText("responseTimeCopy");
-            supportResponseTimeCopy.textContent = getSettingText("responseTimeCopy");
-            serviceAreaDeliveryCopy.textContent = deliveryCopy || getContactLocationLabel(state.settings.city || "");
-            serviceAreaPickupCopy.textContent = getPickupAvailabilityCopy(state.settings.city || "");
-            serviceAreaNoticeCopy.textContent = getSettingText("noticePeriodCopy");
+            if (heroDeliveryPickupCopy) {
+                heroDeliveryPickupCopy.textContent = deliveryCopy;
+            }
+
+            if (noticePeriodCopy) {
+                noticePeriodCopy.textContent = getSettingText("noticePeriodCopy");
+            }
+
+            if (heroNoticeHighlight) {
+                heroNoticeHighlight.textContent = getNoticeHighlight(getSettingText("noticePeriodCopy"));
+            }
+
+            if (contactLocationText) {
+                contactLocationText.textContent = deliveryCopy || getContactLocationLabel(state.settings.city || "");
+            }
+
+            if (footerLocationText) {
+                footerLocationText.textContent = deliveryCopy || (state.settings.city
+                    ? `Local delivery and pickup in ${state.settings.city}`
+                    : "Local delivery and pickup available");
+            }
+
+            if (bakeryIntroTitle) {
+                bakeryIntroTitle.textContent = getSettingText("bakeryIntroTitle");
+            }
+
+            if (bakeryIntroParagraph1) {
+                bakeryIntroParagraph1.textContent = getSettingText("bakeryIntroParagraph1");
+            }
+
+            if (bakeryIntroParagraph2) {
+                bakeryIntroParagraph2.textContent = getWarmBakeryParagraph();
+            }
+
+            if (founderNoteText) {
+                founderNoteText.textContent = getFounderNote();
+            }
+
+            if (responseTimeCopy) {
+                responseTimeCopy.textContent = getSettingText("responseTimeCopy");
+            }
+
+            if (supportResponseTimeCopy) {
+                supportResponseTimeCopy.textContent = getSettingText("responseTimeCopy");
+            }
+
+            if (serviceAreaDeliveryCopy) {
+                serviceAreaDeliveryCopy.textContent = deliveryCopy || getContactLocationLabel(state.settings.city || "");
+            }
+
+            if (serviceAreaPickupCopy) {
+                serviceAreaPickupCopy.textContent = getPickupAvailabilityCopy(state.settings.city || "");
+            }
+
+            if (serviceAreaNoticeCopy) {
+                serviceAreaNoticeCopy.textContent = getSettingText("noticePeriodCopy");
+            }
 
             document.querySelectorAll("[data-whatsapp-link], a[href^='https://wa.me/']").forEach((link) => {
                 link.setAttribute("href", createWhatsAppLink(state.settings.contactPhone));
@@ -1031,6 +1165,10 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         }
 
         function setFormStatus(message, type = "info") {
+            if (!formStatus) {
+                return;
+            }
+
             formStatus.textContent = message;
             formStatus.className = "form-status";
 
@@ -1044,6 +1182,10 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         }
 
         function setSubmitBusy(busy) {
+            if (!submitInquiryButton) {
+                return;
+            }
+
             submitInquiryButton.disabled = busy || !state.products.length;
             submitInquiryButton.innerHTML = busy
                 ? '<i class="fa-solid fa-circle-notch fa-spin"></i> Sending inquiry...'
@@ -1084,12 +1226,13 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             populateProductOptions();
             applyHomepageMedia();
 
-            if (state.products.length) {
+            if (state.products.length && cakeProduct) {
                 cakeProduct.value = state.products[0].slug;
             }
 
+            applyRequestedProductFromUrl();
             syncProductFields();
-            observeRevealItems(menuGrid);
+            observeRevealItems(menuGrid || document);
         }
 
         async function loadTestimonials() {
@@ -1173,37 +1316,72 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             }
         }
 
-        orderForm.addEventListener("submit", handleInquirySubmit);
-
-        [customerName, customerPhone, customerEmail, cakeFlavor, cakeSize, fulfillment, addon, eventDate, requestNotes].forEach((element) => {
-            element.addEventListener("change", updateRequestPreview);
-            element.addEventListener("input", updateRequestPreview);
-        });
-
-        cakeProduct.addEventListener("change", syncProductFields);
-        updatePreviewButton.addEventListener("click", updateRequestPreview);
-        menuGrid.addEventListener("click", (event) => {
-            const link = event.target.closest("[data-request-product]");
-
-            if (!link) {
+        function applyRequestedProductFromUrl() {
+            if (!cakeProduct) {
                 return;
             }
 
-            cakeProduct.value = link.dataset.requestProduct;
+            const requestedProduct = new URLSearchParams(window.location.search).get("product");
+
+            if (!requestedProduct) {
+                return;
+            }
+
+            const matchingProduct = state.products.find((product) => product.slug === requestedProduct);
+
+            if (!matchingProduct) {
+                return;
+            }
+
+            cakeProduct.value = matchingProduct.slug;
             syncProductFields();
-        });
+        }
 
-        navToggle.addEventListener("click", () => {
-            const isOpen = siteNav.classList.toggle("active");
-            navToggle.setAttribute("aria-expanded", String(isOpen));
-        });
+        if (orderForm) {
+            orderForm.addEventListener("submit", handleInquirySubmit);
+        }
 
-        siteNav.querySelectorAll("a").forEach((link) => {
-            link.addEventListener("click", () => {
-                siteNav.classList.remove("active");
-                navToggle.setAttribute("aria-expanded", "false");
+        [customerName, customerPhone, customerEmail, cakeFlavor, cakeSize, fulfillment, addon, eventDate, requestNotes]
+            .filter(Boolean)
+            .forEach((element) => {
+                element.addEventListener("change", updateRequestPreview);
+                element.addEventListener("input", updateRequestPreview);
             });
-        });
+
+        if (cakeProduct) {
+            cakeProduct.addEventListener("change", syncProductFields);
+        }
+
+        if (updatePreviewButton) {
+            updatePreviewButton.addEventListener("click", updateRequestPreview);
+        }
+
+        if (menuGrid) {
+            menuGrid.addEventListener("click", (event) => {
+                const link = event.target.closest("[data-request-product]");
+
+                if (!link || !cakeProduct) {
+                    return;
+                }
+
+                cakeProduct.value = link.dataset.requestProduct;
+                syncProductFields();
+            });
+        }
+
+        if (navToggle && siteNav) {
+            navToggle.addEventListener("click", () => {
+                const isOpen = siteNav.classList.toggle("active");
+                navToggle.setAttribute("aria-expanded", String(isOpen));
+            });
+
+            siteNav.querySelectorAll("a").forEach((link) => {
+                link.addEventListener("click", () => {
+                    siteNav.classList.remove("active");
+                    navToggle.setAttribute("aria-expanded", "false");
+                });
+            });
+        }
 
         const revealObserver = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {
@@ -1215,6 +1393,10 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         }, { threshold: 0.18 });
 
         function observeRevealItems(scope = document) {
+            if (!scope) {
+                return;
+            }
+
             scope.querySelectorAll(".reveal:not(.visible)").forEach((item) => {
                 revealObserver.observe(item);
             });

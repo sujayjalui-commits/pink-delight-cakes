@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inquiry Model Beta | Pink Delight Cakes</title>
+    <meta name="description" content="Send a cake inquiry through the Pink Delight Cakes beta inquiry model, then receive manual pricing, availability, and pickup or delivery guidance.">
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+    <meta name="theme-color" content="#fff8f2">
+    <link rel="canonical" href="__PUBLIC_SITE_URL__inquiry-model/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Inquiry Model Beta | Pink Delight Cakes">
+    <meta property="og:description" content="Send a cake inquiry through the Pink Delight Cakes beta inquiry model, then receive manual pricing, availability, and pickup or delivery guidance.">
+    <meta property="og:url" content="__PUBLIC_SITE_URL__inquiry-model/">
+    <meta property="og:site_name" content="Pink Delight Cakes">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=1200&q=80">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Inquiry Model Beta | Pink Delight Cakes">
+    <meta name="twitter:description" content="Send a cake inquiry through the Pink Delight Cakes beta inquiry model, then receive manual pricing, availability, and pickup or delivery guidance.">
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=1200&q=80">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/src/styles/storefront.css">
+</head>
+<body data-api-base="__API_BASE_URL__">
+    <div class="page-shell">
+        <header class="site-header">
+            <div class="header-inner">
+                <a class="brand" href="/" aria-label="Pink Delight Cakes home">
+                    <div class="brand-mark"><i class="fa-solid fa-cake-candles"></i></div>
+                    <div class="brand-copy">
+                        <strong data-brand-name>Pink Delight Cakes</strong>
+                        <span>Custom home bakery for joyful celebrations</span>
+                    </div>
+                </a>
+
+                <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav" aria-label="Toggle navigation">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+                <nav class="site-nav" id="siteNav">
+                    <a href="/menu/">Menu</a>
+                    <a class="nav-with-beta" href="/inquiry-model/">Inquiry Model <span class="beta-pill nav-beta">Beta</span></a>
+                    <a href="/how-it-works/">How It Works</a>
+                    <a href="/about/">About</a>
+                    <a href="/reviews/">Reviews</a>
+                    <a href="https://wa.me/918767812121" class="nav-cta" data-whatsapp-link target="_blank" rel="noreferrer"><i class="fa-brands fa-whatsapp"></i> Order on WhatsApp</a>
+                </nav>
+            </div>
+        </header>
+
+        <main>
+            <section class="section inquiry-model-section">
+                <div class="container">
+                    <aside class="contact-panel reveal" id="contact">
+                        <span class="eyebrow"><i class="fa-solid fa-comments"></i> Inquiry model <span class="beta-pill">Beta</span></span>
+                        <h3>Tell us your cake idea and we will reply with pricing and next steps.</h3>
+                        <p>Your request is saved to the live bakery dashboard first, then reviewed manually for design, availability, and pickup or delivery planning.</p>
+
+                        <div class="contact-flow-grid">
+                            <div class="journey-card">
+                                <div class="journey-header">
+                                    <h4>What happens next</h4>
+                                    <p>Everything stays personal, but you’ll always know the next step after you send your request.</p>
+                                </div>
+                                <div class="journey-list">
+                                    <div class="journey-step">
+                                        <div class="journey-step-number">1</div>
+                                        <div>
+                                            <strong>Send request</strong>
+                                            <span>Share your preferred cake, date, flavor, and any design notes here.</span>
+                                        </div>
+                                    </div>
+                                    <div class="journey-step">
+                                        <div class="journey-step-number">2</div>
+                                        <div>
+                                            <strong>Receive quote</strong>
+                                            <span>We review availability and styling details, then reply with pricing and options.</span>
+                                        </div>
+                                    </div>
+                                    <div class="journey-step">
+                                        <div class="journey-step-number">3</div>
+                                        <div>
+                                            <strong>Confirm date and design</strong>
+                                            <span>We lock in your flavor, look, and celebration timing before the order is planned.</span>
+                                        </div>
+                                    </div>
+                                    <div class="journey-step">
+                                        <div class="journey-step-number">4</div>
+                                        <div>
+                                            <strong>Pickup or delivery</strong>
+                                            <span>Pickup and local delivery details are shared clearly once the order is confirmed.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <form class="order-form" id="orderForm">
+                                <h4>Order request preview</h4>
+                                <p class="panel-note">Send the essentials here first. We will follow up personally with pricing, availability, and confirmation before anything is finalized.</p>
+
+                                <div class="field-grid">
+                                    <div class="field">
+                                        <label for="customerName">Your name</label>
+                                        <input id="customerName" name="customerName" type="text" autocomplete="name" placeholder="Riya Sharma" maxlength="80" required>
+                                    </div>
+                                    <div class="field">
+                                        <label for="customerPhone">Phone / WhatsApp</label>
+                                        <input id="customerPhone" name="customerPhone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+91 87678 12121" maxlength="24" required>
+                                    </div>
+                                    <div class="field">
+                                        <label for="customerEmail">Email (optional)</label>
+                                        <input id="customerEmail" name="customerEmail" type="email" autocomplete="email" placeholder="you@example.com" maxlength="120">
+                                    </div>
+                                    <div class="field">
+                                        <label for="cakeProduct">Product</label>
+                                        <select id="cakeProduct" name="cakeProduct"></select>
+                                    </div>
+                                    <div class="field">
+                                        <label for="cakeFlavor">Flavor</label>
+                                        <select id="cakeFlavor" name="cakeFlavor"></select>
+                                    </div>
+                                    <div class="field">
+                                        <label for="cakeSize">Size / servings</label>
+                                        <select id="cakeSize" name="cakeSize"></select>
+                                    </div>
+                                    <div class="field">
+                                        <label for="eventDate">Event date</label>
+                                        <input id="eventDate" name="eventDate" type="date">
+                                    </div>
+                                    <div class="field">
+                                        <label for="fulfillment">Pickup or delivery</label>
+                                        <select id="fulfillment" name="fulfillment">
+                                            <option value="pickup">Pickup</option>
+                                            <option value="local_delivery">Local delivery</option>
+                                        </select>
+                                    </div>
+                                    <div class="field">
+                                        <label for="addon">Add-on</label>
+                                        <select id="addon" name="addon">
+                                            <option value="Message topper">Message topper</option>
+                                            <option value="Candles">Candles</option>
+                                            <option value="Fresh florals">Fresh florals</option>
+                                            <option value="None">None</option>
+                                        </select>
+                                    </div>
+                                    <div class="field field-full">
+                                        <label for="requestNotes">Theme, colors, message text, or inspiration</label>
+                                        <textarea id="requestNotes" name="requestNotes" maxlength="800" placeholder="Example: pastel pink birthday cake with gold message topper and delivery after 5 PM"></textarea>
+                                    </div>
+                                    <div class="field field-honeypot" aria-hidden="true">
+                                        <label for="inquiryWebsite">Leave this field empty</label>
+                                        <input id="inquiryWebsite" name="website" type="text" tabindex="-1" autocomplete="off">
+                                    </div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button class="btn btn-primary" id="submitInquiryButton" type="submit">
+                                        <i class="fa-solid fa-paper-plane"></i> Send inquiry
+                                    </button>
+                                    <a class="btn btn-secondary" href="https://wa.me/918767812121" id="whatsAppOrderLink" data-whatsapp-link target="_blank" rel="noreferrer">
+                                        <i class="fa-brands fa-whatsapp"></i> Continue on WhatsApp
+                                    </a>
+                                    <button class="btn btn-secondary" id="updatePreviewButton" type="button">
+                                        <i class="fa-solid fa-file-lines"></i> Refresh request preview
+                                    </button>
+                                </div>
+
+                                <div class="payload-preview" id="requestPreview">Select a product to preview the order-request payload.</div>
+                                <div class="form-status" id="formStatus">We will save your request here first, then follow up with pricing, availability, and pickup or delivery confirmation.</div>
+                                <div class="reference-card" id="referenceCard" hidden>
+                                    <strong>Your reference is saved</strong>
+                                    <p>Use your inquiry reference and the same phone number later if you want to check the latest update without creating an account.</p>
+                                    <a class="btn btn-secondary" id="trackReferenceLink" href="__PUBLIC_SITE_URL__track/"><i class="fa-solid fa-arrow-up-right-from-square"></i> Track this inquiry <span class="beta-pill">Beta</span></a>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="contact-list">
+                            <div class="contact-item">
+                                <i class="fa-brands fa-whatsapp"></i>
+                                <div>
+                                    <strong>WhatsApp orders</strong>
+                                    <span data-contact-phone>+91 87678 12121</span>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <i class="fa-brands fa-instagram"></i>
+                                <div>
+                                    <strong>Instagram</strong>
+                                    <span data-instagram-handle>@pinkdelightcake</span>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <i class="fa-solid fa-location-dot"></i>
+                                <div>
+                                    <strong>Pickup and delivery</strong>
+                                    <span id="contactLocationText">Pickup by pre-arranged slot, with nearby delivery available</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <a class="btn btn-primary" href="https://wa.me/918767812121" data-whatsapp-link target="_blank" rel="noreferrer">
+                            <i class="fa-brands fa-whatsapp"></i> Order on WhatsApp
+                        </a>
+                    </aside>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="container">
+                <div class="footer-grid">
+                    <div class="footer-brand">
+                        <h3 data-brand-name>Pink Delight Cakes</h3>
+                        <p>Custom home-baked cakes for birthdays, baby showers, anniversaries, and every sweet little celebration in between.</p>
+                        <div class="social-row">
+                            <a href="https://www.facebook.com/PinkDelightCake?mibextid=ZbWKwL" data-facebook-link target="_blank" rel="noreferrer" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                            <a href="https://instagram.com" data-instagram-link target="_blank" rel="noreferrer" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                            <a href="https://wa.me/918767812121" data-whatsapp-link target="_blank" rel="noreferrer" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+                            <a href="mailto:hello@pinkdelightcakes.com" data-email-link aria-label="Email"><i class="fa-regular fa-envelope"></i></a>
+                        </div>
+                    </div>
+
+                    <div class="footer-column">
+                        <h4>Explore</h4>
+                        <div class="footer-links">
+                            <a href="/menu/">Signature menu</a>
+                            <a href="/inquiry-model/">Inquiry model <span class="beta-pill">Beta</span></a>
+                            <a href="/how-it-works/">How ordering works</a>
+                            <a href="/about/">About the bakery</a>
+                            <a href="/reviews/">Customer reviews</a>
+                            <a data-track-link href="__PUBLIC_SITE_URL__track/">Track your inquiry <span class="beta-pill">Beta</span></a>
+                        </div>
+                    </div>
+
+                    <div class="footer-column">
+                        <h4>Contact</h4>
+                        <div class="footer-links">
+                            <span>Facebook: <a href="https://www.facebook.com/PinkDelightCake?mibextid=ZbWKwL" data-facebook-link target="_blank" rel="noreferrer">Pink Delight Cakes</a></span>
+                            <span>WhatsApp: <span data-contact-phone>+91 87678 12121</span></span>
+                            <span>Email: <span data-contact-email>hello@pinkdelightcakes.com</span></span>
+                            <span>Instagram: <span data-instagram-handle>@pinkdelightcake</span></span>
+                            <span id="footerLocationText">Local delivery and pickup available</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="footer-bottom">
+                    <span>&copy; 2026 Pink Delight Cakes. All rights reserved.</span>
+                    <span>Built for a small home bakery with a simple order-first experience.</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="/src/pages/storefront.js" defer></script>
+</body>
+</html>

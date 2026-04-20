@@ -881,12 +881,12 @@ function updateAllFormSaveMeta() {
     FORM_KEYS.forEach(updateFormSaveMeta);
 }
 
-function getDirtyFormLabels() {
-    return FORM_KEYS.filter((formKey) => isFormDirty(formKey)).map(getFormLabel);
+function getDirtyFormLabels(formKeys = FORM_KEYS) {
+    return formKeys.filter((formKey) => isFormDirty(formKey)).map(getFormLabel);
 }
 
-function confirmDiscardChanges(actionLabel = "continue") {
-    const dirtyLabels = getDirtyFormLabels();
+function confirmDiscardChanges(actionLabel = "continue", formKeys = FORM_KEYS) {
+    const dirtyLabels = getDirtyFormLabels(formKeys);
 
     if (!dirtyLabels.length) {
         return true;
@@ -2637,10 +2637,6 @@ function bindInteractions() {
             return;
         }
 
-        if (button.dataset.view !== state.activeView && !confirmDiscardChanges(`switch to ${button.dataset.view}`)) {
-            return;
-        }
-
         setView(button.dataset.view);
     });
 
@@ -2654,7 +2650,7 @@ function bindInteractions() {
     });
 
     refreshOrders.addEventListener("click", async () => {
-        if (!confirmDiscardChanges("refresh orders")) {
+        if (!confirmDiscardChanges("refresh orders", ["order"])) {
             return;
         }
 
@@ -2666,7 +2662,7 @@ function bindInteractions() {
     });
 
     refreshProducts.addEventListener("click", async () => {
-        if (!confirmDiscardChanges("refresh products")) {
+        if (!confirmDiscardChanges("refresh products", ["product"])) {
             return;
         }
 
@@ -2679,7 +2675,7 @@ function bindInteractions() {
     });
 
     refreshSettings.addEventListener("click", async () => {
-        if (!confirmDiscardChanges("refresh settings")) {
+        if (!confirmDiscardChanges("refresh settings", ["settings", "testimonials"])) {
             return;
         }
 
@@ -2761,7 +2757,7 @@ function bindInteractions() {
             return;
         }
 
-        if (Number(item.dataset.orderId) !== state.activeOrderId && !confirmDiscardChanges("open another order")) {
+        if (Number(item.dataset.orderId) !== state.activeOrderId && !confirmDiscardChanges("open another order", ["order"])) {
             return;
         }
 
@@ -2787,7 +2783,7 @@ function bindInteractions() {
             return;
         }
 
-        if (Number(item.dataset.productId) !== state.activeProductId && !confirmDiscardChanges("open another product")) {
+        if (Number(item.dataset.productId) !== state.activeProductId && !confirmDiscardChanges("open another product", ["product"])) {
             return;
         }
 
@@ -2805,7 +2801,7 @@ function bindInteractions() {
             return;
         }
 
-        if (!confirmDiscardChanges("open that order")) {
+        if (!confirmDiscardChanges("open that order", ["order"])) {
             return;
         }
 
@@ -2821,7 +2817,7 @@ function bindInteractions() {
             return;
         }
 
-        if (!confirmDiscardChanges("open that product")) {
+        if (!confirmDiscardChanges("open that product", ["product"])) {
             return;
         }
 
@@ -2834,7 +2830,7 @@ function bindInteractions() {
     });
 
     newProductButton.addEventListener("click", () => {
-        if (!confirmDiscardChanges("start a new product")) {
+        if (!confirmDiscardChanges("start a new product", ["product"])) {
             return;
         }
 
@@ -2846,7 +2842,7 @@ function bindInteractions() {
     });
 
     duplicateProductButton.addEventListener("click", () => {
-        if (!confirmDiscardChanges("duplicate this product into a draft")) {
+        if (!confirmDiscardChanges("duplicate this product into a draft", ["product"])) {
             return;
         }
 
@@ -2902,11 +2898,6 @@ function bindInteractions() {
     window.addEventListener("hashchange", () => {
         const nextView = window.location.hash.replace("#", "");
         if (["overview", "orders", "products", "settings"].includes(nextView)) {
-            if (nextView !== state.activeView && !confirmDiscardChanges(`switch to ${nextView}`)) {
-                window.location.hash = state.activeView;
-                return;
-            }
-
             setView(nextView);
         }
     });
@@ -2952,15 +2943,19 @@ function bindInteractions() {
             return;
         }
 
-        if (!confirmDiscardChanges("open that task")) {
-            return;
-        }
-
         if (item.dataset.attentionKind === "order") {
+            if (!confirmDiscardChanges("open that order", ["order"])) {
+                return;
+            }
+
             state.activeOrderId = Number(item.dataset.attentionId);
             setView("orders");
             renderOrdersList();
             renderOrderDetail();
+            return;
+        }
+
+        if (!confirmDiscardChanges("open that product", ["product"])) {
             return;
         }
 

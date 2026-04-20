@@ -207,7 +207,7 @@
         .site-nav {
             display: flex;
             align-items: center;
-            gap: 1.3rem;
+            gap: 1.05rem;
             z-index: 5;
         }
 
@@ -217,6 +217,21 @@
             transition: color var(--transition), transform var(--transition);
         }
 
+        .site-nav .nav-with-beta,
+        .site-nav .nav-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .site-nav .nav-beta {
+            margin-left: 0;
+            padding: 0.14rem 0.42rem;
+            background: rgba(217, 121, 131, 0.12);
+            color: var(--accent-dark);
+            font-size: 0.62rem;
+        }
+
         .site-nav a:hover,
         .site-nav a:focus-visible {
             color: var(--accent-dark);
@@ -224,11 +239,19 @@
         }
 
         .nav-cta {
-            padding: 0.9rem 1.2rem;
+            padding: 0.78rem 1.05rem;
             border-radius: 999px;
-            background: var(--text);
+            background: linear-gradient(135deg, rgba(217, 121, 131, 0.13), rgba(255, 255, 255, 0.72));
+            border: 1px solid rgba(217, 121, 131, 0.24);
+            color: var(--accent-dark);
+            box-shadow: 0 12px 24px rgba(184, 92, 102, 0.1);
+        }
+
+        .site-nav .nav-cta:hover,
+        .site-nav .nav-cta:focus-visible {
             color: #fff;
-            box-shadow: var(--shadow-soft);
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+            box-shadow: 0 14px 28px rgba(184, 92, 102, 0.22);
         }
 
         .hero {
@@ -674,6 +697,12 @@
             align-items: start;
         }
 
+        .steps-wrap--single {
+            grid-template-columns: minmax(0, 1fr);
+            max-width: 880px;
+            margin: 0 auto;
+        }
+
         .steps-panel,
         .contact-panel,
         .about-panel,
@@ -740,6 +769,11 @@
         .contact-panel {
             padding: 2rem;
             border-radius: var(--radius-lg);
+        }
+
+        .inquiry-model-section .contact-panel {
+            max-width: 1080px;
+            margin: 0 auto;
         }
 
         .contact-panel h3 {
