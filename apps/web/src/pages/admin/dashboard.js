@@ -643,6 +643,10 @@ function getProductImagePreviewSource(value) {
     const normalizedValue = String(value || "").trim();
 
     if (normalizedValue) {
+        if (normalizedValue.startsWith("src/")) {
+            return `/${normalizedValue}`;
+        }
+
         return normalizedValue;
     }
 
