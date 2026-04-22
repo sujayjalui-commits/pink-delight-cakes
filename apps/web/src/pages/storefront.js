@@ -10,7 +10,7 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             "https://images.unsplash.com/photo-1535141192574-5d4897c12636?auto=format&fit=crop&w=900&q=80",
             "https://images.unsplash.com/photo-1562777717-b6aff3afac0f?auto=format&fit=crop&w=900&q=80"
         ];
-        const FOUNDER_PORTRAIT_FALLBACK = "https://images.unsplash.com/photo-1486427944299-d1955d23e34d?auto=format&fit=crop&w=1100&q=80";
+        const FOUNDER_PORTRAIT_FALLBACK = "/src/assets/baat-pakki-engagement-cake.webp";
         const DEFAULT_WARM_FOUNDER_PARAGRAPH = "Pink Delight Cakes is led by Pinky Sangoi and grew from small family celebrations into a warm home bakery focused on soft finishes, homemade flavor, and cakes that feel truly personal.";
         const DEFAULT_FOUNDER_NOTE = "Pinky Sangoi handles each inquiry like a real conversation, not a rushed checkout. The goal is simple: make the cake feel personal, taste homemade, and arrive as part of the celebration instead of just another order.";
         const DEFAULT_SETTINGS = {
