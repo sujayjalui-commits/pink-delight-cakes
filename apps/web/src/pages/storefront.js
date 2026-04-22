@@ -114,11 +114,14 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             testimonials: [],
             products: [],
             productsStatus: "loading",
-            settingsResolved: false
+            settingsResolved: false,
+            activeMenuCategory: "all"
         };
 
         const apiBase = resolveApiBaseUrl();
         const menuGrid = document.getElementById("menuGrid");
+        const menuCategoryFilters = document.getElementById("menuCategoryFilters");
+        const signatureGrid = document.getElementById("signatureGrid");
         const orderForm = document.getElementById("orderForm");
         const customerName = document.getElementById("customerName");
         const customerPhone = document.getElementById("customerPhone");
@@ -351,6 +354,7 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         }
 
         function mapProduct(product) {
+            const ownerImageUrl = product.imageUrl || "";
             const options = product?.options || {};
             const sizes = Array.isArray(options.sizes) && options.sizes.length
                 ? options.sizes.map((size) => ({
@@ -364,7 +368,9 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
                 slug: product.slug,
                 name: product.name,
                 badge: product.badge || "",
-                imageUrl: product.imageUrl || PRODUCT_IMAGE_FALLBACKS[product.slug] || PRODUCT_IMAGE_FALLBACKS.default,
+                imageUrl: ownerImageUrl || PRODUCT_IMAGE_FALLBACKS[product.slug] || PRODUCT_IMAGE_FALLBACKS.default,
+                ownerImageUrl,
+                hasOwnerImage: Boolean(String(ownerImageUrl).trim()),
                 alt: `${product.name} cake by ${state.settings.brandName}`,
                 startingPrice: product.startingPrice,
                 shortDescription: product.shortDescription || "Freshly baked to order for special celebrations.",
@@ -379,11 +385,13 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         }
 
         function getSelectedProduct() {
+            const selectableProducts = getPublicProducts();
+
             if (!cakeProduct) {
-                return state.products[0] || null;
+                return selectableProducts[0] || null;
             }
 
-            return state.products.find((product) => product.slug === cakeProduct.value) || state.products[0] || null;
+            return selectableProducts.find((product) => product.slug === cakeProduct.value) || selectableProducts[0] || null;
         }
 
         function getSelectedSize(product) {
@@ -411,30 +419,158 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             }
         }
 
-        function getSignatureProducts() {
-            const featuredProducts = state.products.filter((product) => product.featured);
-            return featuredProducts.length ? featuredProducts : state.products;
+        function isPublicProduct(product) {
+            return product?.availabilityStatus !== "unavailable";
         }
 
-        function renderCatalogNote(signatureProducts) {
+        function getPublicProducts() {
+            return state.products.filter(isPublicProduct);
+        }
+
+        function getSignatureProducts() {
+            return getPublicProducts().filter((product) => product.featured).slice(0, 3);
+        }
+
+        function getProductImageSource(product) {
+            const imageUrl = String(product?.ownerImageUrl || "").trim();
+
+            if (!imageUrl) {
+                return "";
+            }
+
+            return imageUrl.startsWith("src/") ? `/${imageUrl}` : imageUrl;
+        }
+
+        function renderCakePhoto(product, className = "") {
+            const imageUrl = getProductImageSource(product);
+
+            if (!imageUrl) {
+                return `
+                    <div class="cake-photo-placeholder ${escapeHtml(className)}">
+                        <i class="fa-solid fa-camera"></i>
+                        <span>Photo coming soon</span>
+                    </div>
+                `;
+            }
+
+            return `<img class="${escapeHtml(className)}" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(product.alt)}" loading="lazy">`;
+        }
+
+        function renderSignaturePlaceholder(index) {
+            return `
+                <article class="signature-card signature-card--placeholder reveal">
+                    <div class="signature-image">
+                        <div class="cake-photo-placeholder">
+                            <i class="fa-solid fa-cake-candles"></i>
+                            <span>Signature slot ${index}</span>
+                        </div>
+                    </div>
+                    <div class="signature-content">
+                        <span class="signature-kicker">Admin managed</span>
+                        <h3>Feature a cake here</h3>
+                        <p>Mark any available product as featured in the admin dashboard to fill this homepage slot.</p>
+                    </div>
+                </article>
+            `;
+        }
+
+        function renderSignatureCard(product) {
+            return `
+                <article class="signature-card reveal">
+                    <div class="signature-image">
+                        ${renderCakePhoto(product)}
+                        ${product.badge ? `<span class="badge">${escapeHtml(product.badge)}</span>` : ""}
+                    </div>
+                    <div class="signature-content">
+                        <span class="signature-kicker">${escapeHtml(product.category)}</span>
+                        <h3>${escapeHtml(product.name)}</h3>
+                        <p>${escapeHtml(product.shortDescription)}</p>
+                        <div class="signature-meta">
+                            <span>From ${escapeHtml(formatCurrency(product.startingPrice))}</span>
+                            <span>${escapeHtml(formatLeadTime(product.leadTimeHours))}</span>
+                        </div>
+                        <a class="btn btn-secondary" href="${escapeHtml(createSitePageLink(`inquiry-model/?product=${encodeURIComponent(product.slug)}#contact`))}" data-request-product="${escapeHtml(product.slug)}">Ask about this cake</a>
+                    </div>
+                </article>
+            `;
+        }
+
+        function renderSignatureProducts() {
+            if (!signatureGrid) {
+                return;
+            }
+
+            const signatureProducts = getSignatureProducts();
+            const cards = signatureProducts.map(renderSignatureCard);
+
+            while (cards.length < 3) {
+                cards.push(renderSignaturePlaceholder(cards.length + 1));
+            }
+
+            signatureGrid.innerHTML = cards.slice(0, 3).join("");
+            observeRevealItems(signatureGrid);
+        }
+
+        function getMenuProducts() {
+            const products = getPublicProducts();
+
+            if (state.activeMenuCategory === "all") {
+                return products;
+            }
+
+            return products.filter((product) => product.category === state.activeMenuCategory);
+        }
+
+        function getMenuCategories(products) {
+            return Array.from(new Set(products.map((product) => product.category).filter(Boolean)));
+        }
+
+        function renderMenuCategoryFilters(products) {
+            if (!menuCategoryFilters) {
+                return;
+            }
+
+            const categories = getMenuCategories(products);
+
+            if (categories.length <= 1) {
+                menuCategoryFilters.hidden = true;
+                menuCategoryFilters.innerHTML = "";
+                return;
+            }
+
+            if (state.activeMenuCategory !== "all" && !categories.includes(state.activeMenuCategory)) {
+                state.activeMenuCategory = "all";
+            }
+
+            menuCategoryFilters.hidden = false;
+            menuCategoryFilters.innerHTML = [
+                { label: "All cakes", value: "all" },
+                ...categories.map((category) => ({ label: category, value: category }))
+            ].map((category) => `
+                <button class="menu-filter-chip${state.activeMenuCategory === category.value ? " active" : ""}" type="button" data-menu-category="${escapeHtml(category.value)}">
+                    ${escapeHtml(category.label)}
+                </button>
+            `).join("");
+        }
+
+        function renderCatalogNote(menuProducts) {
             if (!catalogNote) {
                 return;
             }
 
-            const signatureCount = signatureProducts.length;
-            const hiddenCount = Math.max(state.products.length - signatureCount, 0);
+            const visibleCount = menuProducts.length;
 
-            if (!signatureCount) {
+            if (!visibleCount) {
                 catalogNote.textContent = "More cake options can still be shared and customized during inquiry.";
                 return;
             }
 
-            if (hiddenCount > 0) {
-                catalogNote.textContent = `${signatureCount} featured design${signatureCount === 1 ? "" : "s"} are showcased here, with ${hiddenCount} more option${hiddenCount === 1 ? "" : "s"} available through inquiry and custom planning.`;
+            if (state.activeMenuCategory !== "all") {
+                catalogNote.textContent = `${visibleCount} ${state.activeMenuCategory.toLowerCase()} option${visibleCount === 1 ? "" : "s"} shown. Switch back to all cakes to browse the complete menu.`;
                 return;
             }
 
-            catalogNote.textContent = "Every signature cake can still be tailored with flavors, serving sizes, topper ideas, and celebration notes once you send your inquiry.";
+            catalogNote.textContent = `${visibleCount} cake option${visibleCount === 1 ? "" : "s"} are available to browse. Final design, servings, and add-ons are still confirmed personally after inquiry.`;
         }
 
         function getFeaturedSpotlightSettings() {
@@ -487,6 +623,8 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         }
 
         function renderProducts() {
+            renderSignatureProducts();
+
             if (!menuGrid) {
                 return;
             }
@@ -501,18 +639,22 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
                 return;
             }
 
-            if (!state.products.length) {
+            const publicProducts = getPublicProducts();
+
+            if (!publicProducts.length) {
                 renderCatalogState("No products are published in the live catalogue yet. Please check back soon or message us directly for a custom cake.");
                 return;
             }
 
-            const signatureProducts = getSignatureProducts();
-            renderCatalogNote(signatureProducts);
+            renderMenuCategoryFilters(publicProducts);
 
-            menuGrid.innerHTML = signatureProducts.map((product) => `
+            const menuProducts = getMenuProducts();
+            renderCatalogNote(menuProducts);
+
+            menuGrid.innerHTML = menuProducts.map((product) => `
                 <article class="menu-card reveal">
                     <div class="menu-image">
-                        <img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.alt)}" loading="lazy">
+                        ${renderCakePhoto(product)}
                         ${product.badge ? `<span class="badge">${escapeHtml(product.badge)}</span>` : ""}
                     </div>
                     <div class="menu-content">
@@ -597,7 +739,9 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
                 return;
             }
 
-            if (!state.products.length) {
+            const selectableProducts = getPublicProducts();
+
+            if (!selectableProducts.length) {
                 cakeProduct.innerHTML = `<option value="">No live products available</option>`;
                 cakeFlavor.innerHTML = `<option value="">Waiting for products</option>`;
                 cakeSize.innerHTML = `<option value="">Waiting for products</option>`;
@@ -606,7 +750,7 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
                 return;
             }
 
-            cakeProduct.innerHTML = state.products.map((product) => `
+            cakeProduct.innerHTML = selectableProducts.map((product) => `
                 <option value="${escapeHtml(product.slug)}">${escapeHtml(product.name)}</option>
             `).join("");
             setInquiryEnabled(true);
@@ -787,16 +931,23 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
 
         function getShowcaseProducts() {
             const uniqueImages = new Set();
-            const sortedProducts = [...state.products].sort((left, right) => Number(right.featured) - Number(left.featured));
+            const sortedProducts = [...getPublicProducts()].sort((left, right) => Number(right.featured) - Number(left.featured));
 
-            return sortedProducts.filter((product) => {
-                if (!product.imageUrl || uniqueImages.has(product.imageUrl)) {
-                    return false;
+            return sortedProducts.reduce((products, product) => {
+                const imageUrl = getProductImageSource(product);
+
+                if (!imageUrl || uniqueImages.has(imageUrl)) {
+                    return products;
                 }
 
-                uniqueImages.add(product.imageUrl);
-                return true;
-            });
+                uniqueImages.add(imageUrl);
+                products.push({
+                    ...product,
+                    imageUrl
+                });
+
+                return products;
+            }, []);
         }
 
         function applyHomepageMedia() {
@@ -1226,8 +1377,10 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             populateProductOptions();
             applyHomepageMedia();
 
-            if (state.products.length && cakeProduct) {
-                cakeProduct.value = state.products[0].slug;
+            const selectableProducts = getPublicProducts();
+
+            if (selectableProducts.length && cakeProduct) {
+                cakeProduct.value = selectableProducts[0].slug;
             }
 
             applyRequestedProductFromUrl();
@@ -1327,7 +1480,7 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
                 return;
             }
 
-            const matchingProduct = state.products.find((product) => product.slug === requestedProduct);
+            const matchingProduct = getPublicProducts().find((product) => product.slug === requestedProduct);
 
             if (!matchingProduct) {
                 return;
@@ -1366,6 +1519,20 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
 
                 cakeProduct.value = link.dataset.requestProduct;
                 syncProductFields();
+            });
+        }
+
+        if (menuCategoryFilters) {
+            menuCategoryFilters.addEventListener("click", (event) => {
+                const button = event.target.closest("[data-menu-category]");
+
+                if (!button) {
+                    return;
+                }
+
+                state.activeMenuCategory = button.dataset.menuCategory || "all";
+                renderProducts();
+                observeRevealItems(menuGrid);
             });
         }
 
