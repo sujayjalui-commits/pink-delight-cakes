@@ -77,12 +77,19 @@ WHERE product_id IN (
 );
 
 INSERT INTO product_options (product_id, option_group, option_label, price, servings, sort_order)
-SELECT id, 'flavor', 'Pineapple', NULL, NULL, 1 FROM products WHERE slug = 'fruit-flavours'
-UNION ALL SELECT id, 'flavor', 'Blueberry', NULL, NULL, 2 FROM products WHERE slug = 'fruit-flavours'
-UNION ALL SELECT id, 'flavor', 'Orange', NULL, NULL, 3 FROM products WHERE slug = 'fruit-flavours'
-UNION ALL SELECT id, 'flavor', 'Mango', NULL, NULL, 4 FROM products WHERE slug = 'fruit-flavours'
-UNION ALL SELECT id, 'flavor', 'Litchi', NULL, NULL, 5 FROM products WHERE slug = 'fruit-flavours'
-UNION ALL SELECT id, 'flavor', 'Strawberry', NULL, NULL, 6 FROM products WHERE slug = 'fruit-flavours';
+WITH fruit_flavors(option_label, sort_order) AS (
+  VALUES
+    ('Pineapple', 1),
+    ('Blueberry', 2),
+    ('Orange', 3),
+    ('Mango', 4),
+    ('Litchi', 5),
+    ('Strawberry', 6)
+)
+SELECT products.id, 'flavor', fruit_flavors.option_label, NULL, NULL, fruit_flavors.sort_order
+FROM products
+CROSS JOIN fruit_flavors
+WHERE products.slug = 'fruit-flavours';
 
 INSERT INTO product_options (product_id, option_group, option_label, price, servings, sort_order)
 SELECT id, 'flavor', name, NULL, NULL, 1
@@ -109,43 +116,81 @@ WHERE slug IN (
 );
 
 INSERT INTO product_options (product_id, option_group, option_label, price, servings, sort_order)
-SELECT id, 'size', 'Half kg', 500, 'Serves 4 to 6', 1 FROM products WHERE slug IN ('fruit-flavours', 'red-velvet', 'butterscotch', 'chocolate-white-cream')
-UNION ALL SELECT id, 'size', 'Half kg', 525, 'Serves 4 to 6', 1 FROM products WHERE slug IN ('chocolate-caramel', 'chocolate-oreo', 'tiramisu', 'white-forest')
-UNION ALL SELECT id, 'size', 'Half kg', 550, 'Serves 4 to 6', 1 FROM products WHERE slug IN ('rose-pistachio', 'black-forest', 'chocolate-mousse', 'chocolate-coffee-mousse', 'chocolate-bonbon', 'mawa')
-UNION ALL SELECT id, 'size', 'Half kg', 575, 'Serves 4 to 6', 1 FROM products WHERE slug = 'hazelnut-mousse'
-UNION ALL SELECT id, 'size', 'Half kg', 600, 'Serves 4 to 6', 1 FROM products WHERE slug = 'chocolate-almond'
-UNION ALL SELECT id, 'size', 'Half kg', 650, 'Serves 4 to 6', 1 FROM products WHERE slug IN ('dutch-truffle', 'chocolate-truffle')
-UNION ALL SELECT id, 'size', '1 kg', 850, 'Serves 8 to 10', 2 FROM products WHERE slug IN ('fruit-flavours', 'red-velvet', 'butterscotch', 'chocolate-white-cream')
-UNION ALL SELECT id, 'size', '1 kg', 900, 'Serves 8 to 10', 2 FROM products WHERE slug IN ('chocolate-caramel', 'chocolate-oreo', 'tiramisu', 'white-forest')
-UNION ALL SELECT id, 'size', '1 kg', 925, 'Serves 8 to 10', 2 FROM products WHERE slug = 'black-forest'
-UNION ALL SELECT id, 'size', '1 kg', 950, 'Serves 8 to 10', 2 FROM products WHERE slug IN ('rose-pistachio', 'chocolate-mousse', 'chocolate-coffee-mousse', 'chocolate-bonbon', 'mawa')
-UNION ALL SELECT id, 'size', '1 kg', 1000, 'Serves 8 to 10', 2 FROM products WHERE slug = 'hazelnut-mousse'
-UNION ALL SELECT id, 'size', '1 kg', 1100, 'Serves 8 to 10', 2 FROM products WHERE slug = 'chocolate-almond'
-UNION ALL SELECT id, 'size', '1 kg', 1200, 'Serves 8 to 10', 2 FROM products WHERE slug IN ('dutch-truffle', 'chocolate-truffle')
-UNION ALL SELECT id, 'size', '1 kg', 1300, 'Serves 8 to 10', 1 FROM products WHERE slug = 'rasmalai';
+WITH size_prices(slug, option_label, price, servings, sort_order) AS (
+  VALUES
+    ('fruit-flavours', 'Half kg', 500, 'Serves 4 to 6', 1),
+    ('red-velvet', 'Half kg', 500, 'Serves 4 to 6', 1),
+    ('butterscotch', 'Half kg', 500, 'Serves 4 to 6', 1),
+    ('chocolate-white-cream', 'Half kg', 500, 'Serves 4 to 6', 1),
+    ('chocolate-caramel', 'Half kg', 525, 'Serves 4 to 6', 1),
+    ('chocolate-oreo', 'Half kg', 525, 'Serves 4 to 6', 1),
+    ('tiramisu', 'Half kg', 525, 'Serves 4 to 6', 1),
+    ('white-forest', 'Half kg', 525, 'Serves 4 to 6', 1),
+    ('rose-pistachio', 'Half kg', 550, 'Serves 4 to 6', 1),
+    ('black-forest', 'Half kg', 550, 'Serves 4 to 6', 1),
+    ('chocolate-mousse', 'Half kg', 550, 'Serves 4 to 6', 1),
+    ('chocolate-coffee-mousse', 'Half kg', 550, 'Serves 4 to 6', 1),
+    ('chocolate-bonbon', 'Half kg', 550, 'Serves 4 to 6', 1),
+    ('mawa', 'Half kg', 550, 'Serves 4 to 6', 1),
+    ('hazelnut-mousse', 'Half kg', 575, 'Serves 4 to 6', 1),
+    ('chocolate-almond', 'Half kg', 600, 'Serves 4 to 6', 1),
+    ('dutch-truffle', 'Half kg', 650, 'Serves 4 to 6', 1),
+    ('chocolate-truffle', 'Half kg', 650, 'Serves 4 to 6', 1),
+    ('fruit-flavours', '1 kg', 850, 'Serves 8 to 10', 2),
+    ('red-velvet', '1 kg', 850, 'Serves 8 to 10', 2),
+    ('butterscotch', '1 kg', 850, 'Serves 8 to 10', 2),
+    ('chocolate-white-cream', '1 kg', 850, 'Serves 8 to 10', 2),
+    ('chocolate-caramel', '1 kg', 900, 'Serves 8 to 10', 2),
+    ('chocolate-oreo', '1 kg', 900, 'Serves 8 to 10', 2),
+    ('tiramisu', '1 kg', 900, 'Serves 8 to 10', 2),
+    ('white-forest', '1 kg', 900, 'Serves 8 to 10', 2),
+    ('black-forest', '1 kg', 925, 'Serves 8 to 10', 2),
+    ('rose-pistachio', '1 kg', 950, 'Serves 8 to 10', 2),
+    ('chocolate-mousse', '1 kg', 950, 'Serves 8 to 10', 2),
+    ('chocolate-coffee-mousse', '1 kg', 950, 'Serves 8 to 10', 2),
+    ('chocolate-bonbon', '1 kg', 950, 'Serves 8 to 10', 2),
+    ('mawa', '1 kg', 950, 'Serves 8 to 10', 2),
+    ('hazelnut-mousse', '1 kg', 1000, 'Serves 8 to 10', 2),
+    ('chocolate-almond', '1 kg', 1100, 'Serves 8 to 10', 2),
+    ('dutch-truffle', '1 kg', 1200, 'Serves 8 to 10', 2),
+    ('chocolate-truffle', '1 kg', 1200, 'Serves 8 to 10', 2),
+    ('rasmalai', '1 kg', 1300, 'Serves 8 to 10', 1)
+)
+SELECT products.id, 'size', size_prices.option_label, size_prices.price, size_prices.servings, size_prices.sort_order
+FROM products
+INNER JOIN size_prices ON size_prices.slug = products.slug;
 
 INSERT INTO product_options (product_id, option_group, option_label, price, servings, sort_order)
-SELECT id, 'addon', 'Message topper', NULL, NULL, 1 FROM products WHERE slug IN (
-  'fruit-flavours', 'red-velvet', 'butterscotch', 'chocolate-white-cream', 'chocolate-caramel',
-  'rose-pistachio', 'black-forest', 'chocolate-mousse', 'dutch-truffle', 'hazelnut-mousse',
-  'chocolate-coffee-mousse', 'chocolate-oreo', 'chocolate-bonbon', 'chocolate-almond',
-  'chocolate-truffle', 'tiramisu', 'white-forest', 'mawa', 'rasmalai'
+WITH seeded_products(slug) AS (
+  VALUES
+    ('fruit-flavours'),
+    ('red-velvet'),
+    ('butterscotch'),
+    ('chocolate-white-cream'),
+    ('chocolate-caramel'),
+    ('rose-pistachio'),
+    ('black-forest'),
+    ('chocolate-mousse'),
+    ('dutch-truffle'),
+    ('hazelnut-mousse'),
+    ('chocolate-coffee-mousse'),
+    ('chocolate-oreo'),
+    ('chocolate-bonbon'),
+    ('chocolate-almond'),
+    ('chocolate-truffle'),
+    ('tiramisu'),
+    ('white-forest'),
+    ('mawa'),
+    ('rasmalai')
+),
+add_ons(option_label, sort_order) AS (
+  VALUES
+    ('Message topper', 1),
+    ('Candles', 2),
+    ('Photo print', 3),
+    ('Theme decoration', 4)
 )
-UNION ALL SELECT id, 'addon', 'Candles', NULL, NULL, 2 FROM products WHERE slug IN (
-  'fruit-flavours', 'red-velvet', 'butterscotch', 'chocolate-white-cream', 'chocolate-caramel',
-  'rose-pistachio', 'black-forest', 'chocolate-mousse', 'dutch-truffle', 'hazelnut-mousse',
-  'chocolate-coffee-mousse', 'chocolate-oreo', 'chocolate-bonbon', 'chocolate-almond',
-  'chocolate-truffle', 'tiramisu', 'white-forest', 'mawa', 'rasmalai'
-)
-UNION ALL SELECT id, 'addon', 'Photo print', NULL, NULL, 3 FROM products WHERE slug IN (
-  'fruit-flavours', 'red-velvet', 'butterscotch', 'chocolate-white-cream', 'chocolate-caramel',
-  'rose-pistachio', 'black-forest', 'chocolate-mousse', 'dutch-truffle', 'hazelnut-mousse',
-  'chocolate-coffee-mousse', 'chocolate-oreo', 'chocolate-bonbon', 'chocolate-almond',
-  'chocolate-truffle', 'tiramisu', 'white-forest', 'mawa', 'rasmalai'
-)
-UNION ALL SELECT id, 'addon', 'Theme decoration', NULL, NULL, 4 FROM products WHERE slug IN (
-  'fruit-flavours', 'red-velvet', 'butterscotch', 'chocolate-white-cream', 'chocolate-caramel',
-  'rose-pistachio', 'black-forest', 'chocolate-mousse', 'dutch-truffle', 'hazelnut-mousse',
-  'chocolate-coffee-mousse', 'chocolate-oreo', 'chocolate-bonbon', 'chocolate-almond',
-  'chocolate-truffle', 'tiramisu', 'white-forest', 'mawa', 'rasmalai'
-);
+SELECT products.id, 'addon', add_ons.option_label, NULL, NULL, add_ons.sort_order
+FROM products
+INNER JOIN seeded_products ON seeded_products.slug = products.slug
+CROSS JOIN add_ons;
