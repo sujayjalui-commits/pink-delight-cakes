@@ -138,6 +138,145 @@ await runTest("public inquiry submission persists a database-backed request", as
   assert.equal(env.DB.rateLimitEvents.length, 1);
 });
 
+await runTest("cart inquiry stores a structured snapshot and remains visible to admin and tracking", async () => {
+  const admin = {
+    id: 21,
+    email: "owner@pinkdelightcakes.com",
+    role: "owner",
+    is_active: 1
+  };
+  const env = createTestEnv({
+    products: [createProductSeed()],
+    adminUsers: [admin]
+  });
+  const executionCtx = createExecutionContext();
+  const request = new Request("https://pink-delight-cakes-api.sujayjalui.workers.dev/api/order-requests", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: "https://pink-delight-cakes.pages.dev",
+      "cf-connecting-ip": "203.0.113.44"
+    },
+    body: JSON.stringify({
+      customerName: "Riya",
+      customerPhone: "+91 98765 43210",
+      customerEmail: "riya@example.com",
+      productId: "signature-black-forest",
+      fulfillmentType: "pickup",
+      flavor: "Black Forest",
+      sizeLabel: "1 kg",
+      servings: "8",
+      eventDate: "2026-05-05",
+      addOn: "Candles",
+      notes: "Please quote the full bag together.",
+      cartItems: [
+        {
+          productId: "signature-black-forest",
+          productName: "Signature Black Forest",
+          flavor: "Black Forest",
+          sizeLabel: "1 kg",
+          servings: "8",
+          addOn: "Candles",
+          quantity: 2,
+          itemNotes: "Birthday message on one cake.",
+          startingPrice: 1800,
+          estimatedLineTotal: 3600
+        },
+        {
+          productId: "signature-black-forest",
+          productName: "Signature Black Forest",
+          flavor: "Chocolate",
+          sizeLabel: "Half kg",
+          servings: "4",
+          addOn: "",
+          quantity: 1,
+          itemNotes: "Less sweet.",
+          startingPrice: 950,
+          estimatedLineTotal: 950
+        }
+      ]
+    })
+  });
+
+  const response = await worker.fetch(request, env, executionCtx);
+  const payload = await response.json();
+  const cartSnapshot = JSON.parse(env.DB.orderRequests[0].cart_snapshot);
+
+  assert.equal(response.status, 201);
+  assert.equal(payload.ok, true);
+  assert.equal(cartSnapshot.kind, "inquiry_cart");
+  assert.equal(cartSnapshot.items.length, 2);
+  assert.equal(cartSnapshot.itemCount, 3);
+  assert.equal(cartSnapshot.estimatedStartingTotal, 4550);
+
+  const sessionToken = await createAdminSessionToken(admin, env);
+  const adminResponse = await worker.fetch(
+    new Request("https://pink-delight-cakes.pages.dev/api/admin/orders", {
+      headers: {
+        origin: "https://pink-delight-cakes.pages.dev",
+        cookie: `${apiConfig.adminSessionCookieName}=${sessionToken}`
+      }
+    }),
+    env,
+    createExecutionContext()
+  );
+  const adminPayload = await adminResponse.json();
+
+  assert.equal(adminResponse.status, 200);
+  assert.equal(adminPayload.orders[0].cartSnapshot.items.length, 2);
+  assert.equal(adminPayload.orders[0].cartItemCount, 3);
+
+  const trackingResponse = await worker.fetch(
+    new Request(`https://pink-delight-cakes-api.sujayjalui.workers.dev/api/order-requests/lookup?referenceId=${payload.orderRequest.id}&phone=%2B91%2098765%2043210`, {
+      headers: {
+        origin: "https://pink-delight-cakes.pages.dev"
+      }
+    }),
+    env,
+    createExecutionContext()
+  );
+  const trackingPayload = await trackingResponse.json();
+
+  assert.equal(trackingResponse.status, 200);
+  assert.equal(trackingPayload.orderRequest.productName, "Cart inquiry (3 items)");
+  assert.equal(trackingPayload.orderRequest.cartItemCount, 3);
+  assert.equal(trackingPayload.orderRequest.cartItems.length, 2);
+});
+
+await runTest("cart inquiry rejects malformed cart payloads", async () => {
+  const env = createTestEnv({
+    products: [createProductSeed()]
+  });
+  const request = new Request("https://pink-delight-cakes-api.sujayjalui.workers.dev/api/order-requests", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: "https://pink-delight-cakes.pages.dev",
+      "cf-connecting-ip": "203.0.113.45"
+    },
+    body: JSON.stringify({
+      customerName: "Riya",
+      customerPhone: "+91 98765 43210",
+      productId: "signature-black-forest",
+      fulfillmentType: "pickup",
+      cartItems: [
+        {
+          productId: "signature-black-forest",
+          quantity: 99
+        }
+      ]
+    })
+  });
+
+  const response = await worker.fetch(request, env, createExecutionContext());
+  const payload = await response.json();
+
+  assert.equal(response.status, 400);
+  assert.equal(payload.ok, false);
+  assert.equal(payload.details.some((detail) => detail.includes("quantity must be between")), true);
+  assert.equal(env.DB.orderRequests.length, 0);
+});
+
 await runTest("public catalog loads product options in one bulk query instead of per-product queries", async () => {
   const env = createTestEnv({
     products: [

@@ -41,6 +41,7 @@ const filesToStamp = [
   "_headers",
   "index.html",
   path.join("menu", "index.html"),
+  path.join("cart", "index.html"),
   path.join("inquiry-model", "index.html"),
   path.join("how-it-works", "index.html"),
   path.join("about", "index.html"),

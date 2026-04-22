@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inquiry Bag | Pink Delight Cakes</title>
+    <meta name="description" content="Review cakes added to your Pink Delight Cakes inquiry bag and send one combined quote request.">
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+    <meta name="theme-color" content="#fff8f2">
+    <link rel="canonical" href="__PUBLIC_SITE_URL__cart/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Inquiry Bag | Pink Delight Cakes">
+    <meta property="og:description" content="Review cakes added to your inquiry bag and send one combined quote request.">
+    <meta property="og:url" content="__PUBLIC_SITE_URL__cart/">
+    <meta property="og:site_name" content="Pink Delight Cakes">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=1200&q=80">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Inquiry Bag | Pink Delight Cakes">
+    <meta name="twitter:description" content="Review cakes added to your inquiry bag and send one combined quote request.">
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=1200&q=80">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/src/styles/storefront.css">
+</head>
+<body data-api-base="__API_BASE_URL__">
+    <div class="page-shell">
+        <header class="site-header">
+            <div class="header-inner">
+                <a class="brand" href="/" aria-label="Pink Delight Cakes home">
+                    <div class="brand-mark brand-logo-mark">
+                        <img src="/src/assets/pink-delight-logo.png" alt="" aria-hidden="true">
+                    </div>
+                    <div class="brand-copy">
+                        <strong data-brand-name>Pink Delight Cakes</strong>
+                        <span>Custom home bakery for joyful celebrations</span>
+                    </div>
+                </a>
+
+                <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav" aria-label="Toggle navigation">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+                <nav class="site-nav" id="siteNav">
+                    <a href="/menu/">Menu</a>
+                    <a class="nav-with-beta" href="/inquiry-model/">Inquiry Model <span class="beta-pill nav-beta">Beta</span></a>
+                    <a href="/how-it-works/">How It Works</a>
+                    <a href="/about/">About</a>
+                    <a href="/reviews/">Reviews</a>
+                    <a class="nav-bag active" href="/cart/" aria-label="Open inquiry bag"><i class="fa-solid fa-bag-shopping"></i> Bag <span class="cart-count" data-cart-count>0</span></a>
+                    <a href="https://wa.me/918767812121" class="nav-cta" data-whatsapp-link target="_blank" rel="noreferrer"><i class="fa-brands fa-whatsapp"></i> Order on WhatsApp</a>
+                </nav>
+            </div>
+        </header>
+
+        <main>
+            <section class="section cart-page" id="cartPage">
+                <div class="container">
+                    <div class="section-heading reveal">
+                        <span class="eyebrow"><i class="fa-solid fa-bag-shopping"></i> Inquiry bag</span>
+                        <h1>Review your cakes, then send one combined quote request.</h1>
+                        <p>This is not checkout and no online payment is collected. Pink Delight Cakes will review your bag and reply with final pricing, availability, and pickup or delivery details.</p>
+                    </div>
+
+                    <div class="cart-layout">
+                        <section class="cart-items-panel reveal" aria-label="Bag items">
+                            <div class="cart-panel-heading">
+                                <div>
+                                    <span class="cart-panel-kicker">Your selected cakes</span>
+                                    <h2>Bag details</h2>
+                                </div>
+                                <button class="btn btn-secondary btn-small" id="clearCartButton" type="button"><i class="fa-regular fa-trash-can"></i> Clear bag</button>
+                            </div>
+
+                            <div class="cart-items-list" id="cartItemsList"></div>
+
+                            <div class="cart-empty-state" id="cartEmptyState" hidden>
+                                <i class="fa-solid fa-bag-shopping"></i>
+                                <h2>Your inquiry bag is empty.</h2>
+                                <p>Add cakes from the menu, then come back here to adjust flavor, size, quantity, and notes before sending one request.</p>
+                                <a class="btn btn-primary" href="/menu/"><i class="fa-solid fa-cake-candles"></i> Browse menu</a>
+                            </div>
+                        </section>
+
+                        <aside class="cart-summary-panel reveal" id="cartSummaryPanel">
+                            <div class="cart-summary-card">
+                                <span class="cart-panel-kicker">Quote request</span>
+                                <h2>Estimated starting total</h2>
+                                <strong id="cartEstimatedTotal">Price on request</strong>
+                                <p>Final pricing may change based on design complexity, custom toppers, delivery distance, and ingredient rates.</p>
+                            </div>
+
+                            <form class="order-form cart-form" id="cartInquiryForm">
+                                <h3>Send cart inquiry</h3>
+                                <p>Share your contact details once. Pinky can quote the full bag together.</p>
+
+                                <div class="field-grid">
+                                    <div class="field">
+                                        <label for="cartCustomerName">Your name</label>
+                                        <input id="cartCustomerName" name="customerName" type="text" placeholder="Riya Sharma" autocomplete="name" required>
+                                    </div>
+                                    <div class="field">
+                                        <label for="cartCustomerPhone">Phone / WhatsApp</label>
+                                        <input id="cartCustomerPhone" name="customerPhone" type="tel" placeholder="+91 87678 12121" autocomplete="tel" required>
+                                    </div>
+                                    <div class="field">
+                                        <label for="cartCustomerEmail">Email (optional)</label>
+                                        <input id="cartCustomerEmail" name="customerEmail" type="email" placeholder="you@example.com" autocomplete="email">
+                                    </div>
+                                    <div class="field">
+                                        <label for="cartEventDate">Event date</label>
+                                        <input id="cartEventDate" name="eventDate" type="date">
+                                    </div>
+                                    <div class="field field-full">
+                                        <label for="cartFulfillment">Pickup or delivery</label>
+                                        <select id="cartFulfillment" name="fulfillmentType">
+                                            <option value="pickup">Pickup</option>
+                                            <option value="local_delivery">Local delivery</option>
+                                        </select>
+                                    </div>
+                                    <div class="field field-full">
+                                        <label for="cartNotes">Overall notes</label>
+                                        <textarea id="cartNotes" name="notes" placeholder="Mention occasion, design references, delivery area, or timing preferences."></textarea>
+                                    </div>
+                                    <div class="field field-full hidden">
+                                        <label for="cartWebsite">Leave this empty</label>
+                                        <input id="cartWebsite" name="website" type="text" tabindex="-1" autocomplete="off">
+                                    </div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button class="btn btn-primary" id="submitCartInquiryButton" type="submit"><i class="fa-solid fa-paper-plane"></i> Send cart inquiry</button>
+                                    <a class="btn btn-secondary" id="cartWhatsAppLink" href="https://wa.me/918767812121" data-whatsapp-link target="_blank" rel="noreferrer"><i class="fa-brands fa-whatsapp"></i> Continue on WhatsApp</a>
+                                </div>
+
+                                <div class="form-status" id="cartFormStatus" aria-live="polite">Add cakes to your bag, review the options, then send one inquiry for a manual quote.</div>
+
+                                <div class="reference-card" id="cartReferenceCard" hidden>
+                                    <strong>Inquiry saved</strong>
+                                    <p>Your cart inquiry was received. Keep the reference number handy if you follow up on WhatsApp.</p>
+                                    <a class="btn btn-secondary" id="cartTrackReferenceLink" href="__PUBLIC_SITE_URL__track/">Track this inquiry</a>
+                                </div>
+                            </form>
+                        </aside>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="container">
+                <div class="footer-grid">
+                    <div class="footer-brand">
+                        <h3 data-brand-name>Pink Delight Cakes</h3>
+                        <p>Custom home-baked cakes for birthdays, baby showers, anniversaries, and every sweet little celebration in between.</p>
+                        <div class="social-row">
+                            <a href="https://www.facebook.com/PinkDelightCake?mibextid=ZbWKwL" data-facebook-link target="_blank" rel="noreferrer" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                            <a href="https://instagram.com" data-instagram-link target="_blank" rel="noreferrer" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                            <a href="https://wa.me/918767812121" data-whatsapp-link target="_blank" rel="noreferrer" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+                            <a href="mailto:hello@pinkdelightcakes.com" data-email-link aria-label="Email"><i class="fa-regular fa-envelope"></i></a>
+                        </div>
+                    </div>
+
+                    <div class="footer-column">
+                        <h4>Explore</h4>
+                        <div class="footer-links">
+                            <a href="/menu/">Signature menu</a>
+                            <a href="/inquiry-model/">Inquiry model <span class="beta-pill">Beta</span></a>
+                            <a href="/how-it-works/">How ordering works</a>
+                            <a href="/about/">About the bakery</a>
+                            <a href="/reviews/">Customer reviews</a>
+                            <a href="/cart/">Inquiry bag</a>
+                            <a data-track-link href="__PUBLIC_SITE_URL__track/">Track your inquiry <span class="beta-pill">Beta</span></a>
+                        </div>
+                    </div>
+
+                    <div class="footer-column">
+                        <h4>Contact</h4>
+                        <div class="footer-links">
+                            <span>Facebook: <a href="https://www.facebook.com/PinkDelightCake?mibextid=ZbWKwL" data-facebook-link target="_blank" rel="noreferrer">Pink Delight Cakes</a></span>
+                            <span>WhatsApp: <span data-contact-phone>+91 87678 12121</span></span>
+                            <span>Email: <span data-contact-email>hello@pinkdelightcakes.com</span></span>
+                            <span>Instagram: <span data-instagram-handle>@pinkdelightcake</span></span>
+                            <span id="footerLocationText">Local delivery and pickup available</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="footer-bottom">
+                    <span>&copy; 2026 Pink Delight Cakes. All rights reserved.</span>
+                    <span>Built for a small home bakery with a simple order-first experience.</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="/src/pages/storefront.js" defer></script>
+</body>
+</html>

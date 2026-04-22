@@ -500,7 +500,7 @@ function getNeedsAttentionItems() {
             kind: "order",
             priority: attention.priority,
             tone: attention.tone,
-            title: `${order.customerName} · ${order.productSnapshot?.name || "Custom request"}`,
+            title: `${order.customerName} · ${getOrderDisplayName(order)}`,
             description: `${attention.label} · ${formatDate(order.eventDate)} · ${slugLabel(order.fulfillmentType)}`,
             actionLabel: "Open order"
         };
@@ -537,7 +537,8 @@ function matchesOrderSearch(order, query) {
         order.customerName,
         order.customerPhone,
         order.customerEmail,
-        order.productSnapshot?.name,
+        getOrderDisplayName(order),
+        ...getOrderCartItems(order).flatMap((item) => [item.productName, item.flavor, item.sizeLabel, item.addOn, item.itemNotes]),
         order.status,
         order.eventDate
     ];
@@ -1000,6 +1001,84 @@ function getCurrentOrderDraft(order = state.orders.find((item) => item.id === st
     };
 }
 
+function getOrderCartItems(order) {
+    return Array.isArray(order?.cartSnapshot?.items) ? order.cartSnapshot.items : [];
+}
+
+function getOrderCartItemCount(order) {
+    return Number(order?.cartItemCount) || getOrderCartItems(order).reduce((total, item) => total + (Number(item.quantity) || 0), 0);
+}
+
+function getOrderDisplayName(order) {
+    const itemCount = getOrderCartItemCount(order);
+
+    if (itemCount > 0) {
+        return `Cart inquiry · ${itemCount} item${itemCount === 1 ? "" : "s"}`;
+    }
+
+    return order?.productSnapshot?.name || "Custom request";
+}
+
+function buildCartSummaryLines(order) {
+    const items = getOrderCartItems(order);
+
+    if (!items.length) {
+        return [];
+    }
+
+    return [
+        "Cart items:",
+        ...items.map((item, index) => {
+            const parts = [
+                `${index + 1}. ${item.productName || item.productId || "Cake"}`,
+                item.quantity ? `Qty ${item.quantity}` : "",
+                item.flavor ? `Flavor: ${item.flavor}` : "",
+                item.sizeLabel ? `Size: ${item.sizeLabel}` : "",
+                item.addOn ? `Add-on: ${item.addOn}` : "",
+                item.itemNotes ? `Note: ${item.itemNotes}` : "",
+                item.estimatedLineTotal ? `Starting line: ${formatCurrency(item.estimatedLineTotal)}` : ""
+            ].filter(Boolean);
+
+            return parts.join(" | ");
+        })
+    ];
+}
+
+function renderCartSnapshot(order) {
+    const items = getOrderCartItems(order);
+
+    if (!items.length) {
+        return "";
+    }
+
+    return `
+        <div class="order-cart-snapshot">
+            <div class="order-cart-snapshot__heading">
+                <strong>Cart inquiry details</strong>
+                <span>${escapeHtml(getOrderCartItemCount(order))} item${getOrderCartItemCount(order) === 1 ? "" : "s"} requested together</span>
+            </div>
+            <div class="order-cart-lines">
+                ${items.map((item, index) => `
+                    <article class="order-cart-line">
+                        <span class="mini-pill">#${index + 1}</span>
+                        <div>
+                            <strong>${escapeHtml(item.productName || item.productId || "Cake")}</strong>
+                            <p>${escapeHtml([
+                                item.quantity ? `Qty ${item.quantity}` : "",
+                                item.flavor ? `Flavor: ${item.flavor}` : "",
+                                item.sizeLabel ? `Size: ${item.sizeLabel}` : "",
+                                item.addOn ? `Add-on: ${item.addOn}` : ""
+                            ].filter(Boolean).join(" · ") || "No options shared")}</p>
+                            ${item.itemNotes ? `<p class="meta-label">Note: ${escapeHtml(item.itemNotes)}</p>` : ""}
+                        </div>
+                        <span>${escapeHtml(item.estimatedLineTotal ? formatCurrency(item.estimatedLineTotal) : "Quote")}</span>
+                    </article>
+                `).join("")}
+            </div>
+        </div>
+    `;
+}
+
 function buildOrderSummaryText(order) {
     const draft = getCurrentOrderDraft(order);
 
@@ -1012,12 +1091,13 @@ function buildOrderSummaryText(order) {
         `Customer: ${draft.customerName}`,
         `Phone: ${draft.customerPhone}`,
         draft.customerEmail ? `Email: ${draft.customerEmail}` : "",
-        `Cake: ${draft.productSnapshot?.name || "Custom request"}`,
+        `Cake: ${getOrderDisplayName(draft)}`,
         `Status: ${slugLabel(draft.status)}`,
         `Event date: ${formatDate(draft.eventDate)}`,
         `Fulfillment: ${slugLabel(draft.fulfillmentType)}`,
         `Flavor: ${draft.flavor || "Not set"}`,
         `Size: ${draft.sizeLabel || "Not set"}`,
+        ...buildCartSummaryLines(draft),
         `Quote: ${draft.quotedAmount ? formatCurrency(draft.quotedAmount) : "Not quoted yet"}`,
         `Notes: ${draft.notes || "No customer notes"}`,
         draft.internalNote ? `Internal note: ${draft.internalNote}` : ""
@@ -1063,7 +1143,7 @@ function renderOverview() {
                 <header>
                     <div>
                         <strong>${escapeHtml(order.customerName)}</strong>
-                        <span>${escapeHtml(order.productSnapshot?.name || "Custom request")}</span>
+                        <span>${escapeHtml(getOrderDisplayName(order))}</span>
                     </div>
                     <span class="status-pill ${escapeHtml(order.status)}">${escapeHtml(statusLabel(order.status))}</span>
                 </header>
@@ -1160,7 +1240,7 @@ function renderOrdersList() {
                 </label>
                 <div>
                     <strong>${escapeHtml(order.customerName)}</strong>
-                    <span>${escapeHtml(order.productSnapshot?.name || "Custom request")}</span>
+                    <span>${escapeHtml(getOrderDisplayName(order))}</span>
                 </div>
                 <span class="status-pill ${escapeHtml(order.status)}">${escapeHtml(statusLabel(order.status))}</span>
             </header>
@@ -1201,7 +1281,7 @@ function renderOrderDetail() {
             </div>
             <div class="summary-card">
                 <strong>Product</strong>
-                <span>${escapeHtml(order.productSnapshot?.name || "Custom request")}</span>
+                <span>${escapeHtml(getOrderDisplayName(order))}</span>
             </div>
             <div class="summary-card">
                 <strong>Event date</strong>
@@ -1228,6 +1308,7 @@ function renderOrderDetail() {
                 <span>${escapeHtml(getOrderAttentionMeta(order).label)}</span>
             </div>
         </div>
+        ${renderCartSnapshot(order)}
     `;
 
     orderStatus.innerHTML = ORDER_STATUSES.map((status) => `
@@ -2217,11 +2298,12 @@ function buildOrderReplyMessage(order, templateKey = state.activeReplyTemplate) 
         return "";
     }
 
-    const productName = draft.productSnapshot?.name || "your custom cake";
+    const productName = getOrderCartItemCount(draft) > 0 ? "your cart inquiry" : draft.productSnapshot?.name || "your custom cake";
     const eventDateLabel = formatDate(draft.eventDate);
     const quoteLabel = draft.quotedAmount !== null && draft.quotedAmount !== undefined && draft.quotedAmount !== ""
         ? formatCurrency(draft.quotedAmount)
         : null;
+    const cartSummaryLines = buildCartSummaryLines(draft);
     const closingLine = "Please reply here if you need any change or have any question.";
 
     if (templateKey === "quote_follow_up") {
@@ -2231,6 +2313,7 @@ function buildOrderReplyMessage(order, templateKey = state.activeReplyTemplate) 
             quoteLabel
                 ? `Your current quote is ${quoteLabel} for the design discussed.`
                 : "We are ready to share the final quote once the last cake details are confirmed.",
+            ...cartSummaryLines,
             draft.eventDate ? `The planned celebration date is ${eventDateLabel}.` : "",
             "Let us know if you would like to confirm this order or if you want any change before we lock it in.",
             closingLine
@@ -2241,6 +2324,7 @@ function buildOrderReplyMessage(order, templateKey = state.activeReplyTemplate) 
         return [
             `Hi ${draft.customerName}, this is Pink Delight Cakes.`,
             `Your order #${draft.id} for ${productName} is almost ready for pickup.`,
+            ...cartSummaryLines,
             draft.eventDate ? `Pickup is planned around ${eventDateLabel}.` : "",
             quoteLabel ? `Your current order total is ${quoteLabel}.` : "",
             "Please message us before you leave so we can keep your cake packed and ready at handoff.",
@@ -2252,6 +2336,7 @@ function buildOrderReplyMessage(order, templateKey = state.activeReplyTemplate) 
         return [
             `Hi ${draft.customerName}, this is Pink Delight Cakes.`,
             `Your order #${draft.id} for ${productName} is lined up for delivery.`,
+            ...cartSummaryLines,
             draft.eventDate ? `Delivery is planned for ${eventDateLabel}.` : "",
             quoteLabel ? `Your current order total is ${quoteLabel}.` : "",
             "Please keep your phone reachable around the delivery window so we can coordinate the handoff smoothly.",
@@ -2267,6 +2352,8 @@ function buildOrderReplyMessage(order, templateKey = state.activeReplyTemplate) 
     if (draft.eventDate) {
         lines.push(`Event date: ${eventDateLabel}.`);
     }
+
+    lines.push(...cartSummaryLines);
 
     if (quoteLabel) {
         lines.push(`Current quote: ${quoteLabel}.`);

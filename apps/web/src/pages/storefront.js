@@ -5,6 +5,9 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         const DEFAULT_OWNER_NAME = "Pinky Sangoi";
         const DEFAULT_FACEBOOK_URL = "https://www.facebook.com/PinkDelightCake?mibextid=ZbWKwL";
         const DEFAULT_INSTAGRAM_URL = "https://www.instagram.com/pinkdelightcake/profilecard/?igsh=MWM1dmFhY2VzOGVvaw==";
+        const CART_STORAGE_KEY = "pinkDelightCakes.inquiryBag.v1";
+        const MAX_CART_ITEMS = 12;
+        const MAX_CART_QUANTITY = 20;
         const HERO_COLLAGE_FALLBACKS = [
             "https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=1200&q=80",
             "https://images.unsplash.com/photo-1535141192574-5d4897c12636?auto=format&fit=crop&w=900&q=80",
@@ -115,7 +118,9 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             products: [],
             productsStatus: "loading",
             settingsResolved: false,
-            activeMenuCategory: "all"
+            activeMenuCategory: "all",
+            cartItems: [],
+            cartSubmitted: false
         };
 
         const apiBase = resolveApiBaseUrl();
@@ -169,6 +174,25 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         const featuredSpotlightDescription = document.getElementById("featuredSpotlightDescription");
         const featuredSpotlightInquiryLink = document.getElementById("featuredSpotlightInquiryLink");
         const featuredSpotlightSourceLink = document.getElementById("featuredSpotlightSourceLink");
+        const cartCountBadges = document.querySelectorAll("[data-cart-count]");
+        const cartItemsList = document.getElementById("cartItemsList");
+        const cartEmptyState = document.getElementById("cartEmptyState");
+        const cartSummaryPanel = document.getElementById("cartSummaryPanel");
+        const clearCartButton = document.getElementById("clearCartButton");
+        const cartEstimatedTotal = document.getElementById("cartEstimatedTotal");
+        const cartInquiryForm = document.getElementById("cartInquiryForm");
+        const cartCustomerName = document.getElementById("cartCustomerName");
+        const cartCustomerPhone = document.getElementById("cartCustomerPhone");
+        const cartCustomerEmail = document.getElementById("cartCustomerEmail");
+        const cartEventDate = document.getElementById("cartEventDate");
+        const cartFulfillment = document.getElementById("cartFulfillment");
+        const cartNotes = document.getElementById("cartNotes");
+        const cartWebsite = document.getElementById("cartWebsite");
+        const cartWhatsAppLink = document.getElementById("cartWhatsAppLink");
+        const cartFormStatus = document.getElementById("cartFormStatus");
+        const submitCartInquiryButton = document.getElementById("submitCartInquiryButton");
+        const cartReferenceCard = document.getElementById("cartReferenceCard");
+        const cartTrackReferenceLink = document.getElementById("cartTrackReferenceLink");
         function getStructuredDataScript() {
             let script = document.getElementById("structuredDataScript");
 
@@ -431,6 +455,12 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             return getPublicProducts().filter((product) => product.featured).slice(0, 3);
         }
 
+        function getProductBySlug(slug) {
+            return getPublicProducts().find((product) => product.slug === slug)
+                || state.products.find((product) => product.slug === slug)
+                || null;
+        }
+
         function getProductImageSource(product) {
             const imageUrl = String(product?.ownerImageUrl || "").trim();
 
@@ -454,6 +484,403 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             }
 
             return `<img class="${escapeHtml(className)}" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(product.alt)}" loading="lazy">`;
+        }
+
+        function clampNumber(value, min, max) {
+            const numericValue = Number(value);
+
+            if (!Number.isFinite(numericValue)) {
+                return min;
+            }
+
+            return Math.min(max, Math.max(min, Math.trunc(numericValue)));
+        }
+
+        function createCartItemId() {
+            return `bag-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+        }
+
+        function normalizeCartItem(rawItem) {
+            if (!rawItem || !rawItem.productSlug) {
+                return null;
+            }
+
+            return {
+                id: String(rawItem.id || createCartItemId()),
+                productSlug: String(rawItem.productSlug || ""),
+                productName: String(rawItem.productName || "Custom cake"),
+                category: String(rawItem.category || "Custom celebration cakes"),
+                imageUrl: String(rawItem.imageUrl || ""),
+                startingPrice: Number(rawItem.startingPrice) || 0,
+                flavor: String(rawItem.flavor || ""),
+                sizeLabel: String(rawItem.sizeLabel || ""),
+                servings: String(rawItem.servings || ""),
+                sizePrice: Number(rawItem.sizePrice) || Number(rawItem.startingPrice) || 0,
+                addOn: String(rawItem.addOn || ""),
+                quantity: clampNumber(rawItem.quantity, 1, MAX_CART_QUANTITY),
+                notes: String(rawItem.notes || "").slice(0, 240)
+            };
+        }
+
+        function readStoredCartItems() {
+            try {
+                const parsedItems = JSON.parse(window.localStorage.getItem(CART_STORAGE_KEY) || "[]");
+                return Array.isArray(parsedItems)
+                    ? parsedItems.map(normalizeCartItem).filter(Boolean).slice(0, MAX_CART_ITEMS)
+                    : [];
+            } catch {
+                return [];
+            }
+        }
+
+        function writeStoredCartItems() {
+            try {
+                window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(state.cartItems));
+            } catch {
+                // A private browser mode can block storage; keep the current in-memory bag usable.
+            }
+        }
+
+        function getCartQuantity() {
+            return state.cartItems.reduce((total, item) => total + clampNumber(item.quantity, 1, MAX_CART_QUANTITY), 0);
+        }
+
+        function updateCartCount() {
+            const quantity = getCartQuantity();
+            cartCountBadges.forEach((badge) => {
+                badge.textContent = String(quantity);
+                badge.setAttribute("aria-label", `${quantity} item${quantity === 1 ? "" : "s"} in bag`);
+            });
+        }
+
+        function saveCartAndRender() {
+            writeStoredCartItems();
+            updateCartCount();
+            renderCartPage();
+        }
+
+        function getDefaultCartItem(product) {
+            const size = product.sizes[0] || {};
+            const addOn = product.addOns.find((item) => item && item !== "None") || "";
+
+            return {
+                id: createCartItemId(),
+                productSlug: product.slug,
+                productName: product.name,
+                category: product.category,
+                imageUrl: getProductImageSource(product),
+                startingPrice: Number(product.startingPrice) || 0,
+                flavor: product.flavors[0] || "",
+                sizeLabel: size.label || "",
+                servings: size.servings || "",
+                sizePrice: Number(size.price) || Number(product.startingPrice) || 0,
+                addOn,
+                quantity: 1,
+                notes: ""
+            };
+        }
+
+        function calculateCartItemLineTotal(item) {
+            const price = Number(item.sizePrice || item.startingPrice);
+            const quantity = clampNumber(item.quantity, 1, MAX_CART_QUANTITY);
+            return Number.isFinite(price) && price > 0 ? price * quantity : null;
+        }
+
+        function calculateCartEstimate() {
+            const totals = state.cartItems.map(calculateCartItemLineTotal).filter((value) => Number.isFinite(value));
+            return totals.length ? totals.reduce((sum, value) => sum + value, 0) : null;
+        }
+
+        function renderOptions(options, selectedValue, formatter = (item) => item) {
+            const normalizedOptions = options.length ? options : [selectedValue || "Will confirm"];
+            return normalizedOptions.map((option) => {
+                const value = typeof option === "string" ? option : option.label;
+                const label = typeof option === "string" ? option : formatter(option);
+                return `<option value="${escapeHtml(value)}" ${value === selectedValue ? "selected" : ""}>${escapeHtml(label)}</option>`;
+            }).join("");
+        }
+
+        function renderCartItem(item) {
+            const product = getProductBySlug(item.productSlug);
+            const flavors = product?.flavors?.length ? product.flavors : [item.flavor || "Will confirm"];
+            const sizes = product?.sizes?.length
+                ? product.sizes
+                : [{ label: item.sizeLabel || "Will confirm", servings: item.servings, price: item.sizePrice }];
+            const addOns = product?.addOns?.length ? [...product.addOns, "None"] : [item.addOn || "None"];
+            const lineTotal = calculateCartItemLineTotal(item);
+            const imageMarkup = product
+                ? renderCakePhoto(product)
+                : item.imageUrl
+                    ? `<img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.productName)}" loading="lazy">`
+                    : `<div class="cake-photo-placeholder"><i class="fa-solid fa-camera"></i><span>Photo coming soon</span></div>`;
+
+            return `
+                <article class="cart-item-card" data-cart-item-id="${escapeHtml(item.id)}">
+                    <div class="cart-item-image">
+                        ${imageMarkup}
+                    </div>
+                    <div class="cart-item-content">
+                        <div class="cart-item-topline">
+                            <div>
+                                <span class="cart-panel-kicker">${escapeHtml(product?.category || item.category)}</span>
+                                <h3>${escapeHtml(product?.name || item.productName)}</h3>
+                            </div>
+                            <span class="cart-line-total">${escapeHtml(lineTotal ? formatCurrency(lineTotal) : "Price on request")}</span>
+                        </div>
+                        <div class="cart-item-fields">
+                            <label>Flavor
+                                <select data-cart-field="flavor">${renderOptions(flavors, item.flavor)}</select>
+                            </label>
+                            <label>Size
+                                <select data-cart-field="sizeLabel">${renderOptions(sizes, item.sizeLabel, formatSizeText)}</select>
+                            </label>
+                            <label>Add-on
+                                <select data-cart-field="addOn">${renderOptions(Array.from(new Set(addOns)), item.addOn || "None")}</select>
+                            </label>
+                            <label>Quantity
+                                <span class="quantity-control">
+                                    <button type="button" data-quantity-step="-1" aria-label="Decrease quantity">-</button>
+                                    <input data-cart-field="quantity" type="number" min="1" max="${MAX_CART_QUANTITY}" value="${escapeHtml(item.quantity)}">
+                                    <button type="button" data-quantity-step="1" aria-label="Increase quantity">+</button>
+                                </span>
+                            </label>
+                        </div>
+                        <div class="cart-note-field">
+                            <label>Item notes
+                                <textarea data-cart-field="notes" placeholder="Optional styling, message, or delivery note for this cake.">${escapeHtml(item.notes)}</textarea>
+                            </label>
+                        </div>
+                        <button class="btn btn-secondary btn-small" type="button" data-remove-cart-item><i class="fa-regular fa-trash-can"></i> Remove item</button>
+                    </div>
+                </article>
+            `;
+        }
+
+        function createCartItemsPayload() {
+            return state.cartItems.slice(0, MAX_CART_ITEMS).map((item) => {
+                const product = getProductBySlug(item.productSlug);
+                const lineTotal = calculateCartItemLineTotal(item);
+                return {
+                    productId: item.productSlug,
+                    productName: product?.name || item.productName,
+                    flavor: item.flavor,
+                    sizeLabel: item.sizeLabel,
+                    servings: item.servings,
+                    addOn: item.addOn === "None" ? "" : item.addOn,
+                    quantity: clampNumber(item.quantity, 1, MAX_CART_QUANTITY),
+                    itemNotes: item.notes,
+                    startingPrice: Number(item.sizePrice || item.startingPrice) || null,
+                    estimatedLineTotal: lineTotal
+                };
+            });
+        }
+
+        function buildCartInquiryPayload() {
+            const cartItems = createCartItemsPayload();
+            const primaryItem = cartItems[0] || {};
+
+            return {
+                customerName: cartCustomerName?.value.trim() || "",
+                customerPhone: cartCustomerPhone?.value.trim() || "",
+                customerEmail: cartCustomerEmail?.value.trim() || "",
+                website: cartWebsite?.value.trim() || "",
+                productId: primaryItem.productId || "",
+                flavor: primaryItem.flavor || "",
+                sizeLabel: primaryItem.sizeLabel || "",
+                servings: primaryItem.servings || "",
+                eventDate: cartEventDate?.value || "",
+                fulfillmentType: cartFulfillment?.value || "pickup",
+                addOn: primaryItem.addOn || "",
+                notes: cartNotes?.value.trim() || "",
+                cartItems
+            };
+        }
+
+        function createCartWhatsAppMessage(payload = buildCartInquiryPayload()) {
+            const lines = [
+                `Hi ${state.settings.brandName}, I would like to request a quote for my inquiry bag.`,
+                "",
+                `Name: ${payload.customerName || "Not shared yet"}`,
+                `Phone: ${payload.customerPhone || "Not shared yet"}`,
+                payload.customerEmail ? `Email: ${payload.customerEmail}` : "",
+                `Event date: ${payload.eventDate || "Not selected yet"}`,
+                `Fulfillment: ${formatFulfillmentLabel(payload.fulfillmentType)}`,
+                "",
+                "Bag items:",
+                ...payload.cartItems.map((item, index) => {
+                    const parts = [
+                        `${index + 1}. ${item.productName || item.productId || "Cake"}`,
+                        item.quantity ? `Qty ${item.quantity}` : "",
+                        item.flavor ? `Flavor: ${item.flavor}` : "",
+                        item.sizeLabel ? `Size: ${item.sizeLabel}` : "",
+                        item.addOn ? `Add-on: ${item.addOn}` : "",
+                        item.itemNotes ? `Note: ${item.itemNotes}` : ""
+                    ].filter(Boolean);
+                    return parts.join(" | ");
+                }),
+                "",
+                `Overall notes: ${payload.notes || "No extra notes yet"}`,
+                `Estimated starting total: ${calculateCartEstimate() ? formatCurrency(calculateCartEstimate()) : "Price on request"}`
+            ];
+
+            return lines.filter(Boolean).join("\n");
+        }
+
+        function updateCartWhatsAppLink() {
+            if (!cartWhatsAppLink) {
+                return;
+            }
+
+            cartWhatsAppLink.href = createWhatsAppLink(
+                state.settings.contactPhone,
+                createCartWhatsAppMessage(buildCartInquiryPayload())
+            );
+        }
+
+        function setCartFormStatus(message, type = "") {
+            if (!cartFormStatus) {
+                return;
+            }
+
+            cartFormStatus.textContent = message;
+            cartFormStatus.classList.toggle("error", type === "error");
+            cartFormStatus.classList.toggle("success", type === "success");
+        }
+
+        function setCartSubmitBusy(isBusy) {
+            if (!submitCartInquiryButton) {
+                return;
+            }
+
+            submitCartInquiryButton.disabled = isBusy || state.cartItems.length === 0;
+            submitCartInquiryButton.innerHTML = isBusy
+                ? `<i class="fa-solid fa-spinner fa-spin"></i> Sending inquiry...`
+                : `<i class="fa-solid fa-paper-plane"></i> Send cart inquiry`;
+        }
+
+        function renderCartPage() {
+            if (!cartItemsList) {
+                return;
+            }
+
+            const hasItems = state.cartItems.length > 0;
+
+            cartItemsList.innerHTML = hasItems ? state.cartItems.map(renderCartItem).join("") : "";
+            cartEmptyState.hidden = hasItems;
+
+            if (!hasItems && cartEmptyState) {
+                const emptyHeading = cartEmptyState.querySelector("h2");
+                const emptyCopy = cartEmptyState.querySelector("p");
+
+                if (emptyHeading) {
+                    emptyHeading.textContent = state.cartSubmitted
+                        ? "Your cart inquiry was sent."
+                        : "Your inquiry bag is empty.";
+                }
+
+                if (emptyCopy) {
+                    emptyCopy.textContent = state.cartSubmitted
+                        ? "Your request was saved for Pink Delight Cakes to review and quote."
+                        : "Add cakes from the menu, then come back here to adjust flavor, size, quantity, and notes before sending one request.";
+                }
+            }
+
+            cartSummaryPanel.hidden = !hasItems;
+            clearCartButton.disabled = !hasItems;
+            submitCartInquiryButton.disabled = !hasItems;
+            cartEstimatedTotal.textContent = calculateCartEstimate()
+                ? formatCurrency(calculateCartEstimate())
+                : "Price on request";
+            updateCartWhatsAppLink();
+            observeRevealItems(cartItemsList);
+        }
+
+        function addProductToCart(productSlug) {
+            const product = getProductBySlug(productSlug);
+
+            if (!product) {
+                return false;
+            }
+
+            state.cartSubmitted = false;
+            const nextItem = getDefaultCartItem(product);
+            const matchingItem = state.cartItems.find((item) => (
+                item.productSlug === nextItem.productSlug
+                && item.flavor === nextItem.flavor
+                && item.sizeLabel === nextItem.sizeLabel
+                && item.addOn === nextItem.addOn
+                && !item.notes
+            ));
+
+            if (matchingItem) {
+                matchingItem.quantity = clampNumber(matchingItem.quantity + 1, 1, MAX_CART_QUANTITY);
+            } else if (state.cartItems.length < MAX_CART_ITEMS) {
+                state.cartItems.push(nextItem);
+            } else {
+                return false;
+            }
+
+            saveCartAndRender();
+            return true;
+        }
+
+        function updateCartItem(itemId, updates) {
+            const item = state.cartItems.find((cartItem) => cartItem.id === itemId);
+
+            if (!item) {
+                return;
+            }
+
+            Object.assign(item, updates);
+            saveCartAndRender();
+        }
+
+        function removeCartItem(itemId) {
+            state.cartItems = state.cartItems.filter((item) => item.id !== itemId);
+            saveCartAndRender();
+        }
+
+        function clearCart() {
+            state.cartSubmitted = false;
+            state.cartItems = [];
+            saveCartAndRender();
+        }
+
+        function getCartItemElement(target) {
+            return target.closest("[data-cart-item-id]");
+        }
+
+        function updateCartItemField(itemId, fieldName, value) {
+            const item = state.cartItems.find((cartItem) => cartItem.id === itemId);
+
+            if (!item) {
+                return;
+            }
+
+            if (fieldName === "quantity") {
+                updateCartItem(itemId, { quantity: clampNumber(value, 1, MAX_CART_QUANTITY) });
+                return;
+            }
+
+            if (fieldName === "sizeLabel") {
+                const product = getProductBySlug(item.productSlug);
+                const size = product?.sizes.find((sizeOption) => sizeOption.label === value);
+                updateCartItem(itemId, {
+                    sizeLabel: value,
+                    servings: size?.servings || item.servings,
+                    sizePrice: Number(size?.price) || item.sizePrice || item.startingPrice
+                });
+                return;
+            }
+
+            if (fieldName === "addOn") {
+                updateCartItem(itemId, { addOn: value === "None" ? "" : value });
+                return;
+            }
+
+            updateCartItem(itemId, {
+                [fieldName]: String(value || "").slice(0, fieldName === "notes" ? 240 : 120)
+            });
         }
 
         function renderSignaturePlaceholder(index) {
@@ -682,7 +1109,10 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
                             </div>
                         </div>
                         <span class="availability-pill"><i class="fa-solid fa-circle"></i> ${escapeHtml(formatAvailability(product.availabilityStatus))}</span>
-                        <a class="btn btn-secondary" href="${escapeHtml(createSitePageLink(`inquiry-model/?product=${encodeURIComponent(product.slug)}#contact`))}" data-request-product="${escapeHtml(product.slug)}">Request this product</a>
+                        <div class="menu-actions">
+                            <button class="btn btn-bag" type="button" data-add-to-cart="${escapeHtml(product.slug)}"><i class="fa-solid fa-bag-shopping"></i> Add to bag</button>
+                            <a class="btn btn-secondary" href="${escapeHtml(createSitePageLink(`inquiry-model/?product=${encodeURIComponent(product.slug)}#contact`))}" data-request-product="${escapeHtml(product.slug)}">Request this product</a>
+                        </div>
                     </div>
                 </article>
             `).join("");
@@ -1033,6 +1463,10 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
                 return `Reviews | ${brandName}`;
             }
 
+            if (pathname.startsWith("/cart")) {
+                return `Inquiry Bag | ${brandName}`;
+            }
+
             if (city && !/^your city$/i.test(city)) {
                 return `${brandName} | Custom Cakes in ${city}`;
             }
@@ -1064,6 +1498,10 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
 
             if (pathname.startsWith("/reviews")) {
                 return `Read published customer reviews for ${brandName} and custom celebration cake orders.`;
+            }
+
+            if (pathname.startsWith("/cart")) {
+                return `Review cakes in your ${brandName} inquiry bag and send one combined quote request with no online payment.`;
             }
 
             if (city && !/^your city$/i.test(city)) {
@@ -1313,6 +1751,7 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             applyHomepageMedia();
             renderFeaturedSpotlight();
             applySeoMetadata();
+            updateCartWhatsAppLink();
         }
 
         function setFormStatus(message, type = "info") {
@@ -1374,6 +1813,7 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             }
 
             renderProducts();
+            renderCartPage();
             populateProductOptions();
             applyHomepageMedia();
 
@@ -1469,6 +1909,98 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             }
         }
 
+        async function handleCartInquirySubmit(event) {
+            event.preventDefault();
+
+            const payload = buildCartInquiryPayload();
+
+            if (!payload.cartItems.length) {
+                setCartFormStatus("Add at least one cake to your bag before sending a cart inquiry.", "error");
+                return;
+            }
+
+            if (!payload.customerName || !payload.customerPhone || !payload.productId) {
+                setCartFormStatus("Please add your name, phone number, and at least one cake before sending the inquiry.", "error");
+                return;
+            }
+
+            if (!isValidInquiryPhone(payload.customerPhone)) {
+                setCartFormStatus("Please enter a valid phone or WhatsApp number.", "error");
+                return;
+            }
+
+            if (!isValidInquiryEmail(payload.customerEmail)) {
+                setCartFormStatus("Please enter a valid email address or leave it blank.", "error");
+                return;
+            }
+
+            if (payload.website) {
+                setCartFormStatus("Inquiry could not be submitted. Please refresh and try again.", "error");
+                return;
+            }
+
+            setCartSubmitBusy(true);
+            setCartFormStatus("Saving your cart inquiry to the bakery dashboard...");
+
+            try {
+                const response = await apiRequest("/api/order-requests", {
+                    method: "POST",
+                    body: payload
+                });
+
+                const referenceId = response?.orderRequest?.id;
+                state.cartItems = [];
+                state.cartSubmitted = true;
+                writeStoredCartItems();
+                updateCartCount();
+
+                if (cartItemsList) {
+                    cartItemsList.innerHTML = "";
+                }
+
+                if (cartEmptyState) {
+                    cartEmptyState.hidden = false;
+                    const emptyHeading = cartEmptyState.querySelector("h2");
+                    const emptyCopy = cartEmptyState.querySelector("p");
+
+                    if (emptyHeading) {
+                        emptyHeading.textContent = "Your cart inquiry was sent.";
+                    }
+
+                    if (emptyCopy) {
+                        emptyCopy.textContent = referenceId
+                            ? `Reference #${referenceId} was saved for Pink Delight Cakes to review and quote.`
+                            : "Your request was saved for Pink Delight Cakes to review and quote.";
+                    }
+                }
+
+                if (cartEstimatedTotal) {
+                    cartEstimatedTotal.textContent = "Inquiry sent";
+                }
+
+                if (clearCartButton) {
+                    clearCartButton.disabled = true;
+                }
+
+                setCartFormStatus(
+                    referenceId
+                        ? `Cart inquiry sent successfully. Reference #${referenceId} was received, and we will follow up with final pricing and next steps.`
+                        : "Cart inquiry sent successfully. We will review your bag and follow up with final pricing and next steps.",
+                    "success"
+                );
+
+                if (cartReferenceCard && referenceId) {
+                    cartReferenceCard.hidden = false;
+                    cartTrackReferenceLink.href = createTrackLink(referenceId);
+                }
+            } catch (error) {
+                setCartFormStatus(`${error.message} You can still continue on WhatsApp while we sort it out.`, "error");
+                updateCartWhatsAppLink();
+            } finally {
+                setCartSubmitBusy(false);
+            }
+        }
+
         function applyRequestedProductFromUrl() {
             if (!cakeProduct) {
                 return;
@@ -1511,6 +2043,20 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
 
         if (menuGrid) {
             menuGrid.addEventListener("click", (event) => {
+                const addButton = event.target.closest("[data-add-to-cart]");
+
+                if (addButton) {
+                    const originalLabel = addButton.innerHTML;
+                    const added = addProductToCart(addButton.dataset.addToCart);
+                    addButton.innerHTML = added
+                        ? `<i class="fa-solid fa-check"></i> Added to bag`
+                        : `<i class="fa-solid fa-triangle-exclamation"></i> Bag is full`;
+                    window.setTimeout(() => {
+                        addButton.innerHTML = originalLabel;
+                    }, 1400);
+                    return;
+                }
+
                 const link = event.target.closest("[data-request-product]");
 
                 if (!link || !cakeProduct) {
@@ -1521,6 +2067,55 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
                 syncProductFields();
             });
         }
+
+        if (cartItemsList) {
+            cartItemsList.addEventListener("click", (event) => {
+                const itemElement = getCartItemElement(event.target);
+
+                if (!itemElement) {
+                    return;
+                }
+
+                if (event.target.closest("[data-remove-cart-item]")) {
+                    removeCartItem(itemElement.dataset.cartItemId);
+                    return;
+                }
+
+                const quantityButton = event.target.closest("[data-quantity-step]");
+
+                if (quantityButton) {
+                    const item = state.cartItems.find((cartItem) => cartItem.id === itemElement.dataset.cartItemId);
+                    const step = Number(quantityButton.dataset.quantityStep) || 0;
+                    updateCartItemField(itemElement.dataset.cartItemId, "quantity", (Number(item?.quantity) || 1) + step);
+                }
+            });
+
+            cartItemsList.addEventListener("change", (event) => {
+                const field = event.target.closest("[data-cart-field]");
+                const itemElement = getCartItemElement(event.target);
+
+                if (!field || !itemElement) {
+                    return;
+                }
+
+                updateCartItemField(itemElement.dataset.cartItemId, field.dataset.cartField, field.value);
+            });
+        }
+
+        if (clearCartButton) {
+            clearCartButton.addEventListener("click", clearCart);
+        }
+
+        if (cartInquiryForm) {
+            cartInquiryForm.addEventListener("submit", handleCartInquirySubmit);
+        }
+
+        [cartCustomerName, cartCustomerPhone, cartCustomerEmail, cartEventDate, cartFulfillment, cartNotes]
+            .filter(Boolean)
+            .forEach((element) => {
+                element.addEventListener("change", updateCartWhatsAppLink);
+                element.addEventListener("input", updateCartWhatsAppLink);
+            });
 
         if (menuCategoryFilters) {
             menuCategoryFilters.addEventListener("click", (event) => {
@@ -1570,9 +2165,12 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         }
 
         async function init() {
+            state.cartItems = readStoredCartItems();
+            updateCartCount();
             applySettings();
             applyHomepageMedia();
             renderCatalogState("Loading the live cake catalogue...");
+            renderCartPage();
             renderTestimonials();
             updateRequestPreview();
             observeRevealItems(document);

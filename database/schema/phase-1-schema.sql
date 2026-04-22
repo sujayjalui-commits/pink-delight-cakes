@@ -83,6 +83,7 @@ CREATE TABLE IF NOT EXISTS order_requests (
   fulfillment_type TEXT NOT NULL,
   add_on TEXT,
   notes TEXT,
+  cart_snapshot TEXT,
   status TEXT NOT NULL DEFAULT 'new',
   source_channel TEXT NOT NULL DEFAULT 'website',
   quoted_amount INTEGER,

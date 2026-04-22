@@ -175,6 +175,69 @@ function parseProductSnapshot(value) {
   }
 }
 
+function parseCartSnapshot(value) {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const snapshot = JSON.parse(value);
+    return snapshot && Array.isArray(snapshot.items) ? snapshot : null;
+  } catch {
+    return null;
+  }
+}
+
+function sanitizeCartText(value, maxLength = 120) {
+  return String(value || "").trim().slice(0, maxLength);
+}
+
+function sanitizeCartAmount(value) {
+  const amount = Number(value);
+  return Number.isFinite(amount) && amount >= 0 ? Math.round(amount) : null;
+}
+
+function sanitizeCartItems(cartItems = []) {
+  if (!Array.isArray(cartItems)) {
+    return [];
+  }
+
+  return cartItems.slice(0, 12).map((item) => {
+    const quantity = Math.min(20, Math.max(1, Math.trunc(Number(item?.quantity) || 1)));
+
+    return {
+      productId: sanitizeCartText(item?.productId),
+      productName: sanitizeCartText(item?.productName),
+      flavor: sanitizeCartText(item?.flavor, 80),
+      sizeLabel: sanitizeCartText(item?.sizeLabel, 80),
+      servings: sanitizeCartText(item?.servings, 40),
+      addOn: sanitizeCartText(item?.addOn, 80),
+      quantity,
+      itemNotes: sanitizeCartText(item?.itemNotes, 240),
+      startingPrice: sanitizeCartAmount(item?.startingPrice),
+      estimatedLineTotal: sanitizeCartAmount(item?.estimatedLineTotal)
+    };
+  }).filter((item) => item.productId);
+}
+
+function createCartSnapshot(cartItems) {
+  if (!cartItems.length) {
+    return null;
+  }
+
+  const estimatedStartingTotal = cartItems.reduce((total, item) => {
+    return total + (Number(item.estimatedLineTotal) || 0);
+  }, 0);
+
+  return JSON.stringify({
+    version: 1,
+    kind: "inquiry_cart",
+    itemCount: cartItems.reduce((total, item) => total + item.quantity, 0),
+    estimatedStartingTotal: estimatedStartingTotal || null,
+    items: cartItems
+  });
+}
+
 function getDaysUntilEvent(value) {
   if (!value) {
     return null;
@@ -365,6 +428,7 @@ function buildTimeline(stage, tone) {
 
 function mapPublicLookupOrder(order) {
   const snapshot = parseProductSnapshot(order.product_snapshot);
+  const cartSnapshot = parseCartSnapshot(order.cart_snapshot);
   const statusMeta = PUBLIC_STATUS_MESSAGES[order.status] || {
     tone: "active",
     stage: "reviewing",
@@ -384,7 +448,11 @@ function mapPublicLookupOrder(order) {
 
   return {
     id: order.id,
-    productName: snapshot?.name || "Custom cake request",
+    productName: cartSnapshot?.items?.length
+      ? `Cart inquiry (${cartSnapshot.itemCount || cartSnapshot.items.length} item${(cartSnapshot.itemCount || cartSnapshot.items.length) === 1 ? "" : "s"})`
+      : snapshot?.name || "Custom cake request",
+    cartItems: cartSnapshot?.items || [],
+    cartItemCount: cartSnapshot?.itemCount || cartSnapshot?.items?.length || 0,
     eventDate: order.event_date || null,
     flavor: order.flavor || "",
     sizeLabel: order.size_label || "",
@@ -451,11 +519,13 @@ export async function createPublicOrderRequest(env, input) {
     };
   }
 
+  const cartItems = sanitizeCartItems(input.cartItems);
+  const primaryProductId = input.productId || cartItems[0]?.productId || "";
   const draft = {
     customerName: input.customerName,
     customerPhone: input.customerPhone,
     customerEmail: input.customerEmail || "",
-    productId: input.productId,
+    productId: primaryProductId,
     fulfillmentType: input.fulfillmentType,
     status: "new"
   };
@@ -473,8 +543,8 @@ export async function createPublicOrderRequest(env, input) {
     };
   }
 
-  const databaseProduct = await getProductBySlug(env, input.productId);
-  const seedProduct = databaseProduct ? null : findSeedProduct(input.productId);
+  const databaseProduct = await getProductBySlug(env, primaryProductId);
+  const seedProduct = databaseProduct ? null : findSeedProduct(primaryProductId);
   const selectedProduct = databaseProduct || seedProduct;
 
   if (!selectedProduct) {
@@ -494,6 +564,7 @@ export async function createPublicOrderRequest(env, input) {
     eventDate: input.eventDate || "",
     addOn: input.addOn || "",
     notes: input.notes || "",
+    cartSnapshot: createCartSnapshot(cartItems),
     sourceChannel: "website"
   };
 

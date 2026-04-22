@@ -513,9 +513,10 @@ export async function createOrderRequest(env, payload) {
       fulfillment_type,
       add_on,
       notes,
+      cart_snapshot,
       status,
       source_channel
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     RETURNING *
   `;
 
@@ -533,6 +534,7 @@ export async function createOrderRequest(env, payload) {
       payload.fulfillmentType,
       payload.addOn || null,
       payload.notes || null,
+      payload.cartSnapshot || null,
       payload.status,
       payload.sourceChannel
     )

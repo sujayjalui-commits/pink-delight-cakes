@@ -1,14 +1,34 @@
 import { validateAdminOrderUpdate } from "../../../../packages/shared/schemas/admin-order-schema.js";
 import { getAdminOrderById, getAdminOrders, updateAdminOrderFields } from "../db/d1-client.js";
 
+function parseJsonField(value, fallback = null) {
+  if (!value) {
+    return fallback;
+  }
+
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
+}
+
 function mapOrder(order) {
+  const cartSnapshot = parseJsonField(order.cart_snapshot, null);
+  const cartItems = Array.isArray(cartSnapshot?.items) ? cartSnapshot.items : [];
+
   return {
     id: order.id,
     customerName: order.customer_name,
     customerPhone: order.customer_phone,
     customerEmail: order.customer_email,
     productId: order.product_id,
-    productSnapshot: order.product_snapshot ? JSON.parse(order.product_snapshot) : null,
+    productSnapshot: parseJsonField(order.product_snapshot, null),
+    cartSnapshot: cartSnapshot ? {
+      ...cartSnapshot,
+      items: cartItems
+    } : null,
+    cartItemCount: cartSnapshot?.itemCount || cartItems.reduce((total, item) => total + (Number(item.quantity) || 0), 0),
     flavor: order.flavor,
     sizeLabel: order.size_label,
     servings: order.servings,

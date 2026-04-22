@@ -104,6 +104,17 @@ export class FakeD1Database {
       return this.orderRequests.find((order) => Number(order.id) === Number(boundValues[0])) || null;
     }
 
+    if (query.includes("select * from order_requests where status = ?")) {
+      return this.orderRequests.filter((order) => order.status === boundValues[0]);
+    }
+
+    if (query.includes("select * from order_requests order by created_at desc, id desc")) {
+      return [...this.orderRequests].sort((left, right) => {
+        const dateSort = String(right.created_at || "").localeCompare(String(left.created_at || ""));
+        return dateSort || Number(right.id || 0) - Number(left.id || 0);
+      });
+    }
+
     if (query.includes("insert into order_requests")) {
       const [
         customerName,
@@ -118,6 +129,7 @@ export class FakeD1Database {
         fulfillmentType,
         addOn,
         notes,
+        cartSnapshot,
         status,
         sourceChannel
       ] = boundValues;
@@ -136,6 +148,7 @@ export class FakeD1Database {
         fulfillment_type: fulfillmentType,
         add_on: addOn,
         notes,
+        cart_snapshot: cartSnapshot,
         status,
         source_channel: sourceChannel,
         quoted_amount: null,
