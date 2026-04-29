@@ -1665,7 +1665,7 @@
             }
 
             if (pathname.startsWith("/inquiry-model")) {
-                return `Inquiry Model Beta | ${brandName}`;
+                return `Inquiry | ${brandName}`;
             }
 
             if (pathname.startsWith("/how-it-works")) {
@@ -1698,11 +1698,11 @@
             const pathname = window.location.pathname || "/";
 
             if (pathname.startsWith("/menu")) {
-                return `Browse featured and signature cakes from ${brandName}, then send an inquiry for flavor, size, and custom styling.`;
+                return `Browse custom cakes from ${brandName}, then send an inquiry for flavor, size, and custom styling.`;
             }
 
             if (pathname.startsWith("/inquiry-model")) {
-                return `Send a cake inquiry through the ${brandName} beta inquiry model, then receive manual pricing, availability, and pickup or delivery guidance.`;
+                return `Send a cake inquiry through ${brandName}, then receive manual pricing, availability, and pickup or delivery guidance.`;
             }
 
             if (pathname.startsWith("/how-it-works")) {
@@ -1710,7 +1710,7 @@
             }
 
             if (pathname.startsWith("/about")) {
-                return `Meet ${brandName}, a founder-led home bakery by ${DEFAULT_OWNER_NAME} for custom celebration cakes.`;
+                return `Meet ${brandName}, a home bakery by ${DEFAULT_OWNER_NAME} for custom celebration cakes.`;
             }
 
             if (pathname.startsWith("/reviews")) {

@@ -384,7 +384,7 @@ function getHeroCityLabel(city) {
     const normalizedCity = String(city || "").trim();
 
     if (!normalizedCity || /^your city$/i.test(normalizedCity)) {
-        return "Founder-led home bakery";
+        return "Home bakery";
     }
 
     return `Home bakery in ${normalizedCity}`;
