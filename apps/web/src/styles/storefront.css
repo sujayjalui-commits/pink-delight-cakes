@@ -225,7 +225,7 @@
             color: var(--accent-dark);
             font-size: 0.72rem;
             font-weight: 800;
-            letter-spacing: 0.34em;
+            letter-spacing: 0.42em;
             text-transform: uppercase;
         }
 
@@ -639,7 +639,7 @@
         .home-page .hero {
             position: relative;
             padding: 0;
-            min-height: 628px;
+            min-height: 684px;
             overflow: hidden;
             background:
                 linear-gradient(90deg, rgba(245, 235, 217, 0.95) 0%, rgba(245, 235, 217, 0.58) 31%, rgba(251, 245, 233, 0.12) 62%),
@@ -707,7 +707,7 @@
         .home-page .hero-layout {
             position: relative;
             width: 100%;
-            min-height: 628px;
+            min-height: 684px;
             display: block;
         }
 
@@ -776,15 +776,17 @@
 
         .home-page .hero-actions .btn-primary {
             border: 2px solid rgba(255, 255, 255, 0.82);
-            background: rgba(255, 255, 255, 0.04);
+            background: rgba(255, 249, 242, 0.9);
+            color: #7c5648;
             box-shadow: 0 18px 28px rgba(76, 45, 38, 0.1);
         }
 
         .home-page .hero-actions .btn-primary:hover,
         .home-page .hero-actions .btn-primary:focus-visible {
-            border-color: #fff;
-            background: rgba(255, 255, 255, 0.13);
-            box-shadow: 0 22px 38px rgba(76, 45, 38, 0.18), 0 0 26px rgba(255, 255, 255, 0.2);
+            border-color: rgba(189, 138, 127, 0.88);
+            background: #fffdf8;
+            color: #8d4748;
+            box-shadow: 0 22px 38px rgba(76, 45, 38, 0.16), 0 0 18px rgba(255, 255, 255, 0.12);
         }
 
         .home-page .hero-actions .btn-secondary {
@@ -1009,6 +1011,49 @@
 
             to {
                 --dot-progress: 360deg;
+            }
+        }
+
+        @media (min-width: 1400px) {
+            .home-page .home-brand-panel__inner {
+                padding-inline: clamp(4rem, 8vw, 8.5rem);
+            }
+
+            .home-page .header-inner {
+                padding-inline: clamp(4rem, 7vw, 7.5rem);
+            }
+
+            .home-page .site-nav {
+                grid-template-columns: 170px minmax(0, 1fr) max-content;
+            }
+
+            .home-page .site-nav__primary {
+                gap: clamp(1.8rem, 2.6vw, 3rem);
+            }
+
+            .home-page .hero {
+                min-height: 740px;
+            }
+
+            .home-page .hero-layout {
+                min-height: 740px;
+            }
+
+            .home-page .hero-copy {
+                width: min(410px, 36%);
+                padding: 168px 0 0 clamp(6rem, 9vw, 10rem);
+            }
+
+            .home-page .hero-media {
+                width: 74%;
+            }
+
+            .home-page .hero-arrow {
+                right: clamp(2.2rem, 3vw, 3.5rem);
+            }
+
+            .home-page .hero-dots {
+                bottom: 34px;
             }
         }
 
@@ -2923,7 +2968,7 @@
             }
 
             .home-page .hero {
-                min-height: 560px;
+                min-height: 604px;
             }
 
             .home-page .hero-copy {
@@ -2948,6 +2993,7 @@
             .home-page .home-brand-panel__kicker,
             .editorial-page .home-brand-panel__kicker {
                 font-size: 0.68rem;
+                letter-spacing: 0.46em;
             }
 
             .home-page .home-brand-panel h1,
@@ -2968,7 +3014,7 @@
             }
 
             .home-page .hero {
-                min-height: 520px;
+                min-height: 556px;
             }
 
             .home-page .hero-copy {
