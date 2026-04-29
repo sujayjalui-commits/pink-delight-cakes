@@ -1,21 +1,21 @@
 :root {
-    --bg: #fbf6ef;
-    --surface: rgba(255, 252, 248, 0.96);
-    --surface-strong: #fff3ea;
-    --surface-soft: rgba(255, 255, 255, 0.78);
-    --text: #3f302b;
-    --muted: #806b62;
-    --accent: #cf6f7b;
-    --accent-dark: #a94f5b;
-    --accent-soft: #f7dddd;
-    --secondary: #6c5145;
-    --success: #4b8b68;
-    --warning: #c98343;
-    --info: #6f73c9;
-    --danger: #be5662;
-    --border: rgba(84, 62, 51, 0.11);
-    --shadow: 0 18px 44px rgba(78, 57, 47, 0.1);
-    --shadow-soft: 0 10px 24px rgba(78, 57, 47, 0.07);
+    --bg: #fbf4e8;
+    --surface: rgba(255, 250, 241, 0.96);
+    --surface-strong: #f7efe1;
+    --surface-soft: rgba(255, 253, 251, 0.82);
+    --text: #382f2a;
+    --muted: #8d786f;
+    --accent: #bd8a7f;
+    --accent-dark: #a76f64;
+    --accent-soft: #f4ebda;
+    --secondary: #6a5449;
+    --success: #58795e;
+    --warning: #b98556;
+    --info: #847b91;
+    --danger: #b56b63;
+    --border: rgba(120, 89, 73, 0.12);
+    --shadow: 0 20px 44px rgba(87, 62, 48, 0.08);
+    --shadow-soft: 0 14px 30px rgba(87, 62, 48, 0.07);
     --radius-xl: 26px;
     --radius-lg: 20px;
     --radius-md: 16px;
@@ -36,11 +36,11 @@ body {
 }
 
 body {
-    font-family: "Manrope", sans-serif;
+    font-family: "Inter", sans-serif;
     background:
-        radial-gradient(circle at left top, rgba(246, 217, 213, 0.84), transparent 28%),
-        radial-gradient(circle at right 12%, rgba(255, 239, 229, 0.76), transparent 20%),
-        linear-gradient(180deg, #fffaf6 0%, #fff7f0 48%, #fffdfb 100%);
+        radial-gradient(circle at top left, rgba(229, 214, 193, 0.56), transparent 28%),
+        radial-gradient(circle at right 18%, rgba(255, 243, 228, 0.74), transparent 20%),
+        linear-gradient(180deg, #faf4ea 0%, #f5ecdf 48%, #fdfaf4 100%);
     color: var(--text);
 }
 
@@ -208,9 +208,12 @@ button {
 }
 
 .auth-brand h1 {
-    font-size: clamp(2.4rem, 5vw, 3.4rem);
-    line-height: 0.95;
-    margin: 0.85rem 0 0.5rem;
+    font-family: "Bodoni Moda", serif;
+    font-size: clamp(2rem, 4.2vw, 2.8rem);
+    line-height: 1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin: 0.7rem 0 0.45rem;
 }
 
 .auth-copy,
@@ -1393,8 +1396,8 @@ select:focus {
 /* Refined owner dashboard: calmer hierarchy, tighter spacing, clearer work zones. */
 body {
     background:
-        linear-gradient(135deg, rgba(248, 225, 219, 0.48) 0%, rgba(255, 250, 244, 0) 34%),
-        linear-gradient(180deg, #fffaf5 0%, var(--bg) 48%, #fffdf9 100%);
+        linear-gradient(135deg, rgba(236, 224, 202, 0.44) 0%, rgba(255, 250, 244, 0) 34%),
+        linear-gradient(180deg, #faf6ed 0%, #f2eadf 48%, #fcf9f4 100%);
     font-size: 15px;
     line-height: 1.55;
 }
@@ -1421,10 +1424,11 @@ body {
 }
 
 .topbar-title h1 {
-    font-family: "Manrope", sans-serif;
-    font-size: clamp(1.55rem, 2vw, 2.05rem);
-    font-weight: 800;
-    letter-spacing: -0.045em;
+    font-family: "Bodoni Moda", serif;
+    font-size: clamp(1.5rem, 1.9vw, 1.95rem);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
     margin: 0;
 }
 
@@ -1450,13 +1454,14 @@ body {
 }
 
 .sidebar-brand {
-    background: rgba(255, 255, 255, 0.72);
-    border: 1px solid rgba(84, 62, 51, 0.07);
+    background: rgba(255, 250, 244, 0.78);
+    border: 1px solid rgba(120, 89, 73, 0.08);
     margin-bottom: 0.75rem;
 }
 
 .brand-mark {
-    background: linear-gradient(145deg, #f8d8d3, #f0b7bd);
+    background: linear-gradient(145deg, #f3e7d6, #e5cfb8);
+    color: var(--accent-dark);
     box-shadow: none;
 }
 
@@ -1473,9 +1478,9 @@ body {
 }
 
 .nav-link.active {
-    background: #fff;
+    background: #fffaf3;
     color: var(--accent-dark);
-    box-shadow: inset 0 0 0 1px rgba(207, 111, 123, 0.18), 0 8px 20px rgba(78, 57, 47, 0.06);
+    box-shadow: inset 0 0 0 1px rgba(167, 111, 100, 0.18), 0 8px 20px rgba(78, 57, 47, 0.05);
 }
 
 .main-panel,
@@ -1489,13 +1494,16 @@ body {
 
 .panel-header h2,
 .card-head h3 {
-    font-family: "Manrope", sans-serif;
-    letter-spacing: -0.045em;
+    letter-spacing: 0;
 }
 
 .panel-header h2 {
-    font-size: clamp(1.9rem, 3vw, 2.55rem);
-    font-weight: 800;
+    font-family: "Bodoni Moda", serif;
+    font-size: clamp(1.68rem, 2.5vw, 2.18rem);
+    font-weight: 600;
+    line-height: 1.06;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
     margin-top: 0.18rem;
 }
 
@@ -1506,9 +1514,17 @@ body {
 }
 
 .card-head h3 {
-    font-size: 1.32rem;
-    font-weight: 800;
-    line-height: 1.15;
+    font-family: "Cormorant Garamond", serif;
+    font-size: 1.24rem;
+    font-weight: 700;
+    line-height: 1.12;
+}
+
+.group-head h4 {
+    font-family: "Cormorant Garamond", serif;
+    font-size: 1.08rem;
+    font-weight: 700;
+    line-height: 1.12;
 }
 
 .content-card,
@@ -1538,12 +1554,12 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #ce7881 0%, #a94f5b 100%);
-    box-shadow: 0 12px 24px rgba(169, 79, 91, 0.18);
+    background: linear-gradient(135deg, #b98a7f 0%, #a76f64 100%);
+    box-shadow: 0 12px 24px rgba(128, 95, 79, 0.16);
 }
 
 .btn-secondary {
-    background: #fff;
+    background: rgba(255, 252, 248, 0.94);
 }
 
 input,
@@ -1639,8 +1655,8 @@ select {
 }
 
 .filter-chip.active {
-    background: #fff0f1;
-    border-color: rgba(207, 111, 123, 0.26);
+    background: #f5ece2;
+    border-color: rgba(167, 111, 100, 0.24);
 }
 
 .bulk-action-bar {
@@ -1681,7 +1697,7 @@ select {
 .detail-summary {
     padding: 0.9rem;
     border-radius: 18px;
-    background: #fff9f4;
+    background: #fdf6ee;
 }
 
 .summary-grid,
@@ -1691,7 +1707,7 @@ select {
 
 .summary-card {
     border-radius: 14px;
-    background: #fff1e8;
+    background: #f7eee2;
     padding: 0.85rem;
 }
 
@@ -1713,12 +1729,12 @@ select {
 }
 
 .reply-preview-card {
-    background: #fffaf6;
+    background: #fdf7ef;
 }
 
 .reply-preview-text {
-    background: #fff;
-    border-color: rgba(207, 111, 123, 0.18);
+    background: rgba(255, 253, 249, 0.96);
+    border-color: rgba(167, 111, 100, 0.16);
 }
 
 .products-layout > .content-card:last-child,
@@ -1740,7 +1756,7 @@ select {
 .testimonial-preview-card {
     border-radius: 18px;
     box-shadow: none;
-    background: #fffaf6;
+    background: #fdf7ef;
 }
 
 .product-preview-card {
