@@ -39,6 +39,10 @@ export function validateAdminSettingsInput(settings) {
   if (!isOptionalString(settings.featuredSpotlightDescription)) errors.push("featuredSpotlightDescription must be a string");
   if (!isOptionalString(settings.featuredSpotlightImageUrl)) errors.push("featuredSpotlightImageUrl must be a string");
   if (!isOptionalString(settings.featuredSpotlightSourceUrl)) errors.push("featuredSpotlightSourceUrl must be a string");
+  if (!isOptionalString(settings.heroProductSlug1)) errors.push("heroProductSlug1 must be a string");
+  if (!isOptionalString(settings.heroProductSlug2)) errors.push("heroProductSlug2 must be a string");
+  if (!isOptionalString(settings.heroProductSlug3)) errors.push("heroProductSlug3 must be a string");
+  if (!isOptionalString(settings.heroProductSlug4)) errors.push("heroProductSlug4 must be a string");
   if (!isOptionalString(settings.weekdayOpenTime)) errors.push("weekdayOpenTime must be a string");
   if (!isOptionalString(settings.weekdayCloseTime)) errors.push("weekdayCloseTime must be a string");
   if (!isOptionalString(settings.saturdayOpenTime)) errors.push("saturdayOpenTime must be a string");
@@ -66,6 +70,10 @@ export function validateAdminSettingsInput(settings) {
   validateOptionalLength(settings.featuredSpotlightDescription, "featuredSpotlightDescription", 500, errors);
   validateOptionalLength(settings.featuredSpotlightImageUrl, "featuredSpotlightImageUrl", 600000, errors);
   validateOptionalLength(settings.featuredSpotlightSourceUrl, "featuredSpotlightSourceUrl", 300, errors);
+  validateOptionalLength(settings.heroProductSlug1, "heroProductSlug1", 120, errors);
+  validateOptionalLength(settings.heroProductSlug2, "heroProductSlug2", 120, errors);
+  validateOptionalLength(settings.heroProductSlug3, "heroProductSlug3", 120, errors);
+  validateOptionalLength(settings.heroProductSlug4, "heroProductSlug4", 120, errors);
   validateOptionalLength(settings.weekdayOpenTime, "weekdayOpenTime", 8, errors);
   validateOptionalLength(settings.weekdayCloseTime, "weekdayCloseTime", 8, errors);
   validateOptionalLength(settings.saturdayOpenTime, "saturdayOpenTime", 8, errors);

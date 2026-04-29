@@ -41,6 +41,10 @@
             featuredSpotlightDescription: "",
             featuredSpotlightImageUrl: "",
             featuredSpotlightSourceUrl: "",
+            heroProductSlug1: "",
+            heroProductSlug2: "",
+            heroProductSlug3: "",
+            heroProductSlug4: "",
             weekdayOpenTime: "10:00",
             weekdayCloseTime: "20:00",
             saturdayOpenTime: "10:00",
@@ -1488,14 +1492,14 @@
                 .replace(/\bdays?\b/i, "days");
         }
 
-        function getShowcaseProducts() {
-            const uniqueImages = new Set();
+        function getShowcaseProducts(excludedSlugs = new Set(), excludedImages = new Set()) {
+            const uniqueImages = new Set(excludedImages);
             const sortedProducts = [...getPublicProducts()].sort((left, right) => Number(right.featured) - Number(left.featured));
 
             return sortedProducts.reduce((products, product) => {
                 const imageUrl = getProductImageSource(product);
 
-                if (!imageUrl || uniqueImages.has(imageUrl)) {
+                if (!imageUrl || uniqueImages.has(imageUrl) || excludedSlugs.has(product.slug)) {
                     return products;
                 }
 
@@ -1509,8 +1513,46 @@
             }, []);
         }
 
+        function getConfiguredHomepageHeroProducts() {
+            const selectedSlugs = [
+                String(state.settings.heroProductSlug1 || "").trim(),
+                String(state.settings.heroProductSlug2 || "").trim(),
+                String(state.settings.heroProductSlug3 || "").trim(),
+                String(state.settings.heroProductSlug4 || "").trim()
+            ];
+            const usedSlugs = new Set();
+            const usedImages = new Set();
+
+            return selectedSlugs.reduce((products, slug) => {
+                if (!slug || usedSlugs.has(slug)) {
+                    return products;
+                }
+
+                const product = getProductBySlug(slug);
+                const imageUrl = getProductImageSource(product);
+
+                if (!product || !imageUrl || usedImages.has(imageUrl)) {
+                    return products;
+                }
+
+                usedSlugs.add(slug);
+                usedImages.add(imageUrl);
+                products.push({
+                    ...product,
+                    imageUrl
+                });
+
+                return products;
+            }, []);
+        }
+
         function getHomepageHeroSlides() {
-            const slides = getShowcaseProducts().slice(0, 4).map((product) => ({
+            const configuredProducts = getConfiguredHomepageHeroProducts();
+            const showcaseProducts = getShowcaseProducts(
+                new Set(configuredProducts.map((product) => product.slug)),
+                new Set(configuredProducts.map((product) => product.imageUrl))
+            );
+            const slides = [...configuredProducts, ...showcaseProducts].slice(0, 4).map((product) => ({
                 id: product.slug,
                 title: product.name || state.settings.brandName || DEFAULT_SETTINGS.brandName,
                 description: product.shortDescription || "Freshly baked to order for special celebrations.",

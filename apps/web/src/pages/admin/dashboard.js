@@ -176,6 +176,11 @@ const settingsBakeryIntroTitle = document.getElementById("settingsBakeryIntroTit
 const settingsBakeryIntroParagraph1 = document.getElementById("settingsBakeryIntroParagraph1");
 const settingsBakeryIntroParagraph2 = document.getElementById("settingsBakeryIntroParagraph2");
 const settingsResponseTimeCopy = document.getElementById("settingsResponseTimeCopy");
+const settingsHeroProduct1 = document.getElementById("settingsHeroProduct1");
+const settingsHeroProduct2 = document.getElementById("settingsHeroProduct2");
+const settingsHeroProduct3 = document.getElementById("settingsHeroProduct3");
+const settingsHeroProduct4 = document.getElementById("settingsHeroProduct4");
+const settingsHeroSelectionMeta = document.getElementById("settingsHeroSelectionMeta");
 const settingsSpotlightTitle = document.getElementById("settingsSpotlightTitle");
 const settingsSpotlightDescription = document.getElementById("settingsSpotlightDescription");
 const settingsSpotlightImageUrl = document.getElementById("settingsSpotlightImageUrl");
@@ -212,6 +217,12 @@ const addTestimonialButton = document.getElementById("addTestimonialButton");
 const testimonialsSaveButton = document.getElementById("testimonialsSaveButton");
 const testimonialsSaveMeta = document.getElementById("testimonialsSaveMeta");
 const toastStack = document.getElementById("toastStack");
+const settingsHeroProductFields = [
+    settingsHeroProduct1,
+    settingsHeroProduct2,
+    settingsHeroProduct3,
+    settingsHeroProduct4
+];
 
 function escapeHtml(value) {
     return String(value ?? "")
@@ -680,6 +691,67 @@ function getFeaturedSpotlightDraftFromSettings(settings) {
         imageUrl: String(settings?.featuredSpotlightImageUrl || "").trim(),
         sourceUrl: String(settings?.featuredSpotlightSourceUrl || "").trim()
     };
+}
+
+function getHomepageHeroProductSlugs(settings) {
+    return [
+        String(settings?.heroProductSlug1 || "").trim(),
+        String(settings?.heroProductSlug2 || "").trim(),
+        String(settings?.heroProductSlug3 || "").trim(),
+        String(settings?.heroProductSlug4 || "").trim()
+    ];
+}
+
+function getHomepageHeroSelectionSummary(settings) {
+    const labels = getHomepageHeroProductSlugs(settings)
+        .map((slug, index) => {
+            if (!slug) {
+                return "";
+            }
+
+            const product = state.products.find((item) => item.slug === slug);
+            return `#${index + 1} ${product?.name || slugLabel(slug)}`;
+        })
+        .filter(Boolean);
+
+    return labels.length ? labels.join(" / ") : "Automatic showcase";
+}
+
+function renderHomepageHeroProductFields(settings) {
+    const selectedSlugs = getHomepageHeroProductSlugs(settings);
+    const products = [...state.products].sort((left, right) => (
+        Number(right.featured) - Number(left.featured)
+        || left.name.localeCompare(right.name)
+    ));
+    const optionsMarkup = [
+        `<option value="">Automatic showcase</option>`,
+        ...products.map((product) => {
+            const suffix = product.featured ? " - Featured" : "";
+            return `<option value="${escapeHtml(product.slug)}">${escapeHtml(product.name + suffix)}</option>`;
+        })
+    ].join("");
+
+    settingsHeroProductFields.forEach((field, index) => {
+        if (!field) {
+            return;
+        }
+
+        field.innerHTML = optionsMarkup;
+        field.value = products.some((product) => product.slug === selectedSlugs[index])
+            ? selectedSlugs[index]
+            : "";
+    });
+}
+
+function renderHomepageHeroSelectionMeta(settings) {
+    if (!settingsHeroSelectionMeta) {
+        return;
+    }
+
+    const summary = getHomepageHeroSelectionSummary(settings);
+    settingsHeroSelectionMeta.textContent = summary === "Automatic showcase"
+        ? "Hero uses the automatic showcase order until you choose products here."
+        : `Selected hero order: ${summary}`;
 }
 
 function hasFeaturedSpotlightContent(spotlight) {
@@ -1796,6 +1868,8 @@ function fillSettingsForm(settings) {
     settingsBakeryIntroParagraph1.value = settings?.bakeryIntroParagraph1 || "";
     settingsBakeryIntroParagraph2.value = settings?.bakeryIntroParagraph2 || "";
     settingsResponseTimeCopy.value = settings?.responseTimeCopy || "";
+    renderHomepageHeroProductFields(settings);
+    renderHomepageHeroSelectionMeta(settings);
     settingsSpotlightTitle.value = settings?.featuredSpotlightTitle || "";
     settingsSpotlightDescription.value = settings?.featuredSpotlightDescription || "";
     settingsSpotlightImageUrl.value = settings?.featuredSpotlightImageUrl || "";
@@ -1894,6 +1968,10 @@ function renderSettingsSummary() {
             value: settings.responseTimeCopy || "Not set"
         },
         {
+            label: "Homepage hero",
+            value: getHomepageHeroSelectionSummary(settings)
+        },
+        {
             label: "Featured spotlight",
             value: hasFeaturedSpotlightContent(spotlight)
                 ? (spotlight.title || "Configured")
@@ -1935,6 +2013,7 @@ function renderSettingsPreview() {
     const spotlightTitle = spotlight.title || "Featured cake spotlight";
     const spotlightDescription = spotlight.description || "Add a featured cake photo and copy here to spotlight one special design above the signature cake grid.";
 
+    renderHomepageHeroSelectionMeta(settings);
     settingsPreviewHeroTitle.textContent = settings.brandName || "Pink Delight Cakes";
     settingsPreviewHeroCity.textContent = getHeroCityLabel(city);
     settingsPreviewDelivery.textContent = deliveryCopy || "Pickup is scheduled by confirmation time, and nearby delivery can be arranged for select orders.";
@@ -2028,6 +2107,10 @@ function collectSettingsPayload() {
         bakeryIntroParagraph1: settingsBakeryIntroParagraph1.value.trim(),
         bakeryIntroParagraph2: settingsBakeryIntroParagraph2.value.trim(),
         responseTimeCopy: settingsResponseTimeCopy.value.trim(),
+        heroProductSlug1: settingsHeroProduct1.value.trim(),
+        heroProductSlug2: settingsHeroProduct2.value.trim(),
+        heroProductSlug3: settingsHeroProduct3.value.trim(),
+        heroProductSlug4: settingsHeroProduct4.value.trim(),
         featuredSpotlightTitle: settingsSpotlightTitle.value.trim(),
         featuredSpotlightDescription: settingsSpotlightDescription.value.trim(),
         featuredSpotlightImageUrl: settingsSpotlightImageUrl.value.trim(),

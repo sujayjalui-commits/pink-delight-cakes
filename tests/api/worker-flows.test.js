@@ -48,6 +48,10 @@ function createBusinessSettingsSeed() {
     featured_spotlight_description: "A customized engagement cake adorned with edible pearls and a fresh gypsy flower wreath at the base.",
     featured_spotlight_image_url: "src/assets/baat-pakki-engagement-cake.webp",
     featured_spotlight_source_url: "https://www.instagram.com/p/DXQtqPNjB1L/",
+    hero_product_slug_1: "midnight-chocolate",
+    hero_product_slug_2: "vintage-rose",
+    hero_product_slug_3: "golden-butterscotch",
+    hero_product_slug_4: "rasmalai-festive",
     weekday_open_time: "10:00",
     weekday_close_time: "20:00",
     saturday_open_time: "10:00",
@@ -368,6 +372,8 @@ await runTest("public settings endpoint exposes the featured spotlight fields", 
   assert.equal(payload.settings.featuredSpotlightTitle, "Baat Pakki engagement cake");
   assert.equal(payload.settings.featuredSpotlightImageUrl, "src/assets/baat-pakki-engagement-cake.webp");
   assert.equal(payload.settings.featuredSpotlightSourceUrl, "https://www.instagram.com/p/DXQtqPNjB1L/");
+  assert.equal(payload.settings.heroProductSlug1, "midnight-chocolate");
+  assert.equal(payload.settings.heroProductSlug4, "rasmalai-festive");
 });
 
 await runTest("public tracking lookup returns customer-facing status metadata for a matching inquiry", async () => {
@@ -663,6 +669,10 @@ await runTest("admin settings route reads and updates business settings for an a
         bakeryIntroParagraph1: " Pink Delight Cakes is led by Pinky Sangoi. ",
         bakeryIntroParagraph2: " Each celebration gets thoughtful attention. ",
         responseTimeCopy: " Send your date, design notes, and servings for a quick quote. ",
+        heroProductSlug1: " midnight-chocolate ",
+        heroProductSlug2: " vintage-rose ",
+        heroProductSlug3: " golden-butterscotch ",
+        heroProductSlug4: " rasmalai-festive ",
         featuredSpotlightTitle: " Pearl engagement cake ",
         featuredSpotlightDescription: " Soft pearls and florals with a clean engagement finish. ",
         featuredSpotlightImageUrl: " data:image/jpeg;base64,spotlight-demo ",
@@ -685,11 +695,14 @@ await runTest("admin settings route reads and updates business settings for an a
   assert.equal(patchPayload.settings.city, "Pune City");
   assert.equal(patchPayload.settings.countryCode, "IN");
   assert.equal(patchPayload.settings.deliveryPickupCopy, "Pickup and local delivery across Pune city.");
+  assert.equal(patchPayload.settings.heroProductSlug1, "midnight-chocolate");
+  assert.equal(patchPayload.settings.heroProductSlug4, "rasmalai-festive");
   assert.equal(patchPayload.settings.featuredSpotlightTitle, "Pearl engagement cake");
   assert.equal(patchPayload.settings.featuredSpotlightImageUrl, "data:image/jpeg;base64,spotlight-demo");
   assert.equal(patchPayload.settings.featuredSpotlightSourceUrl, "https://www.instagram.com/p/example-featured-cake/");
   assert.equal(env.DB.businessSettings.city, "Pune City");
   assert.equal(env.DB.businessSettings.country_code, "IN");
+  assert.equal(env.DB.businessSettings.hero_product_slug_2, "vintage-rose");
   assert.equal(env.DB.businessSettings.featured_spotlight_title, "Pearl engagement cake");
 });
 
