@@ -89,6 +89,15 @@ export function enforcePublicOrderRateLimit(env, request) {
   });
 }
 
+export function enforcePublicLookupRateLimit(env, request) {
+  return enforceRateLimit(env, request, {
+    bucket: "public_order_request_lookups",
+    limit: 12,
+    windowSeconds: 15 * 60,
+    error: "Too many inquiry tracking attempts from this connection. Please wait before trying again."
+  });
+}
+
 export function enforceAdminLoginRateLimit(env, request) {
   return enforceRateLimit(env, request, {
     bucket: "admin_login_attempts",

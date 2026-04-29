@@ -100,7 +100,7 @@ export default {
       }
 
       if (pathname === publicRoutes.orderRequestLookup && method === "GET") {
-        return withCors(await handleLookupOrderRequest(request, env), request, env);
+        return withCors(await handleLookupOrderRequest(request, env, executionCtx), request, env);
       }
 
       if (pathname === adminRoutes.setup && method === "POST") {

@@ -6,7 +6,11 @@ import {
   reportMonitoringEvent
 } from "../services/monitoring-service.js";
 import { createPublicOrderRequest, lookupPublicOrderRequest } from "../services/order-service.js";
-import { createRateLimitHeaders, enforcePublicOrderRateLimit } from "../services/rate-limit-service.js";
+import {
+  createRateLimitHeaders,
+  enforcePublicLookupRateLimit,
+  enforcePublicOrderRateLimit
+} from "../services/rate-limit-service.js";
 import { createJsonResponse } from "../utils/http.js";
 import { readJsonBody } from "../validators/request-body.js";
 
@@ -35,7 +39,23 @@ export async function handleGetTestimonials(env) {
   return createJsonResponse({ ok: true, testimonials });
 }
 
-export async function handleLookupOrderRequest(request, env) {
+export async function handleLookupOrderRequest(request, env, executionCtx) {
+  const rateLimit = await enforcePublicLookupRateLimit(env, request);
+
+  if (!rateLimit.ok) {
+    reportMonitoringEvent(env, {
+      level: "warn",
+      event: "order_request_lookup.rate_limited",
+      message: "Public inquiry tracking request was rate limited.",
+      request: createRequestMonitoringContext(request),
+      details: {
+        retryAfterSeconds: rateLimit.retryAfterSeconds || null
+      }
+    }, executionCtx);
+
+    return createJsonResponse(rateLimit, rateLimit.status || 429, createRateLimitHeaders(rateLimit));
+  }
+
   const url = new URL(request.url);
   const referenceId = url.searchParams.get("referenceId");
   const phone = url.searchParams.get("phone");

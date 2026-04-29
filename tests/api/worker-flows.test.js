@@ -538,6 +538,72 @@ await runTest("public tracking lookup marks past event dates for manual follow-u
   assert.equal(payload.orderRequest.confidenceLabel, "Needs a manual check");
 });
 
+await runTest("public tracking lookup is rate limited per connection", async () => {
+  const env = createTestEnv({
+    orderRequests: [
+      {
+        id: 91,
+        customer_name: "Amiya",
+        customer_phone: "+91 87678 12121",
+        customer_email: "amiya@example.com",
+        product_id: 11,
+        product_snapshot: JSON.stringify({
+          id: 11,
+          slug: "signature-black-forest",
+          name: "Signature Black Forest",
+          category: "birthday",
+          startingPrice: 1800
+        }),
+        flavor: "Black Forest",
+        size_label: "1 kg",
+        servings: "8",
+        event_date: "2026-05-01",
+        fulfillment_type: "pickup",
+        add_on: "",
+        notes: "",
+        status: "new",
+        quoted_amount: null,
+        source_channel: "website",
+        created_at: "2026-04-18T00:00:00.000Z",
+        updated_at: "2026-04-18T01:00:00.000Z"
+      }
+    ]
+  });
+
+  let lastResponse = null;
+  for (let index = 0; index < 12; index += 1) {
+    lastResponse = await worker.fetch(
+      new Request("https://pink-delight-cakes-api.sujayjalui.workers.dev/api/order-requests/lookup?referenceId=91&phone=%2B91%2087678%2012121", {
+        headers: {
+          origin: "https://pink-delight-cakes.pages.dev",
+          "cf-connecting-ip": "203.0.113.91"
+        }
+      }),
+      env,
+      createExecutionContext()
+    );
+
+    assert.equal(lastResponse.status, 200);
+  }
+
+  const blockedResponse = await worker.fetch(
+    new Request("https://pink-delight-cakes-api.sujayjalui.workers.dev/api/order-requests/lookup?referenceId=91&phone=%2B91%2087678%2012121", {
+      headers: {
+        origin: "https://pink-delight-cakes.pages.dev",
+        "cf-connecting-ip": "203.0.113.91"
+      }
+    }),
+    env,
+    createExecutionContext()
+  );
+  const blockedPayload = await blockedResponse.json();
+
+  assert.equal(blockedResponse.status, 429);
+  assert.equal(blockedPayload.ok, false);
+  assert.match(blockedPayload.error, /tracking attempts/i);
+  assert.equal(blockedResponse.headers.get("retry-after"), "900");
+});
+
 await runTest("admin settings route reads and updates business settings for an authenticated same-origin admin session", async () => {
   const admin = {
     id: 7,

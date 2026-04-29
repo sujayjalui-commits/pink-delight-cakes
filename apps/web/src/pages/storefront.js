@@ -1343,6 +1343,43 @@
             return lines.join("\n");
         }
 
+        function formatInquirySummaryValue(value, fallback = "To be confirmed") {
+            const normalizedValue = String(value || "").trim();
+            return escapeHtml(normalizedValue || fallback);
+        }
+
+        function renderInquirySummaryRows(rows) {
+            return rows.map((row) => {
+                const modifiers = row.full ? " inquiry-summary-item inquiry-summary-item--full" : " inquiry-summary-item";
+
+                return `
+                    <div class="${modifiers.trim()}">
+                        <span class="inquiry-summary-item__label">${escapeHtml(row.label)}</span>
+                        <strong class="inquiry-summary-item__value">${formatInquirySummaryValue(row.value, row.fallback)}</strong>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function renderInquirySummaryCard({ eyebrow, title, note, rows, tone = "default" }) {
+            const toneClass = tone === "success"
+                ? " inquiry-summary-card--success"
+                : tone === "muted"
+                    ? " inquiry-summary-card--muted"
+                    : "";
+
+            return `
+                <article class="inquiry-summary-card${toneClass}">
+                    <span class="inquiry-summary-card__eyebrow">${escapeHtml(eyebrow)}</span>
+                    <h5 class="inquiry-summary-card__title">${escapeHtml(title)}</h5>
+                    <p class="inquiry-summary-card__note">${escapeHtml(note)}</p>
+                    <div class="inquiry-summary-grid">
+                        ${renderInquirySummaryRows(rows)}
+                    </div>
+                </article>
+            `;
+        }
+
         function updateRequestPreview() {
             if (!orderForm || !requestPreview || !whatsAppOrderLink) {
                 return;
@@ -1351,27 +1388,44 @@
             const product = getSelectedProduct();
 
             if (!product) {
-                requestPreview.textContent = "Live catalogue unavailable right now. You can still contact the bakery directly on WhatsApp.";
+                requestPreview.innerHTML = renderInquirySummaryCard({
+                    eyebrow: "Inquiry summary",
+                    title: "Choose a cake to get started",
+                    note: "Once you pick a cake, we will show the details Pink Delight will review before replying with pricing and next steps.",
+                    tone: "muted",
+                    rows: [
+                        { label: "Cake", value: "", fallback: "Select a cake from the live menu" },
+                        { label: "Flavor", value: "", fallback: "Choose a flavor option" },
+                        { label: "Size", value: "", fallback: "Choose a size or servings" },
+                        { label: "Pickup or delivery", value: "", fallback: "Select how you would like to receive it" }
+                    ]
+                });
                 whatsAppOrderLink.href = createWhatsAppLink(state.settings.contactPhone);
                 return;
             }
 
             const payload = buildRequestPayload();
             const size = getSelectedSize(product);
+            const sizeSummary = payload.sizeLabel && payload.servings
+                ? `${payload.sizeLabel} · ${payload.servings}`
+                : payload.sizeLabel || payload.servings || "";
 
-            requestPreview.textContent = JSON.stringify({
-                customerName: payload.customerName || "Required before submitting",
-                customerPhone: payload.customerPhone || "Required before submitting",
-                customerEmail: payload.customerEmail || null,
-                productId: payload.productId,
-                flavor: payload.flavor || null,
-                sizeLabel: payload.sizeLabel || null,
-                servings: payload.servings || null,
-                eventDate: payload.eventDate || null,
-                fulfillmentType: payload.fulfillmentType,
-                addOn: payload.addOn || null,
-                notes: payload.notes || null
-            }, null, 2);
+            requestPreview.innerHTML = renderInquirySummaryCard({
+                eyebrow: "Inquiry summary",
+                title: product.name || "Cake request",
+                note: "This is the summary Pink Delight will receive first, before replying with pricing, availability, and final confirmation.",
+                rows: [
+                    { label: "Your name", value: payload.customerName, fallback: "Add your name before sending" },
+                    { label: "Phone / WhatsApp", value: payload.customerPhone, fallback: "Add your phone number before sending" },
+                    { label: "Email", value: payload.customerEmail, fallback: "Optional" },
+                    { label: "Flavor", value: payload.flavor, fallback: "Choose a flavor" },
+                    { label: "Size / servings", value: sizeSummary, fallback: "Choose a size" },
+                    { label: "Event date", value: payload.eventDate, fallback: "Not selected yet" },
+                    { label: "Pickup or delivery", value: formatFulfillmentLabel(payload.fulfillmentType), fallback: "Pickup" },
+                    { label: "Add-on", value: payload.addOn, fallback: "None" },
+                    { label: "Theme, colors, or message", value: payload.notes, fallback: "No extra notes yet", full: true }
+                ]
+            });
 
             whatsAppOrderLink.href = createWhatsAppLink(
                 state.settings.contactPhone,
@@ -2070,6 +2124,7 @@
             }
 
             const payload = buildRequestPayload();
+            const product = getSelectedProduct();
 
             if (!payload.customerName || !payload.customerPhone || !payload.productId) {
                 setFormStatus("Please add your name, phone number, and selected cake before sending the inquiry.", "error");
@@ -2114,12 +2169,24 @@
                     trackReferenceLink.href = createTrackLink(referenceId);
                 }
 
-                requestPreview.textContent = JSON.stringify({
-                    ok: true,
-                    orderRequestId: referenceId || null,
-                    persistence: response?.persistence || "database",
-                    submittedPayload: payload
-                }, null, 2);
+                const submittedSizeSummary = payload.sizeLabel && payload.servings
+                    ? `${payload.sizeLabel} · ${payload.servings}`
+                    : payload.sizeLabel || payload.servings || "";
+
+                requestPreview.innerHTML = renderInquirySummaryCard({
+                    eyebrow: "Inquiry sent",
+                    title: referenceId ? `Reference #${referenceId}` : "Request received",
+                    note: "Your details were saved to the bakery dashboard. Pink Delight will review this summary and reply with pricing and next steps.",
+                    tone: "success",
+                    rows: [
+                        { label: "Cake", value: product?.name || payload.productId, fallback: "Cake request" },
+                        { label: "Flavor", value: payload.flavor, fallback: "To be confirmed" },
+                        { label: "Size / servings", value: submittedSizeSummary, fallback: "To be confirmed" },
+                        { label: "Pickup or delivery", value: formatFulfillmentLabel(payload.fulfillmentType), fallback: "Pickup" },
+                        { label: "Phone / WhatsApp", value: payload.customerPhone, fallback: "Shared in inquiry" },
+                        { label: "Notes", value: payload.notes, fallback: "No extra notes", full: true }
+                    ]
+                });
             } catch (error) {
                 setFormStatus(`${error.message} You can still continue on WhatsApp while we sort it out.`, "error");
                 updateRequestPreview();

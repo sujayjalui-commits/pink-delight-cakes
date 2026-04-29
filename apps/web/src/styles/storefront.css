@@ -1825,6 +1825,93 @@
             white-space: pre-wrap;
         }
 
+        .inquiry-summary-shell {
+            padding: 0;
+            background: transparent;
+            border: 0;
+            white-space: normal;
+        }
+
+        .inquiry-summary-card {
+            padding: 1.2rem;
+            border-radius: 22px;
+            background: linear-gradient(180deg, rgba(255, 250, 245, 0.98), rgba(255, 253, 250, 0.94));
+            border: 1px solid rgba(120, 89, 73, 0.08);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .inquiry-summary-card--success {
+            background: linear-gradient(180deg, rgba(243, 251, 246, 0.98), rgba(255, 253, 250, 0.94));
+            border-color: rgba(75, 139, 104, 0.18);
+        }
+
+        .inquiry-summary-card--muted {
+            background: linear-gradient(180deg, rgba(252, 247, 239, 0.98), rgba(255, 253, 250, 0.94));
+        }
+
+        .inquiry-summary-card__eyebrow {
+            display: inline-flex;
+            width: fit-content;
+            margin-bottom: 0.65rem;
+            padding: 0.38rem 0.72rem;
+            border-radius: 999px;
+            background: rgba(189, 138, 127, 0.12);
+            color: var(--accent-dark);
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .inquiry-summary-card__title {
+            font-family: "Bodoni Moda", serif;
+            font-size: 1.45rem;
+            line-height: 1.05;
+            color: var(--text);
+            margin-bottom: 0.45rem;
+        }
+
+        .inquiry-summary-card__note {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .inquiry-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.85rem;
+        }
+
+        .inquiry-summary-item {
+            padding: 0.9rem 0.95rem;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(120, 89, 73, 0.08);
+            min-height: 100%;
+        }
+
+        .inquiry-summary-item--full {
+            grid-column: 1 / -1;
+        }
+
+        .inquiry-summary-item__label {
+            display: block;
+            margin-bottom: 0.24rem;
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .inquiry-summary-item__value {
+            display: block;
+            color: var(--text);
+            font-size: 0.98rem;
+            line-height: 1.45;
+        }
+
         .menu-state,
         .form-status {
             padding: 1rem 1.1rem;
@@ -2618,6 +2705,10 @@
             }
 
             .field-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .inquiry-summary-grid {
                 grid-template-columns: 1fr;
             }
 
