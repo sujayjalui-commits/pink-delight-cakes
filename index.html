@@ -164,15 +164,18 @@
         }
 
         .brand-mark {
-            width: 48px;
-            height: 48px;
-            border-radius: 18px;
+            width: 62px;
+            height: 54px;
             display: grid;
             place-items: center;
-            background: linear-gradient(145deg, #f9d4d0, #f5b7bd);
             color: var(--accent-dark);
-            box-shadow: var(--shadow-soft);
-            font-size: 1.25rem;
+        }
+
+        .brand-mark img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: contain;
         }
 
         .brand-copy strong {
@@ -1186,7 +1189,7 @@
         <header class="site-header">
             <div class="header-inner">
                 <a class="brand" href="#home" aria-label="Pink Delight Cakes home">
-                    <div class="brand-mark"><i class="fa-solid fa-cake-candles"></i></div>
+                    <div class="brand-mark"><img src="apps/web/src/assets/nav-cake-exact.svg" alt="" aria-hidden="true"></div>
                     <div class="brand-copy">
                         <strong>Pink Delight Cakes</strong>
                         <span>Custom home bakery for joyful celebrations</span>

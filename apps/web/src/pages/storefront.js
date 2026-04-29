@@ -1,4 +1,6 @@
-const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
+        document.documentElement.classList.add("motion-ready");
+
+        const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         const RUNTIME_ADMIN_SITE_URL = "__ADMIN_SITE_URL__";
         const RUNTIME_API_BASE_URL = "__API_BASE_URL__";
         const DEFAULT_SOCIAL_IMAGE = "https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=1200&q=80";
@@ -146,9 +148,14 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         const updatePreviewButton = document.getElementById("updatePreviewButton");
         const heroCityLabel = document.getElementById("heroCityLabel");
         const heroDeliveryPickupCopy = document.getElementById("heroDeliveryPickupCopy");
-        const heroMainImage = document.getElementById("heroMainImage");
-        const heroDetailImageOne = document.getElementById("heroDetailImageOne");
-        const heroDetailImageTwo = document.getElementById("heroDetailImageTwo");
+        const homeHeroTitle = document.getElementById("homeHeroTitle");
+        const homeHeroDescription = document.getElementById("homeHeroDescription");
+        const homeHeroPrimaryCta = document.getElementById("homeHeroPrimaryCta");
+        const homeHeroPrimaryCtaLabel = homeHeroPrimaryCta?.querySelector("span") || null;
+        const heroCarousel = document.querySelector(".hero-carousel");
+        const heroTrack = document.getElementById("heroTrack");
+        const heroDots = document.getElementById("heroDots");
+        const heroNextButton = document.getElementById("heroNextButton");
         const heroNoticeHighlight = document.getElementById("heroNoticeHighlight");
         const noticePeriodCopy = document.getElementById("noticePeriodCopy");
         const contactLocationText = document.getElementById("contactLocationText");
@@ -193,6 +200,11 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         const submitCartInquiryButton = document.getElementById("submitCartInquiryButton");
         const cartReferenceCard = document.getElementById("cartReferenceCard");
         const cartTrackReferenceLink = document.getElementById("cartTrackReferenceLink");
+        const homepageHero = document.querySelector(".hero");
+        const heroCopy = document.querySelector(".hero-copy");
+        const finePointerQuery = window.matchMedia("(pointer: fine)");
+        const cursorMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+        const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");`n
         function getStructuredDataScript() {
             let script = document.getElementById("structuredDataScript");
 
@@ -208,6 +220,76 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
 
         const structuredDataScript = getStructuredDataScript();
         let currentHeroImage = DEFAULT_SOCIAL_IMAGE;
+        let activeHomeHeroSlideIndex = 0;
+        let homeHeroSlides = [];
+        let homeHeroAutoplayTimer = null;
+        const HOME_HERO_AUTOPLAY_DELAY = 5500;
+        const HOME_HERO_RESUME_DELAY = 2600;
+        const homeHeroPauseReasons = new Set();
+
+        function initBakeryCursor() {
+            if (!document.body.classList.contains("home-page") || !finePointerQuery.matches || cursorMotionQuery.matches) {
+                return;
+            }
+
+            if (document.querySelector(".bakery-cursor")) {
+                return;
+            }
+
+            const cursor = document.createElement("div");
+            const cursorDot = document.createElement("div");
+            cursor.className = "bakery-cursor";
+            cursorDot.className = "bakery-cursor-dot";
+            document.body.append(cursor, cursorDot);
+            document.body.classList.add("has-bakery-cursor");
+
+            const target = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+            const current = { x: target.x, y: target.y };
+            let rafId = 0;
+
+            function renderCursor() {
+                current.x += (target.x - current.x) * 0.18;
+                current.y += (target.y - current.y) * 0.18;
+
+                cursor.style.transform = `translate3d(${current.x}px, ${current.y}px, 0) translate3d(-50%, -50%, 0)`;
+                cursorDot.style.transform = `translate3d(${target.x}px, ${target.y}px, 0) translate3d(-50%, -50%, 0)`;
+                rafId = window.requestAnimationFrame(renderCursor);
+            }
+
+            function setInteractiveState(event) {
+                const isInteractive = Boolean(event.target.closest("a, button, .signature-grid > *, .promise-card, .cta-card, .hero-carousel"));
+                document.body.classList.toggle("cursor-interactive", isInteractive);
+            }
+
+            window.addEventListener("pointermove", (event) => {
+                target.x = event.clientX;
+                target.y = event.clientY;
+                document.body.classList.add("cursor-ready");
+                setInteractiveState(event);
+
+                if (!rafId) {
+                    renderCursor();
+                }
+            }, { passive: true });
+
+            window.addEventListener("pointerdown", () => {
+                document.body.classList.add("cursor-pressed");
+            });
+
+            window.addEventListener("pointerup", () => {
+                document.body.classList.remove("cursor-pressed");
+            });
+
+            document.addEventListener("pointerleave", () => {
+                document.body.classList.remove("cursor-ready");
+            });
+
+            document.addEventListener("pointerenter", () => {
+                document.body.classList.add("cursor-ready");
+            });
+        }
+
+        initBakeryCursor();
 
         function escapeHtml(value) {
             return String(value ?? "")
@@ -1300,7 +1382,7 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
 
         function getHeroCityLabel(city) {
             if (!city || /^your city$/i.test(city.trim())) {
-                return "Founder-led home bakery";
+                return "Home bakery";
             }
 
             return `Home bakery in ${city}`;
@@ -1350,15 +1432,6 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
                 .replace(/\bdays?\b/i, "days");
         }
 
-        function updateShowcaseImage(node, src, alt) {
-            if (!node || !src) {
-                return;
-            }
-
-            node.src = src;
-            node.alt = alt;
-        }
-
         function getShowcaseProducts() {
             const uniqueImages = new Set();
             const sortedProducts = [...getPublicProducts()].sort((left, right) => Number(right.featured) - Number(left.featured));
@@ -1380,34 +1453,178 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             }, []);
         }
 
-        function applyHomepageMedia() {
-            const showcaseProducts = getShowcaseProducts();
-            const mediaItems = showcaseProducts.slice(0, 3);
+        function getHomepageHeroSlides() {
+            const slides = getShowcaseProducts().slice(0, 4).map((product) => ({
+                id: product.slug,
+                title: product.name || state.settings.brandName || DEFAULT_SETTINGS.brandName,
+                description: product.shortDescription || "Freshly baked to order for special celebrations.",
+                imageUrl: product.imageUrl || HERO_COLLAGE_FALLBACKS[0],
+                alt: `${product.name || state.settings.brandName} cake by ${state.settings.brandName || DEFAULT_SETTINGS.brandName}`,
+                ctaHref: createSitePageLink(`inquiry-model/?product=${encodeURIComponent(product.slug)}#contact`),
+                ctaLabel: `Ask About ${product.name || "This Cake"}`
+            }));
 
-            while (mediaItems.length < 3) {
-                mediaItems.push({
-                    imageUrl: HERO_COLLAGE_FALLBACKS[mediaItems.length] || HERO_COLLAGE_FALLBACKS[0],
-                    name: state.settings.brandName || DEFAULT_SETTINGS.brandName
+            while (slides.length < 4) {
+                const fallbackIndex = slides.length % HERO_COLLAGE_FALLBACKS.length;
+                slides.push({
+                    id: `fallback-${slides.length}`,
+                    title: state.settings.brandName || DEFAULT_SETTINGS.brandName,
+                    description: getWarmBakeryParagraph(),
+                    imageUrl: HERO_COLLAGE_FALLBACKS[fallbackIndex] || HERO_COLLAGE_FALLBACKS[0],
+                    alt: `${state.settings.brandName || DEFAULT_SETTINGS.brandName} featured cake`,
+                    ctaHref: createSitePageLink("inquiry-model/#contact"),
+                    ctaLabel: "Ask About This Cake"
                 });
             }
 
-            updateShowcaseImage(
-                heroMainImage,
-                mediaItems[0].imageUrl || HERO_COLLAGE_FALLBACKS[0],
-                `${mediaItems[0].name || state.settings.brandName} featured cake`
-            );
-            updateShowcaseImage(
-                heroDetailImageOne,
-                mediaItems[1].imageUrl || HERO_COLLAGE_FALLBACKS[1],
-                `${mediaItems[1].name || state.settings.brandName} close-up`
-            );
-            updateShowcaseImage(
-                heroDetailImageTwo,
-                mediaItems[2].imageUrl || HERO_COLLAGE_FALLBACKS[2],
-                `${mediaItems[2].name || state.settings.brandName} detail view`
-            );
+            return slides;
+        }
 
-            currentHeroImage = heroMainImage?.src || DEFAULT_SOCIAL_IMAGE;
+        function stopHomeHeroAutoplay() {
+            if (homeHeroAutoplayTimer) {
+                clearTimeout(homeHeroAutoplayTimer);
+                homeHeroAutoplayTimer = null;
+            }
+        }
+
+        function canHomeHeroAutoplay() {
+            return !reduceMotionQuery.matches && homeHeroPauseReasons.size === 0 && !document.hidden;
+        }
+
+        function scheduleHomeHeroAutoplay(delay = HOME_HERO_AUTOPLAY_DELAY) {
+            stopHomeHeroAutoplay();
+
+            if (!heroTrack || homeHeroSlides.length < 2 || !canHomeHeroAutoplay()) {
+                return;
+            }
+
+            homeHeroAutoplayTimer = window.setTimeout(() => {
+                setActiveHomeHeroSlide(activeHomeHeroSlideIndex + 1, { fromAutoplay: true });
+                scheduleHomeHeroAutoplay();
+            }, delay);
+        }
+
+        function pauseHomeHeroAutoplay(reason) {
+            homeHeroPauseReasons.add(reason);
+            if (homepageHero) {
+                homepageHero.classList.add("is-paused");
+            }
+            stopHomeHeroAutoplay();
+        }
+
+        function resumeHomeHeroAutoplay(reason, delay = HOME_HERO_RESUME_DELAY) {
+            homeHeroPauseReasons.delete(reason);
+            if (homepageHero && homeHeroPauseReasons.size === 0) {
+                homepageHero.classList.remove("is-paused");
+            }
+            scheduleHomeHeroAutoplay(delay);
+        }
+
+        function setActiveHomeHeroSlide(index, options = {}) {
+            if (!heroTrack || !homeHeroSlides.length) {
+                return;
+            }
+
+            activeHomeHeroSlideIndex = (index + homeHeroSlides.length) % homeHeroSlides.length;
+            const slide = homeHeroSlides[activeHomeHeroSlideIndex];
+
+            if (homepageHero) {
+                homepageHero.style.setProperty("--active-slide", activeHomeHeroSlideIndex);
+                homepageHero.classList.add("is-sliding");
+            }
+            if (heroCopy) {
+                heroCopy.classList.add("is-changing");
+            }
+
+            heroTrack.style.transform = `translate3d(${activeHomeHeroSlideIndex * -100}%, 0, 0)`;
+            heroTrack.querySelectorAll(".hero-slide").forEach((item, itemIndex) => {
+                item.setAttribute("aria-hidden", itemIndex === activeHomeHeroSlideIndex ? "false" : "true");
+            });
+
+            if (homeHeroTitle) {
+                homeHeroTitle.textContent = slide.title;
+            }
+
+            if (homeHeroDescription) {
+                homeHeroDescription.textContent = slide.description;
+            }
+
+            if (homeHeroPrimaryCta) {
+                homeHeroPrimaryCta.setAttribute("href", slide.ctaHref);
+            }
+
+            if (homeHeroPrimaryCtaLabel) {
+                homeHeroPrimaryCtaLabel.textContent = slide.ctaLabel || "Ask About This Cake";
+            }
+
+            if (heroDots) {
+                heroDots.querySelectorAll(".dot").forEach((dot, dotIndex) => {
+                    const isActive = dotIndex === activeHomeHeroSlideIndex;
+                    dot.classList.toggle("active", isActive);
+                    if (isActive) {
+                        dot.setAttribute("aria-current", "true");
+                    } else {
+                        dot.removeAttribute("aria-current");
+                    }
+                });
+            }
+
+            currentHeroImage = slide.imageUrl || DEFAULT_SOCIAL_IMAGE;
+
+            if (!options.skipSeoRefresh) {
+                applySeoMetadata();
+            }
+
+            window.setTimeout(() => {
+                if (heroCopy) {
+                    heroCopy.classList.remove("is-changing");
+                }
+                if (homepageHero) {
+                    homepageHero.classList.remove("is-sliding");
+                }
+            }, 240);
+
+            if (!options.fromAutoplay) {
+                scheduleHomeHeroAutoplay(options.delay || HOME_HERO_RESUME_DELAY);
+            }
+        }
+
+        function renderHomepageHeroCarousel() {
+            if (!heroTrack) {
+                return;
+            }
+
+            homeHeroSlides = getHomepageHeroSlides();
+
+            heroTrack.innerHTML = homeHeroSlides.map((slide) => `
+                <article class="hero-slide" aria-hidden="true">
+                    <img src="${escapeHtml(slide.imageUrl)}" alt="${escapeHtml(slide.alt)}" loading="eager">
+                </article>
+            `).join("");
+
+            if (heroDots) {
+                heroDots.innerHTML = homeHeroSlides.map((slide, index) => `
+                    <button
+                        class="dot${index === activeHomeHeroSlideIndex ? " active" : ""}"
+                        type="button"
+                        data-hero-slide="${index}"
+                        aria-label="Show ${escapeHtml(slide.title)}"
+                        ${index === activeHomeHeroSlideIndex ? 'aria-current="true"' : ""}
+                    ></button>
+                `).join("");
+
+                heroDots.querySelectorAll("[data-hero-slide]").forEach((dot) => {
+                    dot.addEventListener("click", () => {
+                        setActiveHomeHeroSlide(Number(dot.dataset.heroSlide), { delay: HOME_HERO_AUTOPLAY_DELAY });
+                    });
+                });
+            }
+
+            setActiveHomeHeroSlide(0, { skipSeoRefresh: true });
+        }
+
+        function applyHomepageMedia() {
+            renderHomepageHeroCarousel();
 
             if (founderPortraitImage) {
                 founderPortraitImage.src = FOUNDER_PORTRAIT_FALLBACK;
@@ -2144,6 +2361,35 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
                 });
             });
         }
+
+        if (heroNextButton) {
+            heroNextButton.addEventListener("click", () => {
+                setActiveHomeHeroSlide(activeHomeHeroSlideIndex + 1);
+            });
+        }
+
+        if (heroCarousel) {
+            heroCarousel.addEventListener("pointerenter", () => pauseHomeHeroAutoplay("hover"));
+            heroCarousel.addEventListener("pointerleave", () => {
+                resumeHomeHeroAutoplay("hover");
+            });
+            heroCarousel.addEventListener("focusin", () => pauseHomeHeroAutoplay("focus"));
+            heroCarousel.addEventListener("focusout", (event) => {
+                if (heroCarousel.contains(event.relatedTarget)) {
+                    return;
+                }
+
+                resumeHomeHeroAutoplay("focus");
+            });
+        }
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) {
+                pauseHomeHeroAutoplay("hidden");
+            } else {
+                resumeHomeHeroAutoplay("hidden");
+            }
+        });
 
         const revealObserver = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {

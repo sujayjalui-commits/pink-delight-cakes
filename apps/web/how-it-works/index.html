@@ -20,36 +20,39 @@
     <meta name="twitter:image" content="https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=1200&q=80">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,600;6..96,700&family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/src/styles/storefront.css">
 </head>
-<body data-api-base="__API_BASE_URL__">
+<body class="editorial-page" data-api-base="__API_BASE_URL__">
     <div class="page-shell">
+        <section class="home-brand-panel" aria-label="Pink Delight brand heading">
+            <div class="home-brand-panel__inner">
+                <p class="home-brand-panel__kicker">Home bakery</p>
+                <h1>Pink Delight</h1>
+            </div>
+        </section>
+
         <header class="site-header">
             <div class="header-inner">
-                <a class="brand" href="/" aria-label="Pink Delight Cakes home">
-                    <div class="brand-mark brand-logo-mark">
-                        <img src="/src/assets/pink-delight-logo.png" alt="" aria-hidden="true">
-                    </div>
-                    <div class="brand-copy">
-                        <strong data-brand-name>Pink Delight Cakes</strong>
-                        <span>Custom home bakery for joyful celebrations</span>
-                    </div>
-                </a>
+                <a class="brand home-nav-brand" href="/" aria-label="Pink Delight home"></a>
 
                 <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav" aria-label="Toggle navigation">
                     <i class="fa-solid fa-bars"></i>
                 </button>
 
-                <nav class="site-nav" id="siteNav">
-                    <a href="/menu/">Menu</a>
-                    <a class="nav-with-beta" href="/inquiry-model/">Inquiry Model <span class="beta-pill nav-beta">Beta</span></a>
-                    <a href="/how-it-works/">How It Works</a>
-                    <a href="/about/">About</a>
-                    <a href="/reviews/">Reviews</a>
-                    <a class="nav-bag" href="/cart/" aria-label="Open inquiry bag"><i class="fa-solid fa-bag-shopping"></i> Bag <span class="cart-count" data-cart-count>0</span></a>
-                    <a href="https://wa.me/918767812121" class="nav-cta" data-whatsapp-link target="_blank" rel="noreferrer"><i class="fa-brands fa-whatsapp"></i> Order on WhatsApp</a>
+                <nav class="site-nav" id="siteNav" aria-label="Main navigation">
+                    <div class="site-nav__primary">
+                        <a href="/menu/">Menu</a>
+                        <a href="/inquiry-model/">Inquiry</a>
+                        <a href="/how-it-works/">How It Works</a>
+                        <a href="/#about">About</a>
+                        <a href="/reviews/">Reviews</a>
+                    </div>
+                    <div class="site-nav__actions">
+                        <a class="nav-bag" href="/cart/" aria-label="Open inquiry bag"><i class="fa-solid fa-bag-shopping"></i> <span class="cart-count" data-cart-count>0</span></a>
+                        <a href="https://wa.me/918767812121" class="nav-cta" data-whatsapp-link target="_blank" rel="noreferrer"><i class="fa-brands fa-whatsapp"></i> Order</a>
+                    </div>
                 </nav>
             </div>
         </header>
@@ -171,7 +174,7 @@
                             <a href="/menu/">Signature menu</a>
                             <a href="/inquiry-model/">Inquiry model <span class="beta-pill">Beta</span></a>
                             <a href="/how-it-works/">How ordering works</a>
-                            <a href="/about/">About the bakery</a>
+                            <a href="/#about">About the bakery</a>
                             <a href="/reviews/">Customer reviews</a>
                             <a href="/cart/">Inquiry bag</a>
                             <a data-track-link href="__PUBLIC_SITE_URL__track/">Track your inquiry <span class="beta-pill">Beta</span></a>

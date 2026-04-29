@@ -1,15 +1,15 @@
 :root {
-            --bg: #fff8f2;
-            --surface: rgba(255, 255, 255, 0.82);
-            --surface-soft: #fff3ea;
-            --text: #4a312c;
-            --muted: #7b6158;
-            --accent: #d97983;
-            --accent-dark: #b85c66;
-            --secondary: #6f4e37;
-            --border: rgba(111, 78, 55, 0.12);
-            --shadow: 0 20px 45px rgba(112, 73, 56, 0.12);
-            --shadow-soft: 0 12px 26px rgba(112, 73, 56, 0.08);
+            --bg: #fbf4e8;
+            --surface: rgba(255, 253, 251, 0.82);
+            --surface-soft: #f7efe1;
+            --text: #382f2a;
+            --muted: #8d786f;
+            --accent: #bd8a7f;
+            --accent-dark: #a76f64;
+            --secondary: #6a5449;
+            --border: rgba(120, 89, 73, 0.12);
+            --shadow: 0 20px 44px rgba(87, 62, 48, 0.08);
+            --shadow-soft: 0 14px 30px rgba(87, 62, 48, 0.07);
             --radius-xl: 32px;
             --radius-lg: 24px;
             --radius-md: 18px;
@@ -25,12 +25,9 @@
         }
 
         body {
-            font-family: "Manrope", sans-serif;
+            font-family: "Inter", sans-serif;
             color: var(--text);
-            background:
-                radial-gradient(circle at top left, rgba(246, 217, 213, 0.9), transparent 26%),
-                radial-gradient(circle at right 20%, rgba(255, 230, 214, 0.7), transparent 22%),
-                linear-gradient(180deg, #fffaf6 0%, #fff7f0 48%, #fffdfb 100%);
+            background: #f1e8da;
             min-height: 100vh;
             line-height: 1.65;
         }
@@ -46,9 +43,49 @@
         }
 
         .page-shell {
-            width: var(--container);
+            width: min(1180px, calc(100% - 2rem));
             margin: 0 auto;
-            padding: 1.4rem 0 4rem;
+            padding: 0 0 4rem;
+        }
+
+        .home-brand-panel {
+            position: relative;
+            overflow: hidden;
+            margin: 0 calc(50% - 50vw) 1.35rem;
+            background:
+                linear-gradient(90deg, rgba(244, 229, 195, 0.18), transparent 12%, rgba(244, 229, 195, 0.18) 24%, transparent 36%, rgba(244, 229, 195, 0.18) 48%, transparent 60%, rgba(244, 229, 195, 0.18) 72%, transparent 84%, rgba(244, 229, 195, 0.18) 96%),
+                #f8f1e4;
+            border-bottom: 1px solid rgba(120, 89, 73, 0.08);
+        }
+
+        .home-brand-panel__inner {
+            position: relative;
+            width: 100%;
+            margin: 0 auto;
+            padding: 1.4rem 2.75rem 1.15rem;
+            text-align: center;
+        }
+
+        .home-brand-panel__kicker {
+            margin-bottom: 0.4rem;
+            color: var(--accent-dark);
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.34em;
+            text-transform: uppercase;
+        }
+
+        .home-brand-panel h1 {
+            font-family: "Bodoni Moda", serif;
+            font-size: clamp(3.7rem, 7.4vw, 6.25rem);
+            font-weight: 700;
+            font-variation-settings: "opsz" 96;
+            line-height: 0.94;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--accent);
+            -webkit-text-stroke: 0.35px rgba(167, 111, 100, 0.35);
+            text-rendering: geometricPrecision;
         }
 
         .topbar {
@@ -56,37 +93,35 @@
             align-items: center;
             justify-content: space-between;
             gap: 1rem;
-            margin-bottom: 2rem;
+            min-height: 76px;
+            margin-bottom: 1.75rem;
+            padding: 0 2.5rem;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 250, 241, 0.94);
+            border-bottom: 1px solid rgba(120, 89, 73, 0.1);
         }
 
         .brand {
             display: inline-flex;
             align-items: center;
-            gap: 0.9rem;
-        }
-
-        .brand-mark {
-            width: 48px;
-            height: 48px;
-            border-radius: 18px;
-            display: grid;
-            place-items: center;
-            background: linear-gradient(145deg, #f9d4d0, #f5b7bd);
-            color: var(--accent-dark);
-            box-shadow: var(--shadow-soft);
-            font-size: 1.25rem;
+            gap: 0;
         }
 
         .brand-copy strong {
             display: block;
-            font-family: "Cormorant Garamond", serif;
-            font-size: 1.6rem;
+            font-family: "Bodoni Moda", serif;
+            font-size: 1.2rem;
             line-height: 1;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
         }
 
         .brand-copy span {
             color: var(--muted);
-            font-size: 0.88rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
         }
 
         .topbar-links {
@@ -101,13 +136,16 @@
             align-items: center;
             justify-content: center;
             gap: 0.65rem;
-            min-height: 50px;
-            padding: 0.9rem 1.25rem;
-            border-radius: 999px;
-            border: 1px solid transparent;
-            font-weight: 700;
+            min-height: auto;
+            padding: 0;
+            border-radius: 0;
+            border: 0;
+            font-weight: 600;
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
             cursor: pointer;
-            transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+            transition: color var(--transition), transform var(--transition), box-shadow var(--transition), border-color var(--transition);
         }
 
         .topbar-links a:hover,
@@ -117,18 +155,40 @@
             transform: translateY(-2px);
         }
 
+        .topbar-links a {
+            background: transparent;
+            color: var(--text);
+            box-shadow: none;
+        }
+
+        .topbar-links a:hover,
+        .topbar-links a:focus-visible {
+            color: #8d4748;
+        }
+
         .btn-primary {
             background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
             color: #fff;
-            box-shadow: 0 14px 28px rgba(184, 92, 102, 0.24);
+            box-shadow: 0 14px 28px rgba(167, 111, 100, 0.18);
+            min-height: 50px;
+            padding: 0.9rem 1.25rem;
+            border-radius: 999px;
+            font-size: 0.92rem;
+            letter-spacing: 0;
+            text-transform: none;
         }
 
-        .btn-secondary,
-        .topbar-links a {
+        .btn-secondary {
             background: rgba(255, 255, 255, 0.78);
-            border-color: var(--border);
+            border: 1px solid var(--border);
             color: var(--text);
             box-shadow: var(--shadow-soft);
+            min-height: 50px;
+            padding: 0.9rem 1.25rem;
+            border-radius: 999px;
+            font-size: 0.92rem;
+            letter-spacing: 0;
+            text-transform: none;
         }
 
         .hero-card {
@@ -175,10 +235,11 @@
         }
 
         .hero-copy h1 {
-            font-family: "Cormorant Garamond", serif;
+            font-family: "Bodoni Moda", serif;
             font-size: clamp(2.7rem, 5vw, 4.6rem);
             line-height: 0.98;
             margin: 1rem 0 0.9rem;
+            letter-spacing: 0.02em;
         }
 
         .hero-copy p {
@@ -498,6 +559,10 @@
         }
 
         @media (max-width: 860px) {
+            .home-brand-panel__inner {
+                padding: 1.35rem 1.75rem 1.1rem;
+            }
+
             .hero-card {
                 grid-template-columns: 1fr;
             }
@@ -510,12 +575,13 @@
 
         @media (max-width: 640px) {
             .page-shell {
-                padding-top: 1rem;
+                padding-top: 0;
             }
 
             .topbar {
                 flex-direction: column;
                 align-items: flex-start;
+                padding: 1rem;
             }
 
             .topbar-links,
@@ -528,6 +594,11 @@
             .track-panel,
             .status-panel {
                 padding: 1.3rem;
+            }
+
+            .home-brand-panel h1 {
+                font-size: 3rem;
+                letter-spacing: 0.05em;
             }
 
             .guidance-grid,

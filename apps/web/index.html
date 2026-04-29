@@ -20,36 +20,40 @@
     <meta name="twitter:image" content="https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=1200&q=80">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,600;6..96,700&family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/src/styles/storefront.css">
 </head>
-<body data-api-base="__API_BASE_URL__">
+<body class="home-page" data-api-base="__API_BASE_URL__">
     <div class="page-shell">
+        <section class="home-brand-panel" aria-label="Pink Delight brand heading">
+            <div class="home-brand-panel__inner">
+                <p class="home-brand-panel__kicker">Home bakery</p>
+                <h1>Pink Delight</h1>
+            </div>
+        </section>
+
         <header class="site-header">
             <div class="header-inner">
-                <a class="brand" href="/" aria-label="Pink Delight Cakes home">
-                    <div class="brand-mark brand-logo-mark">
-                        <img src="/src/assets/pink-delight-logo.png" alt="" aria-hidden="true">
-                    </div>
-                    <div class="brand-copy">
-                        <strong data-brand-name>Pink Delight Cakes</strong>
-                        <span>Custom home bakery for joyful celebrations</span>
-                    </div>
+                <a class="brand home-nav-brand" href="/" aria-label="Pink Delight home">
                 </a>
 
                 <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav" aria-label="Toggle navigation">
                     <i class="fa-solid fa-bars"></i>
                 </button>
 
-                <nav class="site-nav" id="siteNav">
-                    <a href="/menu/">Menu</a>
-                    <a class="nav-with-beta" href="/inquiry-model/">Inquiry Model <span class="beta-pill nav-beta">Beta</span></a>
-                    <a href="/how-it-works/">How It Works</a>
-                    <a href="/about/">About</a>
-                    <a href="/reviews/">Reviews</a>
-                    <a class="nav-bag" href="/cart/" aria-label="Open inquiry bag"><i class="fa-solid fa-bag-shopping"></i> Bag <span class="cart-count" data-cart-count>0</span></a>
-                    <a href="https://wa.me/918767812121" class="nav-cta" data-whatsapp-link target="_blank" rel="noreferrer"><i class="fa-brands fa-whatsapp"></i> Order on WhatsApp</a>
+                <nav class="site-nav" id="siteNav" aria-label="Main navigation">
+                    <div class="site-nav__primary">
+                        <a href="/menu/">Menu</a>
+                        <a href="/inquiry-model/">Inquiry</a>
+                        <a href="/how-it-works/">How It Works</a>
+                        <a href="#about">About</a>
+                        <a href="/reviews/">Reviews</a>
+                    </div>
+                    <div class="site-nav__actions">
+                        <a class="nav-bag" href="/cart/" aria-label="Open inquiry bag"><i class="fa-solid fa-bag-shopping"></i> <span class="cart-count" data-cart-count>0</span></a>
+                        <a href="https://wa.me/918767812121" class="nav-cta" data-whatsapp-link target="_blank" rel="noreferrer"><i class="fa-brands fa-whatsapp"></i> Order</a>
+                    </div>
                 </nav>
             </div>
         </header>
@@ -58,47 +62,22 @@
             <section class="hero" id="home">
                 <div class="hero-layout">
                     <div class="hero-copy reveal">
-                        <span class="eyebrow"><i class="fa-solid fa-heart"></i> Freshly baked to order</span>
-                        <h1>Custom cakes that look beautiful, taste homemade, and feel made just for your celebration.</h1>
-                        <p>Pink Delight Cakes creates soft, elegant celebration cakes with thoughtful details, custom themes, and a warm inquiry-first experience from the first message to the final pickup or delivery.</p>
-
                         <div class="hero-actions">
-                            <a class="btn btn-primary" href="https://wa.me/918767812121" data-whatsapp-link target="_blank" rel="noreferrer"><i class="fa-brands fa-whatsapp"></i> Start Your Order</a>
+                            <a class="btn btn-primary" id="homeHeroPrimaryCta" href="/inquiry-model/#contact"><i class="fa-brands fa-whatsapp"></i> <span>Ask About This Cake</span></a>
                             <a class="btn btn-secondary" href="/menu/"><i class="fa-solid fa-arrow-right"></i> Browse Signature Cakes</a>
-                        </div>
-
-                        <div class="hero-meta">
-                            <span><i class="fa-solid fa-location-dot"></i> <span id="heroCityLabel">Founder-led home bakery</span></span>
-                            <span><i class="fa-solid fa-truck"></i> <span id="heroDeliveryPickupCopy">Pickup by pre-arranged slot</span></span>
-                            <span><i class="fa-solid fa-star"></i> Custom themes welcome</span>
                         </div>
                     </div>
 
-                    <div class="hero-card premium-collage reveal">
-                        <div class="hero-collage-grid">
-                            <div class="hero-main-visual">
-                                <div class="hero-frame hero-frame--main">
-                                    <img id="heroMainImage" src="https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=1200&q=80" alt="Signature Pink Delight Cakes centerpiece">
-                                </div>
-                                <div class="stat-card hero-stat-card">
-                                    <strong id="heroNoticeHighlight">24 to 48 hrs</strong>
-                                    <span id="noticePeriodCopy">Recommended notice for standard orders</span>
-                                </div>
-                            </div>
+                    <div class="hero-seam-accent" aria-hidden="true"></div>
 
-                            <div class="hero-detail-stack">
-                                <div class="hero-detail-card">
-                                    <img id="heroDetailImageOne" src="https://images.unsplash.com/photo-1535141192574-5d4897c12636?auto=format&fit=crop&w=800&q=80" alt="Cake detail from Pink Delight Cakes">
-                                </div>
-                                <div class="hero-detail-card">
-                                    <img id="heroDetailImageTwo" src="https://images.unsplash.com/photo-1562777717-b6aff3afac0f?auto=format&fit=crop&w=800&q=80" alt="Close-up frosting detail from Pink Delight Cakes">
-                                </div>
-                                <div class="hero-trust-card">
-                                    <strong>Styled around your occasion</strong>
-                                    <p>Custom themes, color palettes, and finishing details are confirmed personally before your date is reserved.</p>
-                                </div>
-                            </div>
+                    <div class="hero-carousel reveal" aria-label="Featured cake showcase">
+                        <div class="hero-media">
+                            <div class="hero-track" id="heroTrack"></div>
                         </div>
+                        <button class="hero-arrow" id="heroNextButton" type="button" aria-label="Next featured cake">
+                            <span></span>
+                        </button>
+                        <div class="dots hero-dots" id="heroDots" aria-label="Featured cake carousel"></div>
                     </div>
                 </div>
             </section>
@@ -140,14 +119,29 @@
                 </div>
             </section>
 
-            <section class="section">
+            <section class="section" id="about">
                 <div class="container">
-                    <div class="cta-card reveal">
-                        <h2>Planning a celebration soon? Let’s create a cake that feels personal.</h2>
-                        <p id="responseTimeCopy">Send your date, number of servings, flavor preference, and inspiration photo. You’ll get a quick reply with design suggestions and pricing.</p>
-                        <div class="cta-actions">
-                            <a class="btn btn-primary" href="https://wa.me/918767812121" data-whatsapp-link target="_blank" rel="noreferrer"><i class="fa-brands fa-whatsapp"></i> Message on WhatsApp</a>
-                            <a class="btn btn-secondary" href="/menu/"><i class="fa-solid fa-cake-candles"></i> View Menu</a>
+                    <div class="story-grid">
+                        <div class="about-panel reveal">
+                            <span class="eyebrow"><i class="fa-solid fa-cookie-bite"></i> About the baker</span>
+                            <h3 id="bakeryIntroTitle">Baked from home, designed with care, and made for real celebrations.</h3>
+                            <p id="bakeryIntroParagraph1">Pink Delight Cakes began as a small home startup for family birthdays and special weekends. What stayed the same as orders grew was the attention to flavor, finish, and making each customer feel heard.</p>
+                            <p id="bakeryIntroParagraph2">Pink Delight Cakes grew from family celebrations into a warm home bakery focused on soft finishes, homemade flavor, and cakes that feel truly personal.</p>
+                            <div class="founder-note-card">
+                                <strong>Founder note</strong>
+                                <p id="founderNoteText">Pinky Sangoi handles each inquiry like a real conversation, not a rushed checkout. The aim is simple: make the cake feel personal, taste homemade, and arrive as part of the celebration instead of just another order.</p>
+                            </div>
+
+                            <ul class="about-highlights">
+                                <li><i class="fa-solid fa-check"></i> Fresh sponge baked in small batches</li>
+                                <li><i class="fa-solid fa-check"></i> Designs tailored to your event and color palette</li>
+                                <li><i class="fa-solid fa-check"></i> Friendly ordering through direct message</li>
+                            </ul>
+                        </div>
+
+                        <div class="story-image-card founder-portrait-card reveal">
+                            <img id="founderPortraitImage" src="/src/assets/baat-pakki-engagement-cake.webp" alt="Pink Delight Cakes signature celebration cake">
+                            <div class="portrait-chip"><i class="fa-solid fa-heart"></i> Founder-led home bakery</div>
                         </div>
                     </div>
                 </div>
@@ -174,7 +168,7 @@
                             <a href="/menu/">Signature menu</a>
                             <a href="/inquiry-model/">Inquiry model <span class="beta-pill">Beta</span></a>
                             <a href="/how-it-works/">How ordering works</a>
-                            <a href="/about/">About the bakery</a>
+                            <a href="#about">About the bakery</a>
                             <a href="/reviews/">Customer reviews</a>
                             <a href="/cart/">Inquiry bag</a>
                             <a data-track-link href="__PUBLIC_SITE_URL__track/">Track your inquiry <span class="beta-pill">Beta</span></a>
