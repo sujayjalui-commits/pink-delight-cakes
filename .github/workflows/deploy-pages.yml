@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - "apps/web/**"
+      - "scripts/deploy/**"
+      - "package.json"
       - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
 
