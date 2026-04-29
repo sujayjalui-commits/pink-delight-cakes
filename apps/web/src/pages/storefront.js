@@ -204,7 +204,7 @@
         const heroCopy = document.querySelector(".hero-copy");
         const finePointerQuery = window.matchMedia("(pointer: fine)");
         const cursorMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-        const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");`n
+        const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
         function getStructuredDataScript() {
             let script = document.getElementById("structuredDataScript");
 
