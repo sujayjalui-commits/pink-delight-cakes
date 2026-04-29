@@ -17,7 +17,7 @@
             --radius-md: 18px;
             --radius-sm: 12px;
             --container: min(1280px, calc(100% - clamp(2rem, 5vw, 4rem)));
-            --hero-shell: calc(100% - clamp(0.35rem, 0.8vw, 0.7rem));
+            --hero-shell: 100%;
             --transition: 180ms ease;
             --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
             --ease-premium: cubic-bezier(0.76, 0, 0.24, 1);
@@ -643,7 +643,7 @@
             width: var(--hero-shell);
             margin: 0 auto;
             padding: 0;
-            min-height: 684px;
+            min-height: 720px;
             overflow: hidden;
             background:
                 linear-gradient(90deg, rgba(245, 235, 217, 0.95) 0%, rgba(245, 235, 217, 0.58) 31%, rgba(251, 245, 233, 0.12) 62%),
@@ -711,7 +711,7 @@
         .home-page .hero-layout {
             position: relative;
             width: 100%;
-            min-height: 684px;
+            min-height: 720px;
             display: block;
         }
 
@@ -1020,11 +1020,11 @@
 
         @media (min-width: 1400px) {
             .home-page .hero {
-                min-height: 720px;
+                min-height: 760px;
             }
 
             .home-page .hero-layout {
-                min-height: 720px;
+                min-height: 760px;
             }
 
             .home-page .hero-copy {
@@ -2948,7 +2948,7 @@
             }
 
             .home-page .hero {
-                min-height: 604px;
+                min-height: 628px;
             }
 
             .home-page .hero-copy {
@@ -2994,7 +2994,7 @@
             }
 
             .home-page .hero {
-                min-height: 556px;
+                min-height: 578px;
             }
 
             .home-page .hero-copy {
