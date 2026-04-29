@@ -44,7 +44,6 @@ const filesToStamp = [
   path.join("cart", "index.html"),
   path.join("inquiry-model", "index.html"),
   path.join("how-it-works", "index.html"),
-  path.join("about", "index.html"),
   path.join("reviews", "index.html"),
   path.join("track", "index.html"),
   path.join("admin", "index.html"),
@@ -65,6 +64,43 @@ function replaceTokens(contents) {
   return nextContents;
 }
 
+function removeOutputEntry(targetPath) {
+  const stats = fs.lstatSync(targetPath);
+
+  if (stats.isDirectory() && !stats.isSymbolicLink()) {
+    fs.rmSync(targetPath, { recursive: true, force: true });
+    return;
+  }
+
+  fs.unlinkSync(targetPath);
+}
+
+function pruneStaleOutputEntries(sourcePath, outputPath) {
+  if (!fs.existsSync(sourcePath) || !fs.existsSync(outputPath)) {
+    return;
+  }
+
+  for (const entry of fs.readdirSync(outputPath, { withFileTypes: true })) {
+    const sourceEntryPath = path.join(sourcePath, entry.name);
+    const outputEntryPath = path.join(outputPath, entry.name);
+
+    if (!fs.existsSync(sourceEntryPath)) {
+      try {
+        removeOutputEntry(outputEntryPath);
+      } catch (error) {
+        if (error?.code !== "EPERM") {
+          throw error;
+        }
+      }
+      continue;
+    }
+
+    if (entry.isDirectory() && fs.statSync(sourceEntryPath).isDirectory()) {
+      pruneStaleOutputEntries(sourceEntryPath, outputEntryPath);
+    }
+  }
+}
+
 fs.mkdirSync(path.dirname(outputDir), { recursive: true });
 try {
   fs.rmSync(outputDir, { recursive: true, force: true });
@@ -76,6 +112,7 @@ try {
 
 fs.mkdirSync(outputDir, { recursive: true });
 fs.cpSync(sourceDir, outputDir, { recursive: true });
+pruneStaleOutputEntries(sourceDir, outputDir);
 
 for (const relativeFile of filesToStamp) {
   const targetFile = path.join(outputDir, relativeFile);
