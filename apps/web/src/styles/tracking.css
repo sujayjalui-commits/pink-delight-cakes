@@ -32,6 +32,72 @@
             line-height: 1.65;
         }
 
+        body.has-bakery-cursor,
+        body.has-bakery-cursor * {
+            cursor: none !important;
+        }
+
+        .bakery-cursor,
+        .bakery-cursor-dot {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0;
+            transform: translate3d(-50%, -50%, 0);
+            transition: opacity 180ms ease, width 220ms ease, height 220ms ease, background 220ms ease, border-color 220ms ease;
+            will-change: transform;
+        }
+
+        .bakery-cursor {
+            width: 22px;
+            height: 22px;
+            border: 1px solid rgba(169, 72, 73, 0.42);
+            border-radius: 50%;
+            background: transparent;
+            box-shadow: 0 5px 14px rgba(83, 48, 38, 0.08);
+        }
+
+        .bakery-cursor-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 999px 999px 999px 2px;
+            background: #a94849;
+            box-shadow: 0 0 0 1px rgba(255, 250, 246, 0.72), 0 2px 8px rgba(169, 72, 73, 0.22);
+            transform-origin: center;
+        }
+
+        body.cursor-ready .bakery-cursor,
+        body.cursor-ready .bakery-cursor-dot {
+            opacity: 1;
+        }
+
+        body.cursor-interactive .bakery-cursor {
+            width: 30px;
+            height: 30px;
+            border-color: rgba(169, 72, 73, 0.46);
+            box-shadow: 0 8px 18px rgba(83, 48, 38, 0.11);
+        }
+
+        body.cursor-interactive .bakery-cursor-dot {
+            width: 6px;
+            height: 6px;
+            background: #8d4748;
+        }
+
+        body.cursor-pressed .bakery-cursor {
+            width: 18px;
+            height: 18px;
+            border-color: rgba(169, 72, 73, 0.62);
+            box-shadow: 0 4px 12px rgba(83, 48, 38, 0.1);
+        }
+
+        body.cursor-pressed .bakery-cursor-dot {
+            width: 4px;
+            height: 4px;
+        }
+
         a {
             color: inherit;
             text-decoration: none;
@@ -605,5 +671,24 @@
             .status-grid,
             .timeline-grid {
                 grid-template-columns: 1fr;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .bakery-cursor,
+            .bakery-cursor-dot {
+                display: none;
+            }
+        }
+
+        @media (pointer: coarse) {
+            body.has-bakery-cursor,
+            body.has-bakery-cursor * {
+                cursor: auto !important;
+            }
+
+            .bakery-cursor,
+            .bakery-cursor-dot {
+                display: none;
             }
         }

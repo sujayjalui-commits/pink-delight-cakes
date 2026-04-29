@@ -228,7 +228,9 @@
         const homeHeroPauseReasons = new Set();
 
         function initBakeryCursor() {
-            if (!document.body.classList.contains("home-page") || !finePointerQuery.matches || cursorMotionQuery.matches) {
+            const supportsBakeryCursor = document.body.matches(".home-page, .editorial-page");
+
+            if (!supportsBakeryCursor || !finePointerQuery.matches || cursorMotionQuery.matches) {
                 return;
             }
 
@@ -257,7 +259,7 @@
             }
 
             function setInteractiveState(event) {
-                const isInteractive = Boolean(event.target.closest("a, button, .signature-grid > *, .promise-card, .cta-card, .hero-carousel"));
+                const isInteractive = Boolean(event.target.closest("a, button, input, select, textarea, label, .signature-grid > *, .promise-card, .cta-card, .hero-carousel, .support-card, .contact-item, .timeline-card, .status-meta"));
                 document.body.classList.toggle("cursor-interactive", isInteractive);
             }
 

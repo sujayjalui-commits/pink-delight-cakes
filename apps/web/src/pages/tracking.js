@@ -170,6 +170,72 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         const whatsAppSupportLink = document.getElementById("whatsAppSupportLink");
         const statusWhatsAppLink = document.getElementById("statusWhatsAppLink");
         const statusWhatsAppLabel = document.getElementById("statusWhatsAppLabel");
+        const finePointerQuery = window.matchMedia("(pointer: fine)");
+        const cursorMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+        function initBakeryCursor() {
+            if (!document.body.classList.contains("tracking-page") || !finePointerQuery.matches || cursorMotionQuery.matches) {
+                return;
+            }
+
+            if (document.querySelector(".bakery-cursor")) {
+                return;
+            }
+
+            const cursor = document.createElement("div");
+            const cursorDot = document.createElement("div");
+            cursor.className = "bakery-cursor";
+            cursorDot.className = "bakery-cursor-dot";
+            document.body.append(cursor, cursorDot);
+            document.body.classList.add("has-bakery-cursor");
+
+            const target = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+            const current = { x: target.x, y: target.y };
+            let rafId = 0;
+
+            function renderCursor() {
+                current.x += (target.x - current.x) * 0.18;
+                current.y += (target.y - current.y) * 0.18;
+
+                cursor.style.transform = `translate3d(${current.x}px, ${current.y}px, 0) translate3d(-50%, -50%, 0)`;
+                cursorDot.style.transform = `translate3d(${target.x}px, ${target.y}px, 0) translate3d(-50%, -50%, 0)`;
+                rafId = window.requestAnimationFrame(renderCursor);
+            }
+
+            function setInteractiveState(event) {
+                const isInteractive = Boolean(event.target.closest("a, button, input, label, .detail-card, .status-meta, .timeline-card, .guidance-card"));
+                document.body.classList.toggle("cursor-interactive", isInteractive);
+            }
+
+            window.addEventListener("pointermove", (event) => {
+                target.x = event.clientX;
+                target.y = event.clientY;
+                document.body.classList.add("cursor-ready");
+                setInteractiveState(event);
+
+                if (!rafId) {
+                    renderCursor();
+                }
+            }, { passive: true });
+
+            window.addEventListener("pointerdown", () => {
+                document.body.classList.add("cursor-pressed");
+            });
+
+            window.addEventListener("pointerup", () => {
+                document.body.classList.remove("cursor-pressed");
+            });
+
+            document.addEventListener("pointerleave", () => {
+                document.body.classList.remove("cursor-ready");
+            });
+
+            document.addEventListener("pointerenter", () => {
+                document.body.classList.add("cursor-ready");
+            });
+        }
+
+        initBakeryCursor();
 
         async function apiRequest(pathname) {
             const controller = new AbortController();
