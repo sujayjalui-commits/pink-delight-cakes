@@ -16,7 +16,8 @@
             --radius-lg: 24px;
             --radius-md: 18px;
             --radius-sm: 12px;
-            --container: min(1180px, calc(100% - 2rem));
+            --container: min(1280px, calc(100% - clamp(2rem, 5vw, 4rem)));
+            --hero-shell: calc(100% - clamp(0.35rem, 0.8vw, 0.7rem));
             --transition: 180ms ease;
             --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
             --ease-premium: cubic-bezier(0.76, 0, 0.24, 1);
@@ -214,18 +215,18 @@
 
         .home-brand-panel__inner {
             position: relative;
-            width: 100%;
+            width: var(--container);
             margin: 0 auto;
-            padding: 1.4rem 2.75rem 1.15rem;
+            padding: 1.4rem 0 1.15rem;
             text-align: center;
         }
 
         .home-brand-panel__kicker {
             margin-bottom: 0.4rem;
             color: var(--accent-dark);
-            font-size: 0.72rem;
+            font-size: 0.74rem;
             font-weight: 800;
-            letter-spacing: 0.42em;
+            letter-spacing: 0.5em;
             text-transform: uppercase;
         }
 
@@ -336,9 +337,9 @@
 
         .home-page .header-inner,
         .editorial-page .header-inner {
-            width: 100%;
+            width: var(--container);
             min-height: 82px;
-            padding: 0 clamp(2.75rem, 5vw, 4.625rem);
+            padding: 0;
             display: flex;
             align-items: center;
             justify-content: flex-end;
@@ -432,7 +433,7 @@
         .editorial-page .site-nav {
             width: 100%;
             display: grid;
-            grid-template-columns: 142px minmax(0, 1fr) max-content;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
             align-items: center;
             justify-content: initial;
             gap: 1rem;
@@ -441,6 +442,7 @@
         .home-page .site-nav__primary,
         .editorial-page .site-nav__primary {
             grid-column: 2;
+            justify-self: center;
             justify-content: center;
             gap: clamp(1.5rem, 3vw, 2.65rem);
         }
@@ -451,7 +453,7 @@
             justify-content: flex-end;
             justify-self: end;
             flex-shrink: 0;
-            min-width: 2rem;
+            min-width: 0;
             gap: 0;
         }
 
@@ -638,6 +640,8 @@
 
         .home-page .hero {
             position: relative;
+            width: var(--hero-shell);
+            margin: 0 auto;
             padding: 0;
             min-height: 684px;
             overflow: hidden;
@@ -1015,45 +1019,21 @@
         }
 
         @media (min-width: 1400px) {
-            .home-page .home-brand-panel__inner {
-                padding-inline: clamp(4rem, 8vw, 8.5rem);
-            }
-
-            .home-page .header-inner {
-                padding-inline: clamp(4rem, 7vw, 7.5rem);
-            }
-
-            .home-page .site-nav {
-                grid-template-columns: 170px minmax(0, 1fr) max-content;
-            }
-
-            .home-page .site-nav__primary {
-                gap: clamp(1.8rem, 2.6vw, 3rem);
-            }
-
             .home-page .hero {
-                min-height: 740px;
+                min-height: 720px;
             }
 
             .home-page .hero-layout {
-                min-height: 740px;
+                min-height: 720px;
             }
 
             .home-page .hero-copy {
-                width: min(410px, 36%);
-                padding: 168px 0 0 clamp(6rem, 9vw, 10rem);
+                width: min(392px, 36%);
+                padding-top: 164px;
             }
 
             .home-page .hero-media {
-                width: 74%;
-            }
-
-            .home-page .hero-arrow {
-                right: clamp(2.2rem, 3vw, 3.5rem);
-            }
-
-            .home-page .hero-dots {
-                bottom: 34px;
+                width: 72%;
             }
         }
 
@@ -2910,12 +2890,12 @@
         @media (max-width: 1024px) {
             .home-page .home-brand-panel__inner,
             .editorial-page .home-brand-panel__inner {
-                padding: 1.35rem 1.75rem 1.1rem;
+                padding: 1.35rem 0 1.1rem;
             }
 
             .home-page .header-inner,
             .editorial-page .header-inner {
-                padding: 0 2.625rem;
+                padding: 0;
             }
 
             .home-page .hero-copy {
@@ -2929,7 +2909,7 @@
 
             .home-page .site-nav,
             .editorial-page .site-nav {
-                grid-template-columns: 110px minmax(0, 1fr) max-content;
+                grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
             }
 
             .hero-seam-accent {
@@ -2993,7 +2973,7 @@
             .home-page .home-brand-panel__kicker,
             .editorial-page .home-brand-panel__kicker {
                 font-size: 0.68rem;
-                letter-spacing: 0.46em;
+                letter-spacing: 0.52em;
             }
 
             .home-page .home-brand-panel h1,
