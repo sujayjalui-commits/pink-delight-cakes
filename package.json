@@ -18,6 +18,8 @@
     "db:seed:build": "node scripts/seed-data/build-phase-1-seed-sql.mjs",
     "db:seed": "echo \"Run npm run db:seed:build, then execute database/seeds/phase-1-seed.sql via wrangler d1 execute\"",
     "ops:check:browser-smoke": "node scripts/maintenance/check-browser-smoke.mjs",
+    "ops:check:pages-bundle": "node scripts/maintenance/check-pages-bundle.mjs",
+    "ops:check:pages-predeploy": "npm run deploy:prepare:pages && npm run ops:check:pages-bundle",
     "ops:check:production": "node scripts/maintenance/check-production.mjs",
     "ops:check:admin-auth": "node scripts/maintenance/check-admin-auth.mjs",
     "ops:alert": "node scripts/maintenance/send-webhook-alert.mjs",

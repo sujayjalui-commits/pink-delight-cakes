@@ -4,7 +4,7 @@ if (!siteBaseUrl) {
   throw new Error("SITE_BASE_URL is required.");
 }
 
-const adminBaseUrl = `${siteBaseUrl}/admin/`;
+const adminBaseUrl = String(process.env.ADMIN_BASE_URL || `${siteBaseUrl}/admin/`).replace(/\/$/, "") + "/";
 const trackingBaseUrl = `${siteBaseUrl}/track/`;
 const siteOrigin = new URL(siteBaseUrl).origin;
 
@@ -66,29 +66,124 @@ function assertTightCsp(response, label) {
   }
 }
 
-const storefront = await fetchText(siteBaseUrl, "Storefront page");
-
-if (!storefront.text.includes("src/styles/storefront.css") || !storefront.text.includes("src/pages/storefront.js")) {
-  throw new Error("Storefront page did not reference the extracted CSS/JS assets");
+function assertPageIncludes(text, label, expectedSnippets) {
+  for (const snippet of expectedSnippets) {
+    if (!text.includes(snippet)) {
+      throw new Error(`${label} did not include expected markup: ${snippet}`);
+    }
+  }
 }
 
-assertTightCsp(storefront.response, "Storefront page");
-
-const tracking = await fetchText(trackingBaseUrl, "Tracking page");
-
-if (!tracking.text.includes("../src/styles/tracking.css") || !tracking.text.includes("../src/pages/tracking.js")) {
-  throw new Error("Tracking page did not reference the extracted CSS/JS assets");
+function assertPageExcludes(text, label, unexpectedSnippets) {
+  for (const snippet of unexpectedSnippets) {
+    if (text.includes(snippet)) {
+      throw new Error(`${label} still included unexpected markup: ${snippet}`);
+    }
+  }
 }
 
-assertTightCsp(tracking.response, "Tracking page");
+async function checkHtmlPage(definition) {
+  const page = await fetchText(definition.url, definition.label);
 
-const admin = await fetchText(adminBaseUrl, "Admin page");
+  assertPageIncludes(page.text, definition.label, definition.includes || []);
+  assertPageExcludes(page.text, definition.label, definition.excludes || []);
+  assertTightCsp(page.response, definition.label);
 
-if (!admin.text.includes('data-api-base="/api"')) {
-  throw new Error("Admin page did not expose the same-origin /api base");
+  return page;
 }
 
-assertTightCsp(admin.response, "Admin page");
+const pageChecks = [
+  {
+    label: "Storefront page",
+    url: siteBaseUrl,
+    includes: [
+      "src/styles/storefront.css",
+      "src/pages/storefront.js",
+      'data-api-base="',
+      "<h1>Pink Delight</h1>"
+    ]
+  },
+  {
+    label: "Menu page",
+    url: `${siteBaseUrl}/menu/`,
+    includes: [
+      "/src/styles/storefront.css",
+      "/src/pages/storefront.js",
+      'id="menuGrid"'
+    ],
+    excludes: ['id="signatureGrid"']
+  },
+  {
+    label: "Inquiry page",
+    url: `${siteBaseUrl}/inquiry-model/`,
+    includes: [
+      "/src/styles/storefront.css",
+      "/src/pages/storefront.js",
+      "Your inquiry summary",
+      'id="requestPreview"'
+    ]
+  },
+  {
+    label: "Inquiry bag page",
+    url: `${siteBaseUrl}/cart/`,
+    includes: [
+      "/src/styles/storefront.css",
+      "/src/pages/storefront.js",
+      "Inquiry bag",
+      'id="cartInquiryForm"'
+    ]
+  },
+  {
+    label: "How it works page",
+    url: `${siteBaseUrl}/how-it-works/`,
+    includes: [
+      "/src/styles/storefront.css",
+      "/src/pages/storefront.js",
+      "How It Works",
+      'id="process"'
+    ]
+  },
+  {
+    label: "Reviews page",
+    url: `${siteBaseUrl}/reviews/`,
+    includes: [
+      "/src/styles/storefront.css",
+      "/src/pages/storefront.js",
+      "Customer reviews",
+      'id="reviewGrid"'
+    ]
+  },
+  {
+    label: "Tracking page",
+    url: trackingBaseUrl,
+    includes: [
+      "../src/styles/tracking.css",
+      "../src/pages/tracking.js",
+      "Check inquiry status",
+      'id="trackForm"'
+    ]
+  },
+  {
+    label: "Admin page",
+    url: adminBaseUrl,
+    includes: [
+      "../src/pages/admin/dashboard.css",
+      "../src/pages/admin/dashboard.js",
+      'data-api-base="/api"'
+    ]
+  }
+];
+
+const checkedPages = [];
+
+for (const pageCheck of pageChecks) {
+  const page = await checkHtmlPage(pageCheck);
+  checkedPages.push({
+    label: pageCheck.label,
+    status: page.response.status,
+    url: pageCheck.url
+  });
+}
 
 const adminSessionProbe = await fetchJson(`${siteOrigin}/api/admin/auth/session`, "Same-origin admin session probe", {
   expectedStatus: 401,
@@ -107,8 +202,6 @@ console.log(JSON.stringify({
   siteBaseUrl,
   adminBaseUrl,
   trackingBaseUrl,
-  storefrontStatus: storefront.response.status,
-  trackingStatus: tracking.response.status,
-  adminStatus: admin.response.status,
+  checkedPages,
   adminSessionProbeStatus: adminSessionProbe.response.status
 }, null, 2));
