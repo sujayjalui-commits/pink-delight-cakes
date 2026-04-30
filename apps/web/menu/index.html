@@ -24,18 +24,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/src/styles/storefront.css">
 </head>
-<body class="editorial-page" data-api-base="__API_BASE_URL__">
+<body class="editorial-page menu-page" data-api-base="__API_BASE_URL__">
     <div class="page-shell">
-        <section class="home-brand-panel" aria-label="Pink Delight brand heading">
-            <div class="home-brand-panel__inner">
-                <p class="home-brand-panel__kicker">Home bakery</p>
-                <h1>Pink Delight</h1>
-            </div>
-        </section>
-
         <header class="site-header">
             <div class="header-inner">
-                <a class="brand home-nav-brand" href="/" aria-label="Pink Delight home"></a>
+                <a class="brand home-nav-brand" href="/" aria-label="Pink Delight home">
+                    <span class="menu-page__brand-wordmark">Pink Delight Cakes</span>
+                </a>
 
                 <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav" aria-label="Toggle navigation">
                     <i class="fa-solid fa-bars"></i>
@@ -57,11 +52,16 @@
         </header>
 
         <main>
-            <section class="section" id="menu">
-                <div class="container">
+            <section class="section menu-editorial-section" id="menu">
+                <div class="container menu-editorial-layout">
+                    <div class="menu-editorial-intro reveal">
+                        <span class="menu-editorial-intro__eyebrow">Curated selections</span>
+                        <h1 class="menu-editorial-intro__title">Menu</h1>
+                        <span class="menu-editorial-intro__rule" aria-hidden="true"></span>
+                        <p class="catalog-note menu-editorial-intro__note reveal" id="catalogNote">Every signature cake can still be tailored with flavors, serving sizes, topper ideas, and celebration notes once you send your inquiry.</p>
+                    </div>
                     <div class="menu-filter-row reveal" id="menuCategoryFilters" aria-label="Filter cakes by category"></div>
                     <div class="menu-grid" id="menuGrid"></div>
-                    <p class="catalog-note reveal" id="catalogNote">Every signature cake can still be tailored with flavors, serving sizes, topper ideas, and celebration notes once you send your inquiry.</p>
                 </div>
             </section>
         </main>
