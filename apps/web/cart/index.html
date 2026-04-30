@@ -140,8 +140,24 @@
 
                                 <div class="reference-card" id="cartReferenceCard" hidden>
                                     <strong>Inquiry saved</strong>
-                                    <p>Your cart inquiry was received. Keep the reference number handy if you follow up on WhatsApp.</p>
-                                    <a class="btn btn-secondary" id="cartTrackReferenceLink" href="__PUBLIC_SITE_URL__track/">Track this inquiry</a>
+                                    <p>Your cart inquiry was received. Keep the reference number handy if you follow up on WhatsApp. We also save the latest reference on this device.</p>
+                                    <div class="reference-meta">
+                                        <div class="reference-meta__item">
+                                            <span class="reference-meta__label">Reference number</span>
+                                            <strong class="reference-meta__value" id="cartReferenceNumberValue">-</strong>
+                                        </div>
+                                        <div class="reference-meta__item">
+                                            <span class="reference-meta__label">Saved</span>
+                                            <strong class="reference-meta__value" id="cartReferenceCreatedAt">Just now</strong>
+                                        </div>
+                                    </div>
+                                    <div class="reference-actions">
+                                        <a class="btn btn-secondary" id="cartTrackReferenceLink" href="__PUBLIC_SITE_URL__track/"><i class="fa-solid fa-arrow-up-right-from-square"></i> Track this inquiry</a>
+                                        <button class="btn btn-secondary btn-small" id="cartCopyReferenceButton" type="button"><i class="fa-regular fa-copy"></i> Copy reference</button>
+                                        <button class="btn btn-secondary btn-small" id="cartCopyTrackLinkButton" type="button"><i class="fa-solid fa-link"></i> Copy tracking link</button>
+                                        <button class="btn btn-secondary btn-small" id="cartShareReferenceButton" type="button"><i class="fa-solid fa-share-nodes"></i> Share</button>
+                                        <button class="btn btn-secondary btn-small" id="cartDownloadReferenceButton" type="button"><i class="fa-solid fa-download"></i> Download receipt</button>
+                                    </div>
                                 </div>
                             </form>
                         </aside>

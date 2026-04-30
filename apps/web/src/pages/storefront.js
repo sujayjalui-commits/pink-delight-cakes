@@ -8,6 +8,7 @@
         const DEFAULT_FACEBOOK_URL = "https://www.facebook.com/PinkDelightCake?mibextid=ZbWKwL";
         const DEFAULT_INSTAGRAM_URL = "https://www.instagram.com/pinkdelightcake/profilecard/?igsh=MWM1dmFhY2VzOGVvaw==";
         const CART_STORAGE_KEY = "pinkDelightCakes.inquiryBag.v1";
+        const INQUIRY_RECOVERY_STORAGE_KEY = "pinkDelightCakes.lastInquiry.v1";
         const MAX_CART_ITEMS = 12;
         const MAX_CART_QUANTITY = 20;
         const HERO_COLLAGE_FALLBACKS = [
@@ -177,6 +178,12 @@
         const serviceAreaNoticeCopy = document.getElementById("serviceAreaNoticeCopy");
         const referenceCard = document.getElementById("referenceCard");
         const trackReferenceLink = document.getElementById("trackReferenceLink");
+        const referenceNumberValue = document.getElementById("referenceNumberValue");
+        const referenceCreatedAt = document.getElementById("referenceCreatedAt");
+        const copyReferenceButton = document.getElementById("copyReferenceButton");
+        const copyTrackLinkButton = document.getElementById("copyTrackLinkButton");
+        const shareReferenceButton = document.getElementById("shareReferenceButton");
+        const downloadReferenceButton = document.getElementById("downloadReferenceButton");
         const catalogNote = document.getElementById("catalogNote");
         const featuredSpotlight = document.getElementById("featuredSpotlight");
         const featuredSpotlightImage = document.getElementById("featuredSpotlightImage");
@@ -204,6 +211,12 @@
         const submitCartInquiryButton = document.getElementById("submitCartInquiryButton");
         const cartReferenceCard = document.getElementById("cartReferenceCard");
         const cartTrackReferenceLink = document.getElementById("cartTrackReferenceLink");
+        const cartReferenceNumberValue = document.getElementById("cartReferenceNumberValue");
+        const cartReferenceCreatedAt = document.getElementById("cartReferenceCreatedAt");
+        const cartCopyReferenceButton = document.getElementById("cartCopyReferenceButton");
+        const cartCopyTrackLinkButton = document.getElementById("cartCopyTrackLinkButton");
+        const cartShareReferenceButton = document.getElementById("cartShareReferenceButton");
+        const cartDownloadReferenceButton = document.getElementById("cartDownloadReferenceButton");
         const homepageHero = document.querySelector(".hero");
         const heroCopy = document.querySelector(".hero-copy");
         const finePointerQuery = window.matchMedia("(pointer: fine)");
@@ -223,6 +236,8 @@
         }
 
         const structuredDataScript = getStructuredDataScript();
+        let latestInquiryRecovery = null;
+        let latestCartInquiryRecovery = null;
         let currentHeroImage = DEFAULT_SOCIAL_IMAGE;
         let activeHomeHeroSlideIndex = 0;
         let homeHeroSlides = [];
@@ -397,6 +412,181 @@
 
         function createSitePageLink(pathname) {
             return new URL(pathname, SITE_URL).toString();
+        }
+
+        function formatRecoveryDateTime(value) {
+            const parsed = new Date(value || "");
+
+            if (Number.isNaN(parsed.getTime())) {
+                return "Just now";
+            }
+
+            return new Intl.DateTimeFormat("en-IN", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+                hour: "numeric",
+                minute: "2-digit"
+            }).format(parsed);
+        }
+
+        function readStoredInquiryRecovery() {
+            try {
+                const raw = window.localStorage.getItem(INQUIRY_RECOVERY_STORAGE_KEY);
+                const parsed = raw ? JSON.parse(raw) : null;
+
+                if (!parsed || !/^\d+$/.test(String(parsed.referenceId || "").trim())) {
+                    return null;
+                }
+
+                return {
+                    referenceId: String(parsed.referenceId).trim(),
+                    customerName: String(parsed.customerName || "").trim(),
+                    customerPhone: String(parsed.customerPhone || "").trim(),
+                    productLabel: String(parsed.productLabel || "").trim(),
+                    inquiryKind: String(parsed.inquiryKind || "single").trim() || "single",
+                    createdAt: String(parsed.createdAt || "").trim(),
+                    trackUrl: createTrackLink(String(parsed.referenceId).trim())
+                };
+            } catch {
+                return null;
+            }
+        }
+
+        function writeStoredInquiryRecovery(record) {
+            try {
+                if (!record) {
+                    window.localStorage.removeItem(INQUIRY_RECOVERY_STORAGE_KEY);
+                    return;
+                }
+
+                window.localStorage.setItem(INQUIRY_RECOVERY_STORAGE_KEY, JSON.stringify({
+                    referenceId: record.referenceId,
+                    customerName: record.customerName || "",
+                    customerPhone: record.customerPhone || "",
+                    productLabel: record.productLabel || "",
+                    inquiryKind: record.inquiryKind || "single",
+                    createdAt: record.createdAt || new Date().toISOString()
+                }));
+            } catch {
+                // Ignore storage failures so the inquiry flow stays intact.
+            }
+        }
+
+        function createInquiryRecoveryRecord({
+            referenceId,
+            customerName,
+            customerPhone,
+            productLabel,
+            inquiryKind = "single",
+            createdAt = new Date().toISOString()
+        }) {
+            const normalizedReferenceId = String(referenceId || "").trim();
+
+            if (!/^\d+$/.test(normalizedReferenceId)) {
+                return null;
+            }
+
+            return {
+                referenceId: normalizedReferenceId,
+                customerName: String(customerName || "").trim(),
+                customerPhone: String(customerPhone || "").trim(),
+                productLabel: String(productLabel || "").trim(),
+                inquiryKind,
+                createdAt,
+                trackUrl: createTrackLink(normalizedReferenceId)
+            };
+        }
+
+        async function copyTextToClipboard(text) {
+            const value = String(text || "").trim();
+
+            if (!value) {
+                return false;
+            }
+
+            if (navigator.clipboard?.writeText) {
+                try {
+                    await navigator.clipboard.writeText(value);
+                    return true;
+                } catch {
+                    // Fall through to legacy copy.
+                }
+            }
+
+            const input = document.createElement("textarea");
+            input.value = value;
+            input.setAttribute("readonly", "readonly");
+            input.style.position = "absolute";
+            input.style.left = "-9999px";
+            document.body.appendChild(input);
+            input.select();
+            input.setSelectionRange(0, value.length);
+
+            let copied = false;
+
+            try {
+                copied = document.execCommand("copy");
+            } catch {
+                copied = false;
+            }
+
+            input.remove();
+            return copied;
+        }
+
+        function downloadInquiryReceipt(record) {
+            if (!record) {
+                return;
+            }
+
+            const lines = [
+                `${state.settings.brandName || "Pink Delight Cakes"} inquiry receipt`,
+                "",
+                `Reference number: ${record.referenceId}`,
+                record.customerName ? `Customer name: ${record.customerName}` : "",
+                record.customerPhone ? `Phone / WhatsApp: ${record.customerPhone}` : "",
+                record.productLabel ? `Inquiry: ${record.productLabel}` : "",
+                `Saved on: ${formatRecoveryDateTime(record.createdAt)}`,
+                `Tracking link: ${record.trackUrl}`,
+                "",
+                "Keep this reference number and use the same phone number on the tracking page later."
+            ].filter(Boolean).join("\n");
+
+            const blob = new Blob([lines], { type: "text/plain;charset=utf-8" });
+            const downloadUrl = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = downloadUrl;
+            link.download = `pink-delight-inquiry-${record.referenceId}.txt`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+        }
+
+        async function shareInquiryRecovery(record) {
+            if (!record) {
+                return false;
+            }
+
+            const shareData = {
+                title: `${state.settings.brandName || "Pink Delight Cakes"} inquiry`,
+                text: `Track inquiry #${record.referenceId} with the same phone number used when sending it.`,
+                url: record.trackUrl
+            };
+
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                    return true;
+                } catch (error) {
+                    if (error?.name === "AbortError") {
+                        return true;
+                    }
+                }
+            }
+
+            return copyTextToClipboard(record.trackUrl);
         }
 
         function getCurrentCanonicalUrl() {
@@ -833,6 +1023,10 @@
             cartFormStatus.textContent = message;
             cartFormStatus.classList.toggle("error", type === "error");
             cartFormStatus.classList.toggle("success", type === "success");
+
+             if (type !== "success" && cartReferenceCard) {
+                cartReferenceCard.hidden = true;
+            }
         }
 
         function setCartSubmitBusy(isBusy) {
@@ -844,6 +1038,100 @@
             submitCartInquiryButton.innerHTML = isBusy
                 ? `<i class="fa-solid fa-spinner fa-spin"></i> Sending inquiry...`
                 : `<i class="fa-solid fa-paper-plane"></i> Send cart inquiry`;
+        }
+
+        function renderReferenceCard({
+            card,
+            numberLabel,
+            createdLabel,
+            trackLink,
+            record
+        }) {
+            if (!card || !trackLink || !record) {
+                return;
+            }
+
+            card.hidden = false;
+            trackLink.href = record.trackUrl;
+
+            if (numberLabel) {
+                numberLabel.textContent = `#${record.referenceId}`;
+            }
+
+            if (createdLabel) {
+                createdLabel.textContent = formatRecoveryDateTime(record.createdAt);
+            }
+        }
+
+        async function copyRecoveryReference(record, statusSetter) {
+            const copied = await copyTextToClipboard(record?.referenceId || "");
+            statusSetter(copied ? `Reference #${record.referenceId} copied.` : "Could not copy the reference number right now.", copied ? "success" : "error");
+        }
+
+        async function copyRecoveryTrackLink(record, statusSetter) {
+            const copied = await copyTextToClipboard(record?.trackUrl || "");
+            statusSetter(copied ? "Tracking link copied." : "Could not copy the tracking link right now.", copied ? "success" : "error");
+        }
+
+        async function shareRecoveryLink(record, statusSetter) {
+            const shared = await shareInquiryRecovery(record);
+            statusSetter(shared ? "Tracking link is ready to share." : "Could not share the tracking link right now.", shared ? "success" : "error");
+        }
+
+        function registerReferenceCardActions() {
+            copyReferenceButton?.addEventListener("click", () => {
+                if (latestInquiryRecovery) {
+                    copyRecoveryReference(latestInquiryRecovery, setFormStatus);
+                }
+            });
+
+            copyTrackLinkButton?.addEventListener("click", () => {
+                if (latestInquiryRecovery) {
+                    copyRecoveryTrackLink(latestInquiryRecovery, setFormStatus);
+                }
+            });
+
+            shareReferenceButton?.addEventListener("click", () => {
+                if (latestInquiryRecovery) {
+                    shareRecoveryLink(latestInquiryRecovery, setFormStatus);
+                }
+            });
+
+            downloadReferenceButton?.addEventListener("click", () => {
+                if (!latestInquiryRecovery) {
+                    return;
+                }
+
+                downloadInquiryReceipt(latestInquiryRecovery);
+                setFormStatus(`Receipt for inquiry #${latestInquiryRecovery.referenceId} downloaded.`, "success");
+            });
+
+            cartCopyReferenceButton?.addEventListener("click", () => {
+                if (latestCartInquiryRecovery) {
+                    copyRecoveryReference(latestCartInquiryRecovery, setCartFormStatus);
+                }
+            });
+
+            cartCopyTrackLinkButton?.addEventListener("click", () => {
+                if (latestCartInquiryRecovery) {
+                    copyRecoveryTrackLink(latestCartInquiryRecovery, setCartFormStatus);
+                }
+            });
+
+            cartShareReferenceButton?.addEventListener("click", () => {
+                if (latestCartInquiryRecovery) {
+                    shareRecoveryLink(latestCartInquiryRecovery, setCartFormStatus);
+                }
+            });
+
+            cartDownloadReferenceButton?.addEventListener("click", () => {
+                if (!latestCartInquiryRecovery) {
+                    return;
+                }
+
+                downloadInquiryReceipt(latestCartInquiryRecovery);
+                setCartFormStatus(`Receipt for inquiry #${latestCartInquiryRecovery.referenceId} downloaded.`, "success");
+            });
         }
 
         function renderCartPage() {
@@ -2207,8 +2495,21 @@
                 );
 
                 if (referenceCard && referenceId) {
-                    referenceCard.hidden = false;
-                    trackReferenceLink.href = createTrackLink(referenceId);
+                    latestInquiryRecovery = createInquiryRecoveryRecord({
+                        referenceId,
+                        customerName: payload.customerName,
+                        customerPhone: payload.customerPhone,
+                        productLabel: product?.name || payload.productId,
+                        inquiryKind: "single"
+                    });
+                    writeStoredInquiryRecovery(latestInquiryRecovery);
+                    renderReferenceCard({
+                        card: referenceCard,
+                        numberLabel: referenceNumberValue,
+                        createdLabel: referenceCreatedAt,
+                        trackLink: trackReferenceLink,
+                        record: latestInquiryRecovery
+                    });
                 }
 
                 const submittedSizeSummary = payload.sizeLabel && payload.servings
@@ -2318,8 +2619,21 @@
                 );
 
                 if (cartReferenceCard && referenceId) {
-                    cartReferenceCard.hidden = false;
-                    cartTrackReferenceLink.href = createTrackLink(referenceId);
+                    latestCartInquiryRecovery = createInquiryRecoveryRecord({
+                        referenceId,
+                        customerName: payload.customerName,
+                        customerPhone: payload.customerPhone,
+                        productLabel: `Cart inquiry (${payload.cartItems.length} item${payload.cartItems.length === 1 ? "" : "s"})`,
+                        inquiryKind: "cart"
+                    });
+                    writeStoredInquiryRecovery(latestCartInquiryRecovery);
+                    renderReferenceCard({
+                        card: cartReferenceCard,
+                        numberLabel: cartReferenceNumberValue,
+                        createdLabel: cartReferenceCreatedAt,
+                        trackLink: cartTrackReferenceLink,
+                        record: latestCartInquiryRecovery
+                    });
                 }
             } catch (error) {
                 setCartFormStatus(`${error.message} You can still continue on WhatsApp while we sort it out.`, "error");
@@ -2520,6 +2834,8 @@
                 revealObserver.observe(item);
             });
         }
+
+        registerReferenceCardActions();
 
         async function init() {
             state.cartItems = readStoredCartItems();

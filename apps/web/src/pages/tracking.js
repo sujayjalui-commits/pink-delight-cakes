@@ -1,6 +1,7 @@
-const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
+        const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         const RUNTIME_API_BASE_URL = "__API_BASE_URL__";
         const DEFAULT_PHONE = "+91 87678 12121";
+        const INQUIRY_RECOVERY_STORAGE_KEY = "pinkDelightCakes.lastInquiry.v1";
 
         function isRuntimePlaceholder(value) {
             return /^__.+__$/.test(String(value || "").trim());
@@ -100,6 +101,86 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             }).format(parsed);
         }
 
+        function readStoredInquiryRecovery() {
+            try {
+                const raw = window.localStorage.getItem(INQUIRY_RECOVERY_STORAGE_KEY);
+                const parsed = raw ? JSON.parse(raw) : null;
+
+                if (!parsed || !/^\d+$/.test(String(parsed.referenceId || "").trim())) {
+                    return null;
+                }
+
+                return {
+                    referenceId: String(parsed.referenceId).trim(),
+                    customerName: String(parsed.customerName || "").trim(),
+                    customerPhone: String(parsed.customerPhone || "").trim(),
+                    productLabel: String(parsed.productLabel || "").trim(),
+                    inquiryKind: String(parsed.inquiryKind || "single").trim() || "single",
+                    createdAt: String(parsed.createdAt || "").trim(),
+                    trackUrl: new URL(`track/?reference=${encodeURIComponent(String(parsed.referenceId).trim())}`, SITE_URL).toString()
+                };
+            } catch {
+                return null;
+            }
+        }
+
+        function writeStoredInquiryRecovery(record) {
+            try {
+                if (!record) {
+                    window.localStorage.removeItem(INQUIRY_RECOVERY_STORAGE_KEY);
+                    return;
+                }
+
+                window.localStorage.setItem(INQUIRY_RECOVERY_STORAGE_KEY, JSON.stringify({
+                    referenceId: record.referenceId,
+                    customerName: record.customerName || "",
+                    customerPhone: record.customerPhone || "",
+                    productLabel: record.productLabel || "",
+                    inquiryKind: record.inquiryKind || "single",
+                    createdAt: record.createdAt || new Date().toISOString()
+                }));
+            } catch {
+                // Ignore storage failures on the client.
+            }
+        }
+
+        async function copyTextToClipboard(text) {
+            const value = String(text || "").trim();
+
+            if (!value) {
+                return false;
+            }
+
+            if (navigator.clipboard?.writeText) {
+                try {
+                    await navigator.clipboard.writeText(value);
+                    return true;
+                } catch {
+                    // Fall back to legacy copy below.
+                }
+            }
+
+            const input = document.createElement("textarea");
+            input.value = value;
+            input.setAttribute("readonly", "readonly");
+            input.style.position = "absolute";
+            input.style.left = "-9999px";
+            document.body.appendChild(input);
+            input.select();
+            input.setSelectionRange(0, value.length);
+
+            let copied = false;
+
+            try {
+                copied = document.execCommand("copy");
+            } catch {
+                copied = false;
+            }
+
+            input.remove();
+            return copied;
+        }
+
         function formatCurrency(value) {
             const amount = Number(value);
 
@@ -133,6 +214,15 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         const phoneNumber = document.getElementById("phoneNumber");
         const trackButton = document.getElementById("trackButton");
         const lookupStatus = document.getElementById("lookupStatus");
+        const savedInquiryPanel = document.getElementById("savedInquiryPanel");
+        const savedInquiryTitle = document.getElementById("savedInquiryTitle");
+        const savedInquiryMessage = document.getElementById("savedInquiryMessage");
+        const savedInquiryReference = document.getElementById("savedInquiryReference");
+        const savedInquiryDate = document.getElementById("savedInquiryDate");
+        const useSavedInquiryButton = document.getElementById("useSavedInquiryButton");
+        const openSavedTrackingLink = document.getElementById("openSavedTrackingLink");
+        const copySavedReferenceButton = document.getElementById("copySavedReferenceButton");
+        const clearSavedInquiryButton = document.getElementById("clearSavedInquiryButton");
         const recoveryPanel = document.getElementById("recoveryPanel");
         const recoveryTitle = document.getElementById("recoveryTitle");
         const recoveryMessage = document.getElementById("recoveryMessage");
@@ -172,6 +262,7 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         const statusWhatsAppLabel = document.getElementById("statusWhatsAppLabel");
         const finePointerQuery = window.matchMedia("(pointer: fine)");
         const cursorMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+        let savedInquiryRecovery = null;
 
         function initBakeryCursor() {
             if (!document.body.classList.contains("tracking-page") || !finePointerQuery.matches || cursorMotionQuery.matches) {
@@ -275,6 +366,44 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
 
             if (type !== "info") {
                 lookupStatus.classList.add(type);
+            }
+        }
+
+        function hideSavedInquiryPanel() {
+            if (savedInquiryPanel) {
+                savedInquiryPanel.hidden = true;
+            }
+        }
+
+        function renderSavedInquiryPanel(record) {
+            if (!savedInquiryPanel || !record) {
+                return;
+            }
+
+            const kindLabel = record.inquiryKind === "cart" ? "Latest cart inquiry saved on this device" : "Last inquiry saved on this device";
+            savedInquiryTitle.textContent = kindLabel;
+            savedInquiryMessage.textContent = record.customerPhone
+                ? "Use your saved reference and original phone number to open the tracker faster."
+                : "Your latest inquiry reference is saved on this device in case you need to track it later.";
+            savedInquiryReference.textContent = `Reference #${record.referenceId}`;
+            savedInquiryDate.textContent = `Saved ${formatDateTime(record.createdAt)}`;
+            openSavedTrackingLink.href = record.trackUrl;
+            savedInquiryPanel.hidden = false;
+        }
+
+        function applySavedInquiryToForm(record, { updateStatus = true } = {}) {
+            if (!record) {
+                return;
+            }
+
+            referenceId.value = record.referenceId;
+
+            if (record.customerPhone) {
+                phoneNumber.value = record.customerPhone;
+            }
+
+            if (updateStatus) {
+                setLookupStatus("We found your last inquiry on this device. Review the details or check the latest status now.");
             }
         }
 
@@ -422,6 +551,17 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
             try {
                 const payload = await apiRequest(`/api/order-requests/lookup?referenceId=${encodeURIComponent(referenceValue)}&phone=${encodeURIComponent(phoneValue)}`);
                 applyLookupResult(payload.orderRequest);
+                savedInquiryRecovery = {
+                    referenceId: String(payload.orderRequest.id),
+                    customerName: "",
+                    customerPhone: phoneValue,
+                    productLabel: payload.orderRequest.productName || "",
+                    inquiryKind: payload.orderRequest.cartItemCount ? "cart" : "single",
+                    createdAt: payload.orderRequest.createdAt || new Date().toISOString(),
+                    trackUrl: new URL(`track/?reference=${encodeURIComponent(String(payload.orderRequest.id))}`, SITE_URL).toString()
+                };
+                writeStoredInquiryRecovery(savedInquiryRecovery);
+                renderSavedInquiryPanel(savedInquiryRecovery);
                 setLookupStatus("Inquiry found successfully. The latest update is shown below.", "success");
                 history.replaceState(null, "", `${SITE_URL}track/?reference=${encodeURIComponent(referenceValue)}`);
             } catch (error) {
@@ -460,6 +600,34 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
         whatsAppSupportLink.href = createWhatsAppLink(DEFAULT_PHONE, "Hi Pink Delight Cakes, I need help with an existing inquiry.");
         hideRecoveryState();
 
+        useSavedInquiryButton?.addEventListener("click", () => {
+            if (!savedInquiryRecovery) {
+                return;
+            }
+
+            applySavedInquiryToForm(savedInquiryRecovery);
+        });
+
+        copySavedReferenceButton?.addEventListener("click", async () => {
+            if (!savedInquiryRecovery) {
+                return;
+            }
+
+            const copied = await copyTextToClipboard(savedInquiryRecovery.referenceId);
+            setLookupStatus(copied ? `Reference #${savedInquiryRecovery.referenceId} copied.` : "Could not copy the saved reference right now.", copied ? "success" : "error");
+        });
+
+        clearSavedInquiryButton?.addEventListener("click", () => {
+            savedInquiryRecovery = null;
+            writeStoredInquiryRecovery(null);
+            hideSavedInquiryPanel();
+            if (!new URLSearchParams(window.location.search).get("reference")) {
+                referenceId.value = "";
+            }
+            phoneNumber.value = "";
+            setLookupStatus("Saved inquiry cleared from this device.");
+        });
+
         const detailCards = document.querySelectorAll(".details-grid .detail-card strong");
         if (detailCards[1]) {
             detailCards[1].textContent = "What you'll see";
@@ -467,7 +635,19 @@ const RUNTIME_PUBLIC_SITE_URL = "__PUBLIC_SITE_URL__";
 
         const query = new URLSearchParams(window.location.search);
         const presetReference = query.get("reference");
+        savedInquiryRecovery = readStoredInquiryRecovery();
+
+        if (savedInquiryRecovery) {
+            renderSavedInquiryPanel(savedInquiryRecovery);
+        } else {
+            hideSavedInquiryPanel();
+        }
 
         if (presetReference) {
             referenceId.value = presetReference;
+            if (savedInquiryRecovery?.referenceId === String(presetReference).trim() && !phoneNumber.value) {
+                phoneNumber.value = savedInquiryRecovery.customerPhone || "";
+            }
+        } else if (savedInquiryRecovery) {
+            applySavedInquiryToForm(savedInquiryRecovery, { updateStatus: false });
         }

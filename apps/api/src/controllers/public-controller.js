@@ -6,6 +6,7 @@ import {
   reportMonitoringEvent
 } from "../services/monitoring-service.js";
 import { createPublicOrderRequest, lookupPublicOrderRequest } from "../services/order-service.js";
+import { isTelegramNotificationConfigured, sendOwnerInquiryTelegram } from "../services/telegram-service.js";
 import {
   createRateLimitHeaders,
   enforcePublicLookupRateLimit,
@@ -109,6 +110,21 @@ export async function handleCreateOrderRequest(request, env, executionCtx) {
     }, executionCtx);
 
     return createJsonResponse(result, result.status || 400);
+  }
+
+  if (executionCtx?.waitUntil && isTelegramNotificationConfigured(env)) {
+    executionCtx.waitUntil(
+      sendOwnerInquiryTelegram(env, result.orderRequest).catch((error) => {
+        reportMonitoringEvent(env, {
+          level: "warn",
+          event: "order_request.telegram_notification_failed",
+          message: "Owner Telegram notification failed after an inquiry was saved.",
+          request: createRequestMonitoringContext(request),
+          inquiry: createInquiryMonitoringContext(body),
+          details: [error instanceof Error ? error.message : String(error)]
+        }, executionCtx);
+      })
+    );
   }
 
   return createJsonResponse(result, 201);

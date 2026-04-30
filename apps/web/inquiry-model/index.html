@@ -177,8 +177,24 @@
                                 <div class="form-status" id="formStatus">We will save your request here first, then follow up with pricing, availability, and pickup or delivery confirmation.</div>
                                 <div class="reference-card" id="referenceCard" hidden>
                                     <strong>Your reference is saved</strong>
-                                    <p>Use your inquiry reference and the same phone number later if you want to check the latest update without creating an account.</p>
-                                    <a class="btn btn-secondary" id="trackReferenceLink" href="__PUBLIC_SITE_URL__track/"><i class="fa-solid fa-arrow-up-right-from-square"></i> Track this inquiry</a>
+                                    <p>Use your inquiry reference and the same phone number later if you want to check the latest update without creating an account. We also save the latest reference on this device.</p>
+                                    <div class="reference-meta">
+                                        <div class="reference-meta__item">
+                                            <span class="reference-meta__label">Reference number</span>
+                                            <strong class="reference-meta__value" id="referenceNumberValue">-</strong>
+                                        </div>
+                                        <div class="reference-meta__item">
+                                            <span class="reference-meta__label">Saved</span>
+                                            <strong class="reference-meta__value" id="referenceCreatedAt">Just now</strong>
+                                        </div>
+                                    </div>
+                                    <div class="reference-actions">
+                                        <a class="btn btn-secondary" id="trackReferenceLink" href="__PUBLIC_SITE_URL__track/"><i class="fa-solid fa-arrow-up-right-from-square"></i> Track this inquiry</a>
+                                        <button class="btn btn-secondary btn-small" id="copyReferenceButton" type="button"><i class="fa-regular fa-copy"></i> Copy reference</button>
+                                        <button class="btn btn-secondary btn-small" id="copyTrackLinkButton" type="button"><i class="fa-solid fa-link"></i> Copy tracking link</button>
+                                        <button class="btn btn-secondary btn-small" id="shareReferenceButton" type="button"><i class="fa-solid fa-share-nodes"></i> Share</button>
+                                        <button class="btn btn-secondary btn-small" id="downloadReferenceButton" type="button"><i class="fa-solid fa-download"></i> Download receipt</button>
+                                    </div>
                                 </div>
                             </form>
                         </div>

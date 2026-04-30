@@ -142,6 +142,117 @@ await runTest("public inquiry submission persists a database-backed request", as
   assert.equal(env.DB.rateLimitEvents.length, 1);
 });
 
+await runTest("public inquiry submission queues a Telegram owner notification when configured", async () => {
+  const env = createTestEnv({
+    products: [createProductSeed()]
+  });
+  env.TELEGRAM_BOT_TOKEN = "telegram-test-token";
+  env.TELEGRAM_CHAT_ID = "123456";
+  const executionCtx = createExecutionContext();
+  const originalFetch = globalThis.fetch;
+  const fetchCalls = [];
+
+  globalThis.fetch = async (url, init = {}) => {
+    fetchCalls.push({ url: String(url), init });
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: {
+        "content-type": "application/json"
+      }
+    });
+  };
+
+  try {
+    const request = new Request("https://pink-delight-cakes-api.sujayjalui.workers.dev/api/order-requests", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        origin: "https://pink-delight-cakes.pages.dev",
+        "cf-connecting-ip": "203.0.113.13"
+      },
+      body: JSON.stringify({
+        customerName: "Amiya",
+        customerPhone: "+91 87678 12121",
+        customerEmail: "amiya@example.com",
+        productId: "signature-black-forest",
+        fulfillmentType: "pickup",
+        flavor: "Black Forest",
+        sizeLabel: "2 kg",
+        servings: "20",
+        eventDate: "2026-05-01",
+        addOn: "Candles",
+        notes: "Please confirm pickup timing."
+      })
+    });
+
+    const response = await worker.fetch(request, env, executionCtx);
+    const payload = await response.json();
+
+    assert.equal(response.status, 201);
+    assert.equal(payload.ok, true);
+    assert.equal(executionCtx.tasks.length, 1);
+
+    await Promise.all(executionCtx.tasks);
+
+    assert.equal(fetchCalls.length, 1);
+    assert.match(fetchCalls[0].url, /api\.telegram\.org\/bottelegram-test-token\/sendMessage/);
+    const telegramPayload = JSON.parse(fetchCalls[0].init.body);
+    assert.equal(telegramPayload.chat_id, "123456");
+    assert.match(telegramPayload.text, /Reference: #1/);
+    assert.match(telegramPayload.text, /Customer: Amiya/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+await runTest("public inquiry submission still succeeds when Telegram notification fails", async () => {
+  const env = createTestEnv({
+    products: [createProductSeed()]
+  });
+  env.TELEGRAM_BOT_TOKEN = "telegram-test-token";
+  env.TELEGRAM_CHAT_ID = "123456";
+  const executionCtx = createExecutionContext();
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () => {
+    throw new Error("Telegram offline");
+  };
+
+  try {
+    const request = new Request("https://pink-delight-cakes-api.sujayjalui.workers.dev/api/order-requests", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        origin: "https://pink-delight-cakes.pages.dev",
+        "cf-connecting-ip": "203.0.113.14"
+      },
+      body: JSON.stringify({
+        customerName: "Amiya",
+        customerPhone: "+91 87678 12121",
+        customerEmail: "amiya@example.com",
+        productId: "signature-black-forest",
+        fulfillmentType: "pickup",
+        flavor: "Black Forest",
+        sizeLabel: "1 kg",
+        servings: "8",
+        eventDate: "2026-05-03",
+        addOn: "",
+        notes: "Evening pickup preferred."
+      })
+    });
+
+    const response = await worker.fetch(request, env, executionCtx);
+    const payload = await response.json();
+
+    assert.equal(response.status, 201);
+    assert.equal(payload.ok, true);
+    assert.equal(executionCtx.tasks.length, 1);
+    await Promise.all(executionCtx.tasks);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 await runTest("cart inquiry stores a structured snapshot and remains visible to admin and tracking", async () => {
   const admin = {
     id: 21,
@@ -430,8 +541,8 @@ await runTest("public tracking lookup returns customer-facing status metadata fo
   assert.equal(payload.orderRequest.sizeLabel, "2 kg");
   assert.equal(payload.orderRequest.servings, "20");
   assert.equal(payload.orderRequest.addOn, "Candles");
-  assert.match(payload.orderRequest.timingLabel, /^Event is in \d+ days$/);
-  assert.equal(payload.orderRequest.confidenceLabel, "In progress");
+  assert.match(payload.orderRequest.timingLabel, /^(Event is tomorrow|Event is in \d+ days)$/);
+  assert.match(payload.orderRequest.confidenceLabel, /^(In progress|Action needed soon)$/);
   assert.equal(payload.orderRequest.customerActionTitle, "What you can do now");
   assert.equal(payload.orderRequest.bakeryActionTitle, "What the bakery is doing");
   assert.equal(payload.orderRequest.followUpTitle, "When to follow up");

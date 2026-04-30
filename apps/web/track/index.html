@@ -82,6 +82,21 @@
                     <div class="form-status" id="lookupStatus">Enter your details to check the latest status of your request.</div>
                 </form>
 
+                <section class="saved-inquiry-panel" id="savedInquiryPanel" hidden>
+                    <strong id="savedInquiryTitle">Last inquiry saved on this device</strong>
+                    <p id="savedInquiryMessage">Use your saved reference and phone number to open the tracker faster.</p>
+                    <div class="saved-inquiry-meta">
+                        <span id="savedInquiryReference">Reference #-</span>
+                        <span id="savedInquiryDate">Saved just now</span>
+                    </div>
+                    <div class="saved-inquiry-actions">
+                        <button class="btn btn-secondary" id="useSavedInquiryButton" type="button"><i class="fa-solid fa-wand-magic-sparkles"></i> Use saved details</button>
+                        <a class="btn btn-secondary" id="openSavedTrackingLink" href="__PUBLIC_SITE_URL__track/"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open saved tracking link</a>
+                        <button class="btn btn-secondary btn-small" id="copySavedReferenceButton" type="button"><i class="fa-regular fa-copy"></i> Copy reference</button>
+                        <button class="btn btn-secondary btn-small" id="clearSavedInquiryButton" type="button"><i class="fa-solid fa-trash-can"></i> Clear saved record</button>
+                    </div>
+                </section>
+
                 <section class="recovery-panel" id="recoveryPanel" hidden>
                     <strong id="recoveryTitle">Need help finding your inquiry?</strong>
                     <p id="recoveryMessage">We will show the best recovery step here if the lookup does not work.</p>
