@@ -1,4 +1,5 @@
 import { normalizePathname, parseRequestUrl } from "../utils/http.js";
+import { captureMonitoringMessage } from "./sentry-service.js";
 
 function truncateText(value, maxLength = 240) {
   const text = String(value ?? "").trim();
@@ -145,6 +146,10 @@ export function reportMonitoringEvent(env, payload, executionCtx) {
     console.error(logLine);
   } else {
     console.warn(logLine);
+  }
+
+  if (eventPayload.level === "error" && eventPayload.event !== "worker.unhandled_exception") {
+    captureMonitoringMessage(env, eventPayload, executionCtx);
   }
 
   const webhookUrl = String(env?.MONITORING_WEBHOOK_URL || "").trim();

@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/cloudflare";
 import { apiConfig } from "./src/config/api-config.js";
 import {
   handleAdminLogin,
@@ -29,6 +30,7 @@ import { systemRoutes } from "./src/routes/system-routes.js";
 import { publicRoutes } from "./src/routes/public-routes.js";
 import { getBootstrapSummary } from "./src/services/bootstrap-service.js";
 import { createRequestMonitoringContext, reportMonitoringEvent } from "./src/services/monitoring-service.js";
+import { captureMonitoringException, createSentryOptions } from "./src/services/sentry-service.js";
 import { createJsonResponse, createNotFoundResponse, createPreflightResponse, normalizePathname, parseRequestUrl, withCors } from "./src/utils/http.js";
 
 function createMetaPayload() {
@@ -51,7 +53,7 @@ function createMetaPayload() {
   };
 }
 
-export default {
+const workerHandler = {
   async fetch(request, env, executionCtx) {
     try {
       const { pathname: rawPathname } = parseRequestUrl(request.url);
@@ -169,15 +171,27 @@ export default {
 
       return withCors(createNotFoundResponse(pathname), request, env);
     } catch (error) {
+      const requestContext = createRequestMonitoringContext(request);
+
       reportMonitoringEvent(env, {
         level: "error",
         event: "worker.unhandled_exception",
         message: "Unhandled worker exception",
-        request: createRequestMonitoringContext(request),
+        request: requestContext,
         error: {
           message: error instanceof Error ? error.message : String(error)
         },
         forceAlert: true
+      }, executionCtx);
+
+      captureMonitoringException(env, error, {
+        level: "error",
+        event: "worker.unhandled_exception",
+        message: "Unhandled worker exception",
+        request: requestContext,
+        error: {
+          message: error instanceof Error ? error.message : String(error)
+        }
       }, executionCtx);
 
       return withCors(createJsonResponse(
@@ -191,3 +205,8 @@ export default {
     }
   }
 };
+
+export default Sentry.withSentry(
+  (env) => createSentryOptions(env),
+  workerHandler
+);

@@ -24,5 +24,8 @@
     "ops:check:admin-auth": "node scripts/maintenance/check-admin-auth.mjs",
     "ops:alert": "node scripts/maintenance/send-webhook-alert.mjs",
     "test": "node tests/api/worker-flows.test.js"
+  },
+  "dependencies": {
+    "@sentry/cloudflare": "10.42.0"
   }
 }

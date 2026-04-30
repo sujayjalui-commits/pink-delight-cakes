@@ -5,6 +5,7 @@ import {
   createRequestMonitoringContext,
   reportMonitoringEvent
 } from "../services/monitoring-service.js";
+import { captureMonitoringException } from "../services/sentry-service.js";
 import { createPublicOrderRequest, lookupPublicOrderRequest } from "../services/order-service.js";
 import { isTelegramNotificationConfigured, sendOwnerInquiryTelegram } from "../services/telegram-service.js";
 import {
@@ -115,13 +116,23 @@ export async function handleCreateOrderRequest(request, env, executionCtx) {
   if (executionCtx?.waitUntil && isTelegramNotificationConfigured(env)) {
     executionCtx.waitUntil(
       sendOwnerInquiryTelegram(env, result.orderRequest).catch((error) => {
-        reportMonitoringEvent(env, {
-          level: "warn",
+        const monitoringPayload = {
+          level: "warning",
           event: "order_request.telegram_notification_failed",
           message: "Owner Telegram notification failed after an inquiry was saved.",
           request: createRequestMonitoringContext(request),
           inquiry: createInquiryMonitoringContext(body),
           details: [error instanceof Error ? error.message : String(error)]
+        };
+
+        captureMonitoringException(env, error, monitoringPayload, executionCtx);
+        reportMonitoringEvent(env, {
+          level: "warn",
+          event: monitoringPayload.event,
+          message: monitoringPayload.message,
+          request: monitoringPayload.request,
+          inquiry: monitoringPayload.inquiry,
+          details: monitoringPayload.details
         }, executionCtx);
       })
     );

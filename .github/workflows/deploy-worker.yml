@@ -35,6 +35,9 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install repo dependencies
+        run: npm ci
+
       - name: Install Wrangler
         run: npm install --global wrangler@4.80.0
 
