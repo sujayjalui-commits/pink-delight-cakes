@@ -1465,30 +1465,38 @@
                             <h3>${escapeHtml(product.name)}</h3>
                             <span class="price">From ${escapeHtml(formatCurrency(product.startingPrice))}</span>
                         </div>
-                        <p>${escapeHtml(product.shortDescription)}</p>
-                        <div class="menu-tags">
-                            <span>${escapeHtml(product.category)}</span>
-                            <span>${escapeHtml(formatLeadTime(product.leadTimeHours))} lead time</span>
-                        </div>
-                        <div class="menu-specs">
-                            <div class="spec-row">
-                                <strong>Flavor options</strong>
-                                <span>${escapeHtml(product.flavors.join(", "))}</span>
+                        <p class="menu-description">${escapeHtml(product.shortDescription)}</p>
+                        <details class="menu-disclosure">
+                            <summary class="menu-disclosure__summary">
+                                <span>View cake details</span>
+                                <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                            </summary>
+                            <div class="menu-disclosure__content">
+                                <div class="menu-tags">
+                                    <span>${escapeHtml(product.category)}</span>
+                                    <span>${escapeHtml(formatLeadTime(product.leadTimeHours))} lead time</span>
+                                </div>
+                                <div class="menu-specs">
+                                    <div class="spec-row">
+                                        <strong>Flavor options</strong>
+                                        <span>${escapeHtml(product.flavors.join(", "))}</span>
+                                    </div>
+                                    <div class="spec-row">
+                                        <strong>Size options</strong>
+                                        <span>${escapeHtml(product.sizes.map((size) => formatSizeText(size)).join(", "))}</span>
+                                    </div>
+                                    <div class="spec-row">
+                                        <strong>Add-ons</strong>
+                                        <span>${escapeHtml(product.addOns.join(", "))}</span>
+                                    </div>
+                                </div>
+                                <span class="availability-pill"><i class="fa-solid fa-circle"></i> ${escapeHtml(formatAvailability(product.availabilityStatus))}</span>
+                                <div class="menu-actions">
+                                    <button class="btn btn-bag" type="button" data-add-to-cart="${escapeHtml(product.slug)}"><i class="fa-solid fa-bag-shopping"></i> Add to bag</button>
+                                    <a class="btn btn-secondary" href="${escapeHtml(createSitePageLink(`inquiry-model/?product=${encodeURIComponent(product.slug)}#contact`))}" data-request-product="${escapeHtml(product.slug)}">Request this product</a>
+                                </div>
                             </div>
-                            <div class="spec-row">
-                                <strong>Size options</strong>
-                                <span>${escapeHtml(product.sizes.map((size) => formatSizeText(size)).join(", "))}</span>
-                            </div>
-                            <div class="spec-row">
-                                <strong>Add-ons</strong>
-                                <span>${escapeHtml(product.addOns.join(", "))}</span>
-                            </div>
-                        </div>
-                        <span class="availability-pill"><i class="fa-solid fa-circle"></i> ${escapeHtml(formatAvailability(product.availabilityStatus))}</span>
-                        <div class="menu-actions">
-                            <button class="btn btn-bag" type="button" data-add-to-cart="${escapeHtml(product.slug)}"><i class="fa-solid fa-bag-shopping"></i> Add to bag</button>
-                            <a class="btn btn-secondary" href="${escapeHtml(createSitePageLink(`inquiry-model/?product=${encodeURIComponent(product.slug)}#contact`))}" data-request-product="${escapeHtml(product.slug)}">Request this product</a>
-                        </div>
+                        </details>
                     </div>
                 </article>
             `).join("");

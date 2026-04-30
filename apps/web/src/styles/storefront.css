@@ -1528,11 +1528,61 @@
             color: var(--muted);
         }
 
+        .menu-description {
+            margin-bottom: 0;
+        }
+
+        .menu-disclosure {
+            margin-top: 1.15rem;
+            border-top: 1px solid rgba(111, 78, 55, 0.08);
+            padding-top: 1rem;
+        }
+
+        .menu-disclosure > summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            list-style: none;
+            cursor: pointer;
+            color: var(--secondary);
+            font-size: 0.9rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            user-select: none;
+        }
+
+        .menu-disclosure > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .menu-disclosure > summary i {
+            font-size: 0.8rem;
+            color: var(--accent-dark);
+            transition: transform var(--transition), color var(--transition);
+        }
+
+        .menu-disclosure[open] > summary i {
+            transform: rotate(180deg);
+        }
+
+        .menu-disclosure > summary:hover,
+        .menu-disclosure > summary:focus-visible {
+            color: var(--accent-dark);
+        }
+
+        .menu-disclosure__content {
+            display: grid;
+            gap: 1rem;
+            padding-top: 1rem;
+        }
+
         .menu-tags {
             display: flex;
             flex-wrap: wrap;
             gap: 0.5rem;
-            margin: 1rem 0 1.2rem;
+            margin: 0;
         }
 
         .menu-tags span {
