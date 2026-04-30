@@ -139,6 +139,10 @@ await runTest("public inquiry submission persists a database-backed request", as
   assert.equal(response.headers.get("x-frame-options"), "DENY");
   assert.equal(response.headers.get("referrer-policy"), "strict-origin-when-cross-origin");
   assert.equal(env.DB.orderRequests.length, 1);
+  assert.equal(env.DB.orderStatusHistory.length, 1);
+  assert.equal(env.DB.orderStatusHistory[0].from_status, null);
+  assert.equal(env.DB.orderStatusHistory[0].to_status, "new");
+  assert.equal(env.DB.orderStatusHistory[0].change_source, "public_inquiry");
   assert.equal(env.DB.rateLimitEvents.length, 1);
 });
 
@@ -719,6 +723,184 @@ await runTest("public tracking lookup is rate limited per connection", async () 
   assert.equal(blockedPayload.ok, false);
   assert.match(blockedPayload.error, /tracking attempts/i);
   assert.equal(blockedResponse.headers.get("retry-after"), "900");
+});
+
+await runTest("admin order updates enforce valid transitions and append status history", async () => {
+  const admin = {
+    id: 7,
+    email: "owner@pinkdelightcakes.com",
+    role: "owner",
+    is_active: 1
+  };
+  const env = createTestEnv({
+    adminUsers: [admin],
+    orderRequests: [
+      {
+        id: 42,
+        customer_name: "Amiya",
+        customer_phone: "+91 87678 12121",
+        customer_email: "amiya@example.com",
+        product_id: 11,
+        product_snapshot: JSON.stringify({
+          id: 11,
+          slug: "signature-black-forest",
+          name: "Signature Black Forest",
+          category: "birthday",
+          startingPrice: 1800
+        }),
+        flavor: "Black Forest",
+        size_label: "1 kg",
+        servings: "8",
+        event_date: "2026-05-03",
+        fulfillment_type: "pickup",
+        add_on: "Candles",
+        notes: "Please share the quote first.",
+        status: "new",
+        quoted_amount: null,
+        source_channel: "website",
+        internal_note: "",
+        created_at: "2026-04-18T00:00:00.000Z",
+        updated_at: "2026-04-18T01:00:00.000Z"
+      }
+    ],
+    orderStatusHistory: [
+      {
+        id: 1,
+        order_request_id: 42,
+        from_status: null,
+        to_status: "new",
+        changed_by_admin_user_id: null,
+        change_source: "migration_backfill",
+        created_at: "2026-04-18T00:00:00.000Z"
+      }
+    ]
+  });
+  const sessionToken = await createAdminSessionToken(admin, env);
+  const cookieHeader = `${apiConfig.adminSessionCookieName}=${sessionToken}`;
+
+  const patchResponse = await worker.fetch(
+    new Request("https://pink-delight-cakes.pages.dev/api/admin/orders/42", {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+        "x-admin-intent": "mutate",
+        origin: "https://pink-delight-cakes.pages.dev",
+        cookie: cookieHeader
+      },
+      body: JSON.stringify({
+        status: "reviewing",
+        internalNote: "Quote prep in progress."
+      })
+    }),
+    env,
+    createExecutionContext()
+  );
+  const patchPayload = await patchResponse.json();
+
+  assert.equal(patchResponse.status, 200);
+  assert.equal(patchPayload.ok, true);
+  assert.equal(patchPayload.order.status, "reviewing");
+  assert.equal(env.DB.orderStatusHistory.length, 2);
+  assert.equal(env.DB.orderStatusHistory[1].from_status, "new");
+  assert.equal(env.DB.orderStatusHistory[1].to_status, "reviewing");
+  assert.equal(env.DB.orderStatusHistory[1].changed_by_admin_user_id, 7);
+  assert.equal(env.DB.orderStatusHistory[1].change_source, "admin_dashboard");
+
+  const detailResponse = await worker.fetch(
+    new Request("https://pink-delight-cakes.pages.dev/api/admin/orders/42", {
+      headers: {
+        origin: "https://pink-delight-cakes.pages.dev",
+        cookie: cookieHeader
+      }
+    }),
+    env,
+    createExecutionContext()
+  );
+  const detailPayload = await detailResponse.json();
+
+  assert.equal(detailResponse.status, 200);
+  assert.equal(detailPayload.ok, true);
+  assert.equal(detailPayload.order.statusHistory.length, 2);
+  assert.equal(detailPayload.order.statusHistory[1].toStatus, "reviewing");
+});
+
+await runTest("admin order updates reject invalid status jumps", async () => {
+  const admin = {
+    id: 9,
+    email: "owner@pinkdelightcakes.com",
+    role: "owner",
+    is_active: 1
+  };
+  const env = createTestEnv({
+    adminUsers: [admin],
+    orderRequests: [
+      {
+        id: 61,
+        customer_name: "Amiya",
+        customer_phone: "+91 87678 12121",
+        customer_email: "amiya@example.com",
+        product_id: 11,
+        product_snapshot: JSON.stringify({
+          id: 11,
+          slug: "signature-black-forest",
+          name: "Signature Black Forest",
+          category: "birthday",
+          startingPrice: 1800
+        }),
+        flavor: "Black Forest",
+        size_label: "2 kg",
+        servings: "20",
+        event_date: "2026-05-06",
+        fulfillment_type: "pickup",
+        add_on: "",
+        notes: "",
+        status: "new",
+        quoted_amount: null,
+        source_channel: "website",
+        internal_note: "",
+        created_at: "2026-04-18T00:00:00.000Z",
+        updated_at: "2026-04-18T01:00:00.000Z"
+      }
+    ],
+    orderStatusHistory: [
+      {
+        id: 1,
+        order_request_id: 61,
+        from_status: null,
+        to_status: "new",
+        changed_by_admin_user_id: null,
+        change_source: "migration_backfill",
+        created_at: "2026-04-18T00:00:00.000Z"
+      }
+    ]
+  });
+  const sessionToken = await createAdminSessionToken(admin, env);
+  const cookieHeader = `${apiConfig.adminSessionCookieName}=${sessionToken}`;
+
+  const response = await worker.fetch(
+    new Request("https://pink-delight-cakes.pages.dev/api/admin/orders/61", {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+        "x-admin-intent": "mutate",
+        origin: "https://pink-delight-cakes.pages.dev",
+        cookie: cookieHeader
+      },
+      body: JSON.stringify({
+        status: "completed"
+      })
+    }),
+    env,
+    createExecutionContext()
+  );
+  const payload = await response.json();
+
+  assert.equal(response.status, 409);
+  assert.equal(payload.ok, false);
+  assert.equal(payload.error, "Invalid status transition");
+  assert.match(payload.details[0], /cannot move an order from new to completed/i);
+  assert.equal(env.DB.orderRequests[0].status, "new");
+  assert.equal(env.DB.orderStatusHistory.length, 1);
 });
 
 await runTest("admin settings route reads and updates business settings for an authenticated same-origin admin session", async () => {

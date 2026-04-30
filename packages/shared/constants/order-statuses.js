@@ -9,6 +9,36 @@ export const ORDER_STATUSES = [
   "cancelled"
 ];
 
+export const ORDER_STATUS_TRANSITIONS = {
+  new: ["reviewing", "quoted", "payment_pending", "paid", "scheduled", "cancelled"],
+  reviewing: ["quoted", "payment_pending", "paid", "scheduled", "cancelled"],
+  quoted: ["reviewing", "payment_pending", "paid", "scheduled", "cancelled"],
+  payment_pending: ["quoted", "paid", "scheduled", "cancelled"],
+  paid: ["scheduled", "completed", "cancelled"],
+  scheduled: ["completed", "cancelled"],
+  completed: [],
+  cancelled: []
+};
+
+export function getAllowedNextOrderStatuses(status) {
+  return ORDER_STATUS_TRANSITIONS[String(status || "").trim()] || [];
+}
+
+export function canTransitionOrderStatus(fromStatus, toStatus) {
+  const currentStatus = String(fromStatus || "").trim();
+  const nextStatus = String(toStatus || "").trim();
+
+  if (!currentStatus || !nextStatus) {
+    return false;
+  }
+
+  if (currentStatus === nextStatus) {
+    return true;
+  }
+
+  return getAllowedNextOrderStatuses(currentStatus).includes(nextStatus);
+}
+
 export const PRODUCT_AVAILABILITY_STATUSES = [
   "available",
   "limited",

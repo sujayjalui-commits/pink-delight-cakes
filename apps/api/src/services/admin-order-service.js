@@ -1,5 +1,6 @@
 import { validateAdminOrderUpdate } from "../../../../packages/shared/schemas/admin-order-schema.js";
-import { getAdminOrderById, getAdminOrders, updateAdminOrderFields } from "../db/d1-client.js";
+import { canTransitionOrderStatus, getAllowedNextOrderStatuses } from "../../../../packages/shared/constants/order-statuses.js";
+import { getAdminOrderById, getAdminOrders, getOrderStatusHistoryByOrderId, updateAdminOrderFields } from "../db/d1-client.js";
 
 function parseJsonField(value, fallback = null) {
   if (!value) {
@@ -45,6 +46,18 @@ function mapOrder(order) {
   };
 }
 
+function mapStatusHistoryEntry(entry) {
+  return {
+    id: entry.id,
+    orderRequestId: entry.order_request_id,
+    fromStatus: entry.from_status,
+    toStatus: entry.to_status,
+    changedByAdminUserId: entry.changed_by_admin_user_id,
+    changeSource: entry.change_source,
+    createdAt: entry.created_at
+  };
+}
+
 export async function getAdminOrdersView(env, filters = {}) {
   const orders = await getAdminOrders(env, filters);
   return orders.map(mapOrder);
@@ -52,10 +65,20 @@ export async function getAdminOrdersView(env, filters = {}) {
 
 export async function getAdminOrderDetail(env, orderId) {
   const order = await getAdminOrderById(env, orderId);
-  return order ? mapOrder(order) : null;
+
+  if (!order) {
+    return null;
+  }
+
+  const statusHistory = await getOrderStatusHistoryByOrderId(env, orderId);
+
+  return {
+    ...mapOrder(order),
+    statusHistory: statusHistory.map(mapStatusHistoryEntry)
+  };
 }
 
-export async function updateAdminOrder(env, orderId, input) {
+export async function updateAdminOrder(env, orderId, input, adminUserId = null) {
   const validation = validateAdminOrderUpdate(input);
 
   if (!validation.valid) {
@@ -67,13 +90,42 @@ export async function updateAdminOrder(env, orderId, input) {
     };
   }
 
-  const updatedOrder = await updateAdminOrderFields(env, orderId, input);
+  const currentOrder = await getAdminOrderById(env, orderId);
 
-  if (!updatedOrder) {
+  if (!currentOrder) {
     return {
       ok: false,
       status: 404,
       error: "Order not found"
+    };
+  }
+
+  if (
+    input.status !== undefined
+    && input.status !== currentOrder.status
+    && !canTransitionOrderStatus(currentOrder.status, input.status)
+  ) {
+    return {
+      ok: false,
+      status: 409,
+      error: "Invalid status transition",
+      details: [
+        `Cannot move an order from ${currentOrder.status} to ${input.status}.`,
+        `Allowed next statuses: ${getAllowedNextOrderStatuses(currentOrder.status).join(", ") || "none"}`
+      ]
+    };
+  }
+
+  const updatedOrder = await updateAdminOrderFields(env, orderId, input, {
+    changedByAdminUserId: adminUserId,
+    changeSource: "admin_dashboard"
+  });
+
+  if (!updatedOrder) {
+    return {
+      ok: false,
+      status: 500,
+      error: "Order could not be updated"
     };
   }
 

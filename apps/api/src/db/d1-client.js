@@ -482,7 +482,48 @@ export async function getAdminOrderById(env, orderId) {
   return order || null;
 }
 
-export async function updateAdminOrderFields(env, orderId, input) {
+export async function getOrderStatusHistoryByOrderId(env, orderId) {
+  if (!hasDatabase(env)) {
+    return [];
+  }
+
+  const query = `
+    SELECT * FROM ${tables.orderRequestStatusHistory}
+    WHERE order_request_id = ?
+    ORDER BY created_at ASC, id ASC
+  `;
+  const result = await env.DB.prepare(query).bind(orderId).all();
+  return result.results || [];
+}
+
+export async function insertOrderStatusHistory(env, payload) {
+  if (!hasDatabase(env)) {
+    return null;
+  }
+
+  const query = `
+    INSERT INTO ${tables.orderRequestStatusHistory} (
+      order_request_id,
+      from_status,
+      to_status,
+      changed_by_admin_user_id,
+      change_source
+    ) VALUES (?, ?, ?, ?, ?)
+    RETURNING *
+  `;
+
+  return env.DB.prepare(query)
+    .bind(
+      payload.orderRequestId,
+      payload.fromStatus || null,
+      payload.toStatus,
+      payload.changedByAdminUserId || null,
+      payload.changeSource || "admin_dashboard"
+    )
+    .first();
+}
+
+export async function updateAdminOrderFields(env, orderId, input, options = {}) {
   if (!hasDatabase(env)) {
     return null;
   }
@@ -496,15 +537,27 @@ export async function updateAdminOrderFields(env, orderId, input) {
   const nextStatus = input.status ?? currentOrder.status;
   const nextQuotedAmount = input.quotedAmount ?? currentOrder.quoted_amount;
   const nextInternalNote = input.internalNote ?? currentOrder.internal_note ?? null;
+  const statusChanged = nextStatus !== currentOrder.status;
 
   const query = `
     UPDATE ${tables.orderRequests}
     SET status = ?, quoted_amount = ?, internal_note = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
-    RETURNING *
   `;
 
-  return env.DB.prepare(query).bind(nextStatus, nextQuotedAmount, nextInternalNote, orderId).first();
+  await env.DB.prepare(query).bind(nextStatus, nextQuotedAmount, nextInternalNote, orderId).run();
+
+  if (statusChanged) {
+    await insertOrderStatusHistory(env, {
+      orderRequestId: orderId,
+      fromStatus: currentOrder.status,
+      toStatus: nextStatus,
+      changedByAdminUserId: options.changedByAdminUserId || null,
+      changeSource: options.changeSource || "admin_dashboard"
+    });
+  }
+
+  return getAdminOrderById(env, orderId);
 }
 
 export async function createOrderRequest(env, payload) {
@@ -552,6 +605,16 @@ export async function createOrderRequest(env, payload) {
       payload.sourceChannel
     )
     .first();
+
+  if (result?.id) {
+    await insertOrderStatusHistory(env, {
+      orderRequestId: result.id,
+      fromStatus: null,
+      toStatus: payload.status,
+      changedByAdminUserId: null,
+      changeSource: "public_inquiry"
+    });
+  }
 
   return result || null;
 }

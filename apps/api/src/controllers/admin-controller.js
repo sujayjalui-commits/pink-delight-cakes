@@ -283,7 +283,7 @@ export async function handleUpdateAdminOrder(request, env, orderId) {
     return parsed.response;
   }
 
-  const result = await updateAdminOrder(env, orderId, parsed.body);
+  const result = await updateAdminOrder(env, orderId, parsed.body, auth.admin.id);
   return createJsonResponse(result, result.ok ? 200 : result.status || 400);
 }
 

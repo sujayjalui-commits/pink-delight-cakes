@@ -100,6 +100,21 @@ CREATE TABLE IF NOT EXISTS order_requests (
   FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
 );
 
+CREATE TABLE IF NOT EXISTS order_request_status_history (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  order_request_id INTEGER NOT NULL,
+  from_status TEXT,
+  to_status TEXT NOT NULL,
+  changed_by_admin_user_id INTEGER,
+  change_source TEXT NOT NULL DEFAULT 'admin_dashboard',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (order_request_id) REFERENCES order_requests(id) ON DELETE CASCADE,
+  FOREIGN KEY (changed_by_admin_user_id) REFERENCES admin_users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_order_request_status_history_order_request_id
+  ON order_request_status_history(order_request_id, created_at, id);
+
 CREATE TABLE IF NOT EXISTS payments (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   order_request_id INTEGER NOT NULL,

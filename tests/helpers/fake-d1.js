@@ -50,6 +50,7 @@ export class FakeD1Database {
     this.products = cloneValue(seed.products || []);
     this.productOptions = cloneValue(seed.productOptions || []);
     this.orderRequests = cloneValue(seed.orderRequests || []);
+    this.orderStatusHistory = cloneValue(seed.orderStatusHistory || []);
     this.adminUsers = cloneValue(seed.adminUsers || []);
     this.businessSettings = seed.businessSettings ? cloneValue(seed.businessSettings) : null;
     this.testimonials = cloneValue(seed.testimonials || []);
@@ -58,6 +59,7 @@ export class FakeD1Database {
       ...event
     }));
     this.nextOrderId = this.orderRequests.reduce((maxValue, order) => Math.max(maxValue, Number(order.id) || 0), 0) + 1;
+    this.nextOrderStatusHistoryId = this.orderStatusHistory.reduce((maxValue, entry) => Math.max(maxValue, Number(entry.id) || 0), 0) + 1;
     this.queryLog = [];
   }
 
@@ -102,6 +104,12 @@ export class FakeD1Database {
 
     if (query.includes("select * from order_requests where id = ? limit 1")) {
       return this.orderRequests.find((order) => Number(order.id) === Number(boundValues[0])) || null;
+    }
+
+    if (query.includes("select * from order_request_status_history where order_request_id = ?")) {
+      return this.orderStatusHistory
+        .filter((entry) => Number(entry.order_request_id) === Number(boundValues[0]))
+        .sort((left, right) => String(left.created_at || "").localeCompare(String(right.created_at || "")) || Number(left.id || 0) - Number(right.id || 0));
     }
 
     if (query.includes("select * from order_requests where status = ?")) {
@@ -162,6 +170,23 @@ export class FakeD1Database {
       return createdOrder;
     }
 
+    if (query.includes("insert into order_request_status_history")) {
+      const [orderRequestId, fromStatus, toStatus, changedByAdminUserId, changeSource] = boundValues;
+      const createdEntry = {
+        id: this.nextOrderStatusHistoryId,
+        order_request_id: Number(orderRequestId),
+        from_status: fromStatus,
+        to_status: toStatus,
+        changed_by_admin_user_id: changedByAdminUserId,
+        change_source: changeSource,
+        created_at: createTimestamp(this.nextOrderStatusHistoryId)
+      };
+
+      this.nextOrderStatusHistoryId += 1;
+      this.orderStatusHistory.push(createdEntry);
+      return createdEntry;
+    }
+
     if (query.includes("delete from rate_limit_events")) {
       const [bucket, modifier] = boundValues;
       const windowSeconds = parseWindowSeconds(modifier);
@@ -198,6 +223,25 @@ export class FakeD1Database {
 
     if (query.includes("select * from admin_users where email = ? limit 1")) {
       return this.adminUsers.find((admin) => admin.email === boundValues[0]) || null;
+    }
+
+    if (query.includes("update order_requests set status = ?, quoted_amount = ?, internal_note = ?, updated_at = current_timestamp where id = ?")) {
+      const [status, quotedAmount, internalNote, orderId] = boundValues;
+      const orderIndex = this.orderRequests.findIndex((order) => Number(order.id) === Number(orderId));
+
+      if (orderIndex === -1) {
+        return null;
+      }
+
+      this.orderRequests[orderIndex] = {
+        ...this.orderRequests[orderIndex],
+        status,
+        quoted_amount: quotedAmount,
+        internal_note: internalNote,
+        updated_at: createTimestamp(3)
+      };
+
+      return { success: true };
     }
 
     if (query.includes("update admin_users set password_hash = ?")) {

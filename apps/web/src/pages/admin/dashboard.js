@@ -9,6 +9,17 @@ const ORDER_STATUSES = [
     "cancelled"
 ];
 
+const ORDER_STATUS_TRANSITIONS = {
+    new: ["reviewing", "quoted", "payment_pending", "paid", "scheduled", "cancelled"],
+    reviewing: ["quoted", "payment_pending", "paid", "scheduled", "cancelled"],
+    quoted: ["reviewing", "payment_pending", "paid", "scheduled", "cancelled"],
+    payment_pending: ["quoted", "paid", "scheduled", "cancelled"],
+    paid: ["scheduled", "completed", "cancelled"],
+    scheduled: ["completed", "cancelled"],
+    completed: [],
+    cancelled: []
+};
+
 const PRODUCT_AVAILABILITY = ["available", "limited", "unavailable"];
 const FORM_KEYS = ["order", "product", "settings", "testimonials"];
 const PRODUCT_IMAGE_UPLOAD_MAX_BYTES = 320 * 1024;
@@ -442,6 +453,25 @@ function getNoticeHighlight(value) {
     return match[1].replace(/\s+/g, " ");
 }
 
+function getAllowedNextOrderStatuses(status) {
+    return ORDER_STATUS_TRANSITIONS[String(status || "").trim()] || [];
+}
+
+function canTransitionOrderStatus(fromStatus, toStatus) {
+    const currentStatus = String(fromStatus || "").trim();
+    const nextStatus = String(toStatus || "").trim();
+
+    if (!currentStatus || !nextStatus) {
+        return false;
+    }
+
+    if (currentStatus === nextStatus) {
+        return true;
+    }
+
+    return getAllowedNextOrderStatuses(currentStatus).includes(nextStatus);
+}
+
 function getOrderAttentionMeta(order) {
     const daysUntilEvent = daysUntilDate(order.eventDate);
     const hasQuote = order.quotedAmount !== null && order.quotedAmount !== undefined && order.quotedAmount !== "";
@@ -645,8 +675,18 @@ function renderOrderBulkActions() {
         ? `${visibleSelectedIds.length} visible order${visibleSelectedIds.length === 1 ? "" : "s"} selected`
         : "No orders selected";
 
+    const selectedOrders = visibleSelectedIds
+        .map((orderId) => state.orders.find((order) => Number(order.id) === Number(orderId)))
+        .filter(Boolean);
     const disableBulkActions = visibleSelectedIds.length === 0;
     orderBulkActions.querySelectorAll("[data-bulk-status], #clearOrderSelectionButton").forEach((button) => {
+        if (button.dataset.bulkStatus) {
+            const targetStatus = button.dataset.bulkStatus;
+            const canApplyToAll = !disableBulkActions && selectedOrders.every((order) => canTransitionOrderStatus(order.status, targetStatus));
+            button.disabled = !canApplyToAll;
+            return;
+        }
+
         button.disabled = disableBulkActions;
     });
 }
@@ -1383,11 +1423,19 @@ function renderOrderDetail() {
         ${renderCartSnapshot(order)}
     `;
 
-    orderStatus.innerHTML = ORDER_STATUSES.map((status) => `
+    const allowedStatuses = [order.status, ...getAllowedNextOrderStatuses(order.status)].filter((status, index, all) => all.indexOf(status) === index);
+
+    orderStatus.innerHTML = allowedStatuses.map((status) => `
         <option value="${status}" ${order.status === status ? "selected" : ""}>${escapeHtml(statusLabel(status))}</option>
     `).join("");
     orderQuotedAmount.value = order.quotedAmount ?? "";
     orderInternalNote.value = order.internalNote ?? "";
+    orderQuickActions.querySelectorAll("[data-quick-status]").forEach((button) => {
+        const nextStatus = button.dataset.quickStatus;
+        const isAllowed = canTransitionOrderStatus(order.status, nextStatus) && nextStatus !== order.status;
+        button.hidden = !isAllowed;
+        button.disabled = !isAllowed;
+    });
     state.activeReplyTemplate = getSuggestedReplyTemplate(order);
     renderReplyTemplatePreview();
     setFormBaseline("order");
