@@ -1326,6 +1326,7 @@
 
         .menu-grid {
             grid-template-columns: repeat(3, 1fr);
+            align-items: start;
         }
 
         .menu-filter-row {
@@ -1359,6 +1360,7 @@
         .menu-card {
             display: flex;
             flex-direction: column;
+            align-self: start;
             background: var(--card);
             border: 1px solid rgba(111, 78, 55, 0.08);
             border-radius: 26px;
