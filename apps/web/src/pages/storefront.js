@@ -1523,12 +1523,16 @@
             }
 
             reviewGrid.classList.remove("review-grid--empty");
-            reviewGrid.innerHTML = testimonials.map((testimonial) => `
-                <article class="testimonial-card reveal">
-                    <div class="stars">${createStarsMarkup(testimonial.rating)}</div>
-                    <p>"${escapeHtml(testimonial.quoteText || "")}"</p>
-                    <strong>${escapeHtml(testimonial.customerName || "Happy customer")}</strong>
-                    <span>${escapeHtml(testimonial.occasionLabel || "Celebration order")}</span>
+            reviewGrid.innerHTML = testimonials.map((testimonial, index) => `
+                <article class="testimonial-card${index === 0 ? " testimonial-card--feature" : ""} reveal">
+                    <div class="testimonial-card__body">
+                        <div class="stars">${createStarsMarkup(testimonial.rating)}</div>
+                        <p class="testimonial-card__quote">"${escapeHtml(testimonial.quoteText || "")}"</p>
+                    </div>
+                    <div class="testimonial-card__footer">
+                        <strong>${escapeHtml(testimonial.customerName || "Happy customer")}</strong>
+                        <span>${escapeHtml(testimonial.occasionLabel || "Celebration order")}</span>
+                    </div>
                 </article>
             `).join("");
 

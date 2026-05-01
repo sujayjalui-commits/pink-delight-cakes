@@ -24,7 +24,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/src/styles/storefront.css">
 </head>
-<body class="editorial-page" data-api-base="__API_BASE_URL__">
+<body class="editorial-page how-it-works-page" data-api-base="__API_BASE_URL__">
     <div class="page-shell">
         <section class="home-brand-panel" aria-label="Pink Delight brand heading">
             <div class="home-brand-panel__inner">
@@ -57,58 +57,66 @@
         </header>
 
         <main>
-            <section class="section" id="process">
+            <section class="section how-process-section" id="process">
                 <div class="container">
-                    <div class="steps-wrap steps-wrap--single">
-                        <div class="steps-panel reveal">
-                            <div class="section-heading">
-                                <span class="eyebrow"><i class="fa-solid fa-list-check"></i> Simple ordering</span>
-                                <h2>Ordering should feel easy, not complicated.</h2>
-                                <p>For a home bakery, the best experience is a quick conversation. No login, no cart, and no confusing checkout flow.</p>
-                            </div>
+                    <div class="how-process-shell">
+                        <div class="how-process-timeline">
+                            <article class="process-chapter reveal">
+                                <div class="process-chapter__text">
+                                    <span class="process-chapter__index">01</span>
+                                    <h3>Pick a style</h3>
+                                    <p>Choose one of the signature cakes or send a reference photo of your idea.</p>
+                                </div>
+                                <div class="process-chapter__visual process-chapter__visual--board">
+                                    <div class="process-photo-frame process-photo-frame--stacked">
+                                        <div class="process-photo-card process-photo-card--primary">
+                                            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOyjdYjfinWT_Cqnlc6uHOUEJowT25xJ2Vpao78oIHIco6pdvbRu3Z4rW7BqRtsTn3YG46KJ49pZRHnM8lK6BEBv9E_y284iVbPwmeRLhGyfo-ED-JlkNI3Qz9SSNqNNtzZYyhlGEQO7owFJI1B3crQXlE-wyPe8ybAQtWMw3Lh0cjjB2ACJosZYulOsPP--bI6aevspXMfIYmMvZXCVSEvk9BIAsIUUO5Z4MAaQhtw_QRCKYeKEWxteDeDQYLxpXuTXeCdUZOc0I" alt="Cake design sketch inspiration">
+                                        </div>
+                                        <div class="process-detail-card" aria-hidden="true">
+                                            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEZaOTcxNDkCxFGLD0Zh3xDcOuKER82ogn4JraTjofVdN8MR-QX_V0zv6UAl60Pk1TtfoUKkQr3hPozpzw3rKDRd1c2ddZANs1XlDxdjgXV8Jc2LvRrACHOpxnXpVYfklxN9QvE2tJTzqt4V-Y15TZr5nwZvm6ORpjSQgOIWze0OBYsQY4O1Snva6-HJrHs7AeoniZzR_6R6R_n91PhmsFI35PG72SelU6gwGqSZbDUNZPExJYJJoOs9u9OSuMZ89TRp9-fmEKpktv" alt="">
+                                        </div>
+                                    </div>
+                                </div>
+                            </article>
 
-                            <div class="steps-list">
-                                <div class="step">
-                                    <div class="step-number">1</div>
-                                    <div>
-                                        <h3>Pick a style</h3>
-                                        <p>Choose one of the signature cakes or send a reference photo of your idea.</p>
+                            <article class="process-chapter process-chapter--reverse reveal">
+                                <div class="process-chapter__visual process-chapter__visual--ingredient">
+                                    <div class="process-photo-frame process-photo-frame--portrait">
+                                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIVA4luokx5qjKiuMyezJodFWP-8lGRw5ghDSjW3u31LWjSv2-m7YiCie4lmq_gAF2xxRtxU0PqYziu4YKq3jiLIKf9p9VhJ45Ucwl7LFQdozzBRYGdNegIa0MsfFZDm9lPr1LwiyK3r6xjgpbgImYkq_IzAtTzvhD-CYqDX8Lew4fr2OoLu9tv49FDBxDLxcsayV142bEuMMhSjNk5OxE9zMkFEX8R6U_AyCJkQ050k_xTq5L2EyfCCdWtgdio8aVhTDY3kLg2O_g" alt="Cake ingredient sourcing inspiration">
                                     </div>
                                 </div>
-                                <div class="step">
-                                    <div class="step-number">2</div>
-                                    <div>
-                                        <h3>Send your details</h3>
-                                        <p>Share the event date, flavor, size, and color theme through the inquiry page or WhatsApp.</p>
-                                    </div>
+                                <div class="process-chapter__text">
+                                    <span class="process-chapter__index">02</span>
+                                    <h3>Send your details</h3>
+                                    <p>Share the event date, flavor, size, and color theme through the inquiry page or WhatsApp.</p>
                                 </div>
-                                <div class="step">
-                                    <div class="step-number">3</div>
-                                    <div>
-                                        <h3>Confirm and celebrate</h3>
-                                        <p>Receive your quote, confirm the order, and choose pickup or local delivery.</p>
-                                    </div>
-                                </div>
-                            </div>
+                            </article>
 
-                            <div class="cta-actions">
-                                <a class="btn btn-primary" href="/inquiry-model/"><i class="fa-solid fa-paper-plane"></i> Open Inquiry</a>
-                                <a class="btn btn-secondary" href="/menu/"><i class="fa-solid fa-cake-candles"></i> View Menu</a>
-                            </div>
+                            <article class="process-chapter reveal">
+                                <div class="process-chapter__text">
+                                    <span class="process-chapter__index">03</span>
+                                    <h3>Confirm and celebrate</h3>
+                                    <p>Receive your quote, confirm the order, and choose pickup or local delivery.</p>
+                                </div>
+                                <div class="process-chapter__visual process-chapter__visual--finish">
+                                    <div class="process-photo-frame process-photo-frame--landscape">
+                                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDLzoOvvOXQfdML1rrfdatpgcMrMKAinMXOro7Dan1qsBDcoXMmENi4ydogwP9NvRj85B3LzwYJC19ETh2TmANW5Np68Wu7BhTSmPKL98fWmpcWNQn2_pVrjtjMWI1ii6zEeAX1fzV-JSBC6RvUvWtA1LdS1jIADVo5wDJsR9LJNpHw2cPYgzaYE1VaGSYe5OAm5pVHj-9BEw357o60IsbCtt75Ccb5AY1ar0WsaPKw33RBrorKbXgShMP86ghvDIn0zFBdDS6rvBU" alt="Celebration cake inspiration">
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+
+                        <div class="cta-actions reveal">
+                            <a class="btn btn-primary" href="/inquiry-model/"><i class="fa-solid fa-paper-plane"></i> Open Inquiry</a>
+                            <a class="btn btn-secondary" href="/menu/"><i class="fa-solid fa-cake-candles"></i> View Menu</a>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section class="section">
+            <section class="section how-support-section">
                 <div class="container">
-                    <div class="section-heading reveal">
-                        <span class="eyebrow"><i class="fa-solid fa-compass"></i> Order support</span>
-                        <h2>Clear delivery details, a simple follow-up flow, and a lightweight way to track your inquiry.</h2>
-                        <p>The experience stays personal and conversation-led, but the website gives customers more clarity before and after they submit a request.</p>
-                    </div>
-
-                    <div class="support-grid">
+                    <div class="support-grid support-grid--editorial">
                         <article class="support-card reveal">
                             <span class="eyebrow"><i class="fa-solid fa-location-dot"></i> Service area</span>
                             <h3>Where we deliver and how pickup works</h3>

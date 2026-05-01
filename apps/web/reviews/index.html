@@ -24,7 +24,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/src/styles/storefront.css">
 </head>
-<body class="editorial-page" data-api-base="__API_BASE_URL__">
+<body class="editorial-page reviews-page" data-api-base="__API_BASE_URL__">
     <div class="page-shell">
         <section class="home-brand-panel" aria-label="Pink Delight brand heading">
             <div class="home-brand-panel__inner">
@@ -59,13 +59,17 @@
         <main>
             <section class="section testimonial-band" id="reviews">
                 <div class="container">
-                    <div class="section-heading reveal">
-                        <span class="eyebrow"><i class="fa-solid fa-star"></i> Customer reviews</span>
-                        <h2>Small-batch baking works best when people remember both the taste and the feeling.</h2>
-                        <p>A few kind words from past celebrations can help new customers understand the care behind each custom order.</p>
-                    </div>
+                    <div class="reviews-editorial-layout">
+                        <aside class="reviews-editorial-rail reveal">
+                            <span class="eyebrow"><i class="fa-solid fa-star"></i> Customer reviews</span>
+                            <h2>Small-batch baking works best when people remember both the taste and the feeling.</h2>
+                            <p>A few kind words from past celebrations can help new customers understand the care behind each custom order.</p>
+                        </aside>
 
-                    <div class="review-grid" id="reviewGrid"></div>
+                        <div class="reviews-editorial-stage">
+                            <div class="review-grid" id="reviewGrid"></div>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>
