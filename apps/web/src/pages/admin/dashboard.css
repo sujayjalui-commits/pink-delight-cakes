@@ -908,6 +908,29 @@ select:focus {
     font-size: 1rem;
 }
 
+.delivery-admin-note {
+    display: grid;
+    align-content: start;
+    gap: 0.35rem;
+    padding: 0.95rem 1rem;
+    border-radius: 16px;
+    background: #fcf6ee;
+    border: 1px solid rgba(160, 118, 95, 0.1);
+}
+
+.delivery-admin-note strong {
+    font-size: 0.84rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #7a5c52;
+}
+
+.delivery-admin-note p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
 .product-preview-card {
     display: grid;
     grid-template-columns: minmax(160px, 0.72fr) minmax(0, 1fr);

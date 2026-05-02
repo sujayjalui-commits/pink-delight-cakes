@@ -310,6 +310,37 @@
                                         </label>
                                     </div>
 
+                                    <div class="editor-group hidden" id="orderDeliveryGroup">
+                                        <div class="group-head">
+                                            <h4>Delivery updates</h4>
+                                            <span class="meta-label">Shown on the public tracking page only for local delivery inquiries</span>
+                                        </div>
+                                        <div class="field-grid">
+                                            <label>
+                                                <span>Delivery status</span>
+                                                <select id="orderDeliveryStatus"></select>
+                                            </label>
+                                            <label>
+                                                <span>Expected window start</span>
+                                                <input type="datetime-local" id="orderDeliveryEtaStart">
+                                            </label>
+                                        </div>
+                                        <div class="field-grid">
+                                            <label>
+                                                <span>Expected window end</span>
+                                                <input type="datetime-local" id="orderDeliveryEtaEnd">
+                                            </label>
+                                            <div class="delivery-admin-note">
+                                                <strong>Customer-facing note</strong>
+                                                <p>Keep this short and practical, like “Driver will call before arrival” or “Please stay reachable on WhatsApp.”</p>
+                                            </div>
+                                        </div>
+                                        <label>
+                                            <span>Delivery note</span>
+                                            <textarea id="orderDeliveryNote" rows="3" placeholder="Driver will call before arrival."></textarea>
+                                        </label>
+                                    </div>
+
                                     <label>
                                         <span>Internal note</span>
                                         <textarea id="orderInternalNote" rows="5" placeholder="Add internal bakery notes, quote context, or follow-up reminders."></textarea>

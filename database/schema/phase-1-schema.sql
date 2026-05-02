@@ -95,6 +95,11 @@ CREATE TABLE IF NOT EXISTS order_requests (
   status TEXT NOT NULL DEFAULT 'new',
   source_channel TEXT NOT NULL DEFAULT 'website',
   quoted_amount INTEGER,
+  delivery_status TEXT NOT NULL DEFAULT 'not_applicable',
+  delivery_eta_start TEXT,
+  delivery_eta_end TEXT,
+  delivery_note TEXT,
+  delivery_updated_at TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL

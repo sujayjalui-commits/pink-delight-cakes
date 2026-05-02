@@ -327,6 +327,7 @@ await runTest("cart inquiry stores a structured snapshot and remains visible to 
   assert.equal(cartSnapshot.items.length, 2);
   assert.equal(cartSnapshot.itemCount, 3);
   assert.equal(cartSnapshot.estimatedStartingTotal, 4550);
+  assert.equal(env.DB.orderRequests[0].delivery_status, "not_applicable");
 
   const sessionToken = await createAdminSessionToken(admin, env);
   const adminResponse = await worker.fetch(
@@ -360,6 +361,60 @@ await runTest("cart inquiry stores a structured snapshot and remains visible to 
   assert.equal(trackingPayload.orderRequest.productName, "Cart inquiry (3 items)");
   assert.equal(trackingPayload.orderRequest.cartItemCount, 3);
   assert.equal(trackingPayload.orderRequest.cartItems.length, 2);
+  assert.equal(trackingPayload.orderRequest.deliveryTracking, null);
+});
+
+await runTest("local delivery inquiries start with pending delivery tracking metadata", async () => {
+  const env = createTestEnv({
+    products: [createProductSeed()]
+  });
+  const executionCtx = createExecutionContext();
+  const request = new Request("https://pink-delight-cakes-api.sujayjalui.workers.dev/api/order-requests", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: "https://pink-delight-cakes.pages.dev",
+      "cf-connecting-ip": "203.0.113.45"
+    },
+    body: JSON.stringify({
+      customerName: "Riya",
+      customerPhone: "+91 99887 66554",
+      customerEmail: "riya@example.com",
+      productId: "signature-black-forest",
+      fulfillmentType: "local_delivery",
+      flavor: "Black Forest",
+      sizeLabel: "1 kg",
+      servings: "8",
+      eventDate: "2026-05-08",
+      addOn: "Candles",
+      notes: "Please ring before delivery."
+    })
+  });
+
+  const response = await worker.fetch(request, env, executionCtx);
+  const payload = await response.json();
+
+  assert.equal(response.status, 201);
+  assert.equal(payload.ok, true);
+  assert.equal(env.DB.orderRequests[0].delivery_status, "delivery_pending");
+  assert.equal(env.DB.orderRequests[0].delivery_eta_start, null);
+  assert.equal(env.DB.orderRequests[0].delivery_note, null);
+
+  const trackingResponse = await worker.fetch(
+    new Request(`https://pink-delight-cakes-api.sujayjalui.workers.dev/api/order-requests/lookup?referenceId=${payload.orderRequest.id}&phone=%2B91%2099887%2066554`, {
+      headers: {
+        origin: "https://pink-delight-cakes.pages.dev"
+      }
+    }),
+    env,
+    createExecutionContext()
+  );
+  const trackingPayload = await trackingResponse.json();
+
+  assert.equal(trackingResponse.status, 200);
+  assert.equal(trackingPayload.orderRequest.fulfillmentType, "local_delivery");
+  assert.equal(trackingPayload.orderRequest.deliveryTracking.status, "delivery_pending");
+  assert.equal(trackingPayload.orderRequest.deliveryTracking.statusLabel, "Delivery details pending");
 });
 
 await runTest("cart inquiry rejects malformed cart payloads", async () => {
@@ -492,6 +547,7 @@ await runTest("public settings endpoint exposes the featured spotlight fields", 
 });
 
 await runTest("public tracking lookup returns customer-facing status metadata for a matching inquiry", async () => {
+  const futureDate = new Date(Date.now() + (2 * 86400000)).toISOString().slice(0, 10);
   const env = createTestEnv({
     orderRequests: [
       {
@@ -510,7 +566,7 @@ await runTest("public tracking lookup returns customer-facing status metadata fo
         flavor: "Black Forest",
         size_label: "2 kg",
         servings: "20",
-        event_date: "2026-05-01",
+        event_date: futureDate,
         fulfillment_type: "pickup",
         add_on: "Candles",
         notes: "Less sweet, please.",
@@ -552,6 +608,62 @@ await runTest("public tracking lookup returns customer-facing status metadata fo
   assert.equal(payload.orderRequest.followUpTitle, "When to follow up");
   assert.equal(payload.orderRequest.whatsAppCtaLabel, "Confirm or discuss this quote");
   assert.equal(payload.orderRequest.supportIntent, "I want to confirm or discuss this quote");
+});
+
+await runTest("public tracking lookup includes delivery update details for delivery inquiries", async () => {
+  const env = createTestEnv({
+    orderRequests: [
+      {
+        id: 84,
+        customer_name: "Amiya",
+        customer_phone: "+91 87678 12121",
+        customer_email: "amiya@example.com",
+        product_id: 11,
+        product_snapshot: JSON.stringify({
+          id: 11,
+          slug: "signature-black-forest",
+          name: "Signature Black Forest",
+          category: "birthday",
+          startingPrice: 1800
+        }),
+        flavor: "Black Forest",
+        size_label: "2 kg",
+        servings: "20",
+        event_date: "2026-05-05",
+        fulfillment_type: "local_delivery",
+        add_on: "Candles",
+        notes: "Please call before arrival.",
+        status: "scheduled",
+        quoted_amount: 3200,
+        source_channel: "website",
+        delivery_status: "delivery_scheduled",
+        delivery_eta_start: "2026-05-05T11:00:00.000Z",
+        delivery_eta_end: "2026-05-05T12:00:00.000Z",
+        delivery_note: "Driver will call before arrival.",
+        delivery_updated_at: "2026-05-04T10:15:00.000Z",
+        created_at: "2026-04-18T00:00:00.000Z",
+        updated_at: "2026-05-04T10:15:00.000Z"
+      }
+    ]
+  });
+
+  const request = new Request(
+    "https://pink-delight-cakes-api.sujayjalui.workers.dev/api/order-requests/lookup?referenceId=84&phone=%2B91%2087678%2012121",
+    {
+      headers: {
+        origin: "https://pink-delight-cakes.pages.dev"
+      }
+    }
+  );
+
+  const response = await worker.fetch(request, env, createExecutionContext());
+  const payload = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(payload.ok, true);
+  assert.equal(payload.orderRequest.deliveryTracking.status, "delivery_scheduled");
+  assert.equal(payload.orderRequest.deliveryTracking.note, "Driver will call before arrival.");
+  assert.match(payload.orderRequest.deliveryTracking.etaWindowLabel, /May/i);
 });
 
 await runTest("public tracking lookup falls back safely for unexpected statuses", async () => {
@@ -822,6 +934,93 @@ await runTest("admin order updates enforce valid transitions and append status h
   assert.equal(detailPayload.ok, true);
   assert.equal(detailPayload.order.statusHistory.length, 2);
   assert.equal(detailPayload.order.statusHistory[1].toStatus, "reviewing");
+});
+
+await runTest("admin delivery updates persist for local delivery inquiries", async () => {
+  const admin = {
+    id: 17,
+    email: "owner@pinkdelightcakes.com",
+    role: "owner",
+    is_active: 1
+  };
+  const env = createTestEnv({
+    adminUsers: [admin],
+    orderRequests: [
+      {
+        id: 54,
+        customer_name: "Amiya",
+        customer_phone: "+91 87678 12121",
+        customer_email: "amiya@example.com",
+        product_id: 11,
+        product_snapshot: JSON.stringify({
+          id: 11,
+          slug: "signature-black-forest",
+          name: "Signature Black Forest",
+          category: "birthday",
+          startingPrice: 1800
+        }),
+        flavor: "Black Forest",
+        size_label: "1 kg",
+        servings: "8",
+        event_date: "2026-05-06",
+        fulfillment_type: "local_delivery",
+        add_on: "Candles",
+        notes: "Please coordinate before arrival.",
+        status: "scheduled",
+        quoted_amount: 3200,
+        source_channel: "website",
+        internal_note: "",
+        delivery_status: "delivery_pending",
+        delivery_eta_start: null,
+        delivery_eta_end: null,
+        delivery_note: "",
+        delivery_updated_at: null,
+        created_at: "2026-04-18T00:00:00.000Z",
+        updated_at: "2026-04-18T01:00:00.000Z"
+      }
+    ],
+    orderStatusHistory: [
+      {
+        id: 1,
+        order_request_id: 54,
+        from_status: null,
+        to_status: "scheduled",
+        changed_by_admin_user_id: null,
+        change_source: "migration_backfill",
+        created_at: "2026-04-18T00:00:00.000Z"
+      }
+    ]
+  });
+  const sessionToken = await createAdminSessionToken(admin, env);
+  const cookieHeader = `${apiConfig.adminSessionCookieName}=${sessionToken}`;
+
+  const patchResponse = await worker.fetch(
+    new Request("https://pink-delight-cakes.pages.dev/api/admin/orders/54", {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+        "x-admin-intent": "mutate",
+        origin: "https://pink-delight-cakes.pages.dev",
+        cookie: cookieHeader
+      },
+      body: JSON.stringify({
+        deliveryStatus: "delivery_scheduled",
+        deliveryEtaStart: "2026-05-06T10:00:00.000Z",
+        deliveryEtaEnd: "2026-05-06T11:00:00.000Z",
+        deliveryNote: "Driver will call before arrival."
+      })
+    }),
+    env,
+    createExecutionContext()
+  );
+  const patchPayload = await patchResponse.json();
+
+  assert.equal(patchResponse.status, 200);
+  assert.equal(patchPayload.ok, true);
+  assert.equal(patchPayload.order.deliveryStatus, "delivery_scheduled");
+  assert.equal(patchPayload.order.deliveryEtaStart, "2026-05-06T10:00:00.000Z");
+  assert.equal(patchPayload.order.deliveryNote, "Driver will call before arrival.");
+  assert.ok(env.DB.orderRequests[0].delivery_updated_at);
 });
 
 await runTest("admin order updates reject invalid status jumps", async () => {

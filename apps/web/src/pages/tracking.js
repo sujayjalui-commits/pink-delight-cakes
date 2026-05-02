@@ -248,6 +248,14 @@
         const statusCreatedAt = document.getElementById("statusCreatedAt");
         const statusQuotedAmountCard = document.getElementById("statusQuotedAmountCard");
         const statusQuotedAmount = document.getElementById("statusQuotedAmount");
+        const deliveryPanel = document.getElementById("deliveryPanel");
+        const deliveryMessage = document.getElementById("deliveryMessage");
+        const deliveryStatusLabel = document.getElementById("deliveryStatusLabel");
+        const deliveryEtaCard = document.getElementById("deliveryEtaCard");
+        const deliveryEtaWindow = document.getElementById("deliveryEtaWindow");
+        const deliveryUpdatedAt = document.getElementById("deliveryUpdatedAt");
+        const deliveryNoteCard = document.getElementById("deliveryNoteCard");
+        const deliveryNote = document.getElementById("deliveryNote");
         const nextStepTitle = document.getElementById("nextStepTitle");
         const nextStepMessage = document.getElementById("nextStepMessage");
         const customerActionTitle = document.getElementById("customerActionTitle");
@@ -439,6 +447,36 @@
             `).join("");
         }
 
+        function renderDeliveryTracking(deliveryTracking) {
+            if (!deliveryTracking) {
+                deliveryPanel.hidden = true;
+                deliveryPanel.className = "delivery-panel";
+                return;
+            }
+
+            deliveryPanel.hidden = false;
+            deliveryPanel.className = `delivery-panel tone-${deliveryTracking.tone || "steady"}`;
+            deliveryStatusLabel.textContent = deliveryTracking.statusLabel || "Delivery update";
+            deliveryMessage.textContent = deliveryTracking.statusMessage || "The bakery will share delivery progress here.";
+            deliveryUpdatedAt.textContent = formatDateTime(deliveryTracking.updatedAt);
+
+            if (deliveryTracking.etaWindowLabel) {
+                deliveryEtaCard.hidden = false;
+                deliveryEtaWindow.textContent = deliveryTracking.etaWindowLabel;
+            } else {
+                deliveryEtaCard.hidden = true;
+                deliveryEtaWindow.textContent = "-";
+            }
+
+            if (deliveryTracking.note) {
+                deliveryNoteCard.hidden = false;
+                deliveryNote.textContent = deliveryTracking.note;
+            } else {
+                deliveryNoteCard.hidden = true;
+                deliveryNote.textContent = "-";
+            }
+        }
+
         function applyLookupResult(order) {
             hideRecoveryState();
             statusReferenceLabel.textContent = `Reference #${order.id}`;
@@ -495,11 +533,14 @@
                 statusQuotedAmount.textContent = "-";
             }
 
+            renderDeliveryTracking(order.deliveryTracking);
             renderTimeline(Array.isArray(order.timeline) ? order.timeline : []);
 
             const supportMessage = [
                 `Hi Pink Delight Cakes, I want to ask about inquiry #${order.id}.`,
                 `Current status shown: ${order.statusLabel}.`,
+                order.deliveryTracking?.statusLabel ? `Delivery update: ${order.deliveryTracking.statusLabel}.` : "",
+                order.deliveryTracking?.etaWindowLabel ? `Expected delivery window: ${order.deliveryTracking.etaWindowLabel}.` : "",
                 order.supportIntent ? `I need help with: ${order.supportIntent}.` : "",
                 order.productName ? `Cake: ${order.productName}` : "",
                 order.flavor ? `Flavor: ${order.flavor}` : "",

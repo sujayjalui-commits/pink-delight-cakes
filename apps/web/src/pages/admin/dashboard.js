@@ -20,6 +20,22 @@ const ORDER_STATUS_TRANSITIONS = {
     cancelled: []
 };
 
+const DELIVERY_STATUSES = [
+    "not_applicable",
+    "delivery_pending",
+    "delivery_scheduled",
+    "out_for_delivery",
+    "delivered"
+];
+
+const DELIVERY_STATUS_TRANSITIONS = {
+    not_applicable: [],
+    delivery_pending: ["delivery_scheduled"],
+    delivery_scheduled: ["out_for_delivery", "delivered"],
+    out_for_delivery: ["delivered"],
+    delivered: []
+};
+
 const PRODUCT_AVAILABILITY = ["available", "limited", "unavailable"];
 const FORM_KEYS = ["order", "product", "settings", "testimonials"];
 const PRODUCT_IMAGE_UPLOAD_MAX_BYTES = 320 * 1024;
@@ -127,6 +143,11 @@ const orderForm = document.getElementById("orderForm");
 const orderSummary = document.getElementById("orderSummary");
 const orderStatus = document.getElementById("orderStatus");
 const orderQuotedAmount = document.getElementById("orderQuotedAmount");
+const orderDeliveryGroup = document.getElementById("orderDeliveryGroup");
+const orderDeliveryStatus = document.getElementById("orderDeliveryStatus");
+const orderDeliveryEtaStart = document.getElementById("orderDeliveryEtaStart");
+const orderDeliveryEtaEnd = document.getElementById("orderDeliveryEtaEnd");
+const orderDeliveryNote = document.getElementById("orderDeliveryNote");
 const orderInternalNote = document.getElementById("orderInternalNote");
 const orderSaveButton = document.getElementById("orderSaveButton");
 const orderSaveMeta = document.getElementById("orderSaveMeta");
@@ -470,6 +491,50 @@ function canTransitionOrderStatus(fromStatus, toStatus) {
     }
 
     return getAllowedNextOrderStatuses(currentStatus).includes(nextStatus);
+}
+
+function getAllowedNextDeliveryStatuses(status) {
+    return DELIVERY_STATUS_TRANSITIONS[String(status || "").trim()] || [];
+}
+
+function canTransitionDeliveryStatus(fromStatus, toStatus) {
+    const currentStatus = String(fromStatus || "").trim();
+    const nextStatus = String(toStatus || "").trim();
+
+    if (!currentStatus || !nextStatus) {
+        return false;
+    }
+
+    if (currentStatus === nextStatus) {
+        return true;
+    }
+
+    return getAllowedNextDeliveryStatuses(currentStatus).includes(nextStatus);
+}
+
+function toDateTimeLocalValue(value) {
+    if (!value) {
+        return "";
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+        return "";
+    }
+
+    const timezoneOffset = parsed.getTimezoneOffset() * 60000;
+    return new Date(parsed.getTime() - timezoneOffset).toISOString().slice(0, 16);
+}
+
+function normalizeDateTimeLocalValue(value) {
+    const normalizedValue = String(value || "").trim();
+
+    if (!normalizedValue) {
+        return null;
+    }
+
+    const parsed = new Date(normalizedValue);
+    return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 }
 
 function getOrderAttentionMeta(order) {
@@ -884,6 +949,10 @@ function getOrderDraftPayload() {
         id: activeOrder.id,
         status: orderStatus.value,
         quotedAmount: orderQuotedAmount.value ? Number(orderQuotedAmount.value) : null,
+        deliveryStatus: orderDeliveryGroup.classList.contains("hidden") ? undefined : orderDeliveryStatus.value,
+        deliveryEtaStart: orderDeliveryGroup.classList.contains("hidden") ? undefined : normalizeDateTimeLocalValue(orderDeliveryEtaStart.value),
+        deliveryEtaEnd: orderDeliveryGroup.classList.contains("hidden") ? undefined : normalizeDateTimeLocalValue(orderDeliveryEtaEnd.value),
+        deliveryNote: orderDeliveryGroup.classList.contains("hidden") ? undefined : orderDeliveryNote.value.trim(),
         internalNote: orderInternalNote.value.trim()
     };
 }
@@ -1109,6 +1178,10 @@ function getCurrentOrderDraft(order = state.orders.find((item) => item.id === st
         ...order,
         status: orderStatus.value || order.status,
         quotedAmount: orderQuotedAmount.value ? Number(orderQuotedAmount.value) : null,
+        deliveryStatus: orderDeliveryGroup.classList.contains("hidden") ? order.deliveryStatus : (orderDeliveryStatus.value || order.deliveryStatus),
+        deliveryEtaStart: orderDeliveryGroup.classList.contains("hidden") ? order.deliveryEtaStart : normalizeDateTimeLocalValue(orderDeliveryEtaStart.value),
+        deliveryEtaEnd: orderDeliveryGroup.classList.contains("hidden") ? order.deliveryEtaEnd : normalizeDateTimeLocalValue(orderDeliveryEtaEnd.value),
+        deliveryNote: orderDeliveryGroup.classList.contains("hidden") ? order.deliveryNote : orderDeliveryNote.value.trim(),
         internalNote: orderInternalNote.value.trim()
     };
 }
@@ -1419,6 +1492,10 @@ function renderOrderDetail() {
                 <strong>Reply status</strong>
                 <span>${escapeHtml(getOrderAttentionMeta(order).label)}</span>
             </div>
+            <div class="summary-card">
+                <strong>Delivery</strong>
+                <span>${escapeHtml(order.fulfillmentType === "local_delivery" ? statusLabel(order.deliveryStatus || "delivery_pending") : "Pickup inquiry")}</span>
+            </div>
         </div>
         ${renderCartSnapshot(order)}
     `;
@@ -1429,6 +1506,28 @@ function renderOrderDetail() {
         <option value="${status}" ${order.status === status ? "selected" : ""}>${escapeHtml(statusLabel(status))}</option>
     `).join("");
     orderQuotedAmount.value = order.quotedAmount ?? "";
+    if (order.fulfillmentType === "local_delivery") {
+        const currentDeliveryStatus = order.deliveryStatus || "delivery_pending";
+        const allowedDeliveryStatuses = [currentDeliveryStatus, ...getAllowedNextDeliveryStatuses(currentDeliveryStatus)]
+            .filter((status, index, all) => all.indexOf(status) === index);
+
+        orderDeliveryGroup.classList.remove("hidden");
+        orderDeliveryStatus.innerHTML = allowedDeliveryStatuses.map((status) => `
+            <option value="${status}" ${currentDeliveryStatus === status ? "selected" : ""}>${escapeHtml(statusLabel(status))}</option>
+        `).join("");
+        orderDeliveryEtaStart.value = toDateTimeLocalValue(order.deliveryEtaStart);
+        orderDeliveryEtaEnd.value = toDateTimeLocalValue(order.deliveryEtaEnd);
+        orderDeliveryNote.value = order.deliveryNote ?? "";
+    } else {
+        orderDeliveryGroup.classList.add("hidden");
+        orderDeliveryStatus.innerHTML = DELIVERY_STATUSES.map((status) => `
+            <option value="${status}">${escapeHtml(statusLabel(status))}</option>
+        `).join("");
+        orderDeliveryStatus.value = "not_applicable";
+        orderDeliveryEtaStart.value = "";
+        orderDeliveryEtaEnd.value = "";
+        orderDeliveryNote.value = "";
+    }
     orderInternalNote.value = order.internalNote ?? "";
     orderQuickActions.querySelectorAll("[data-quick-status]").forEach((button) => {
         const nextStatus = button.dataset.quickStatus;
@@ -2297,6 +2396,7 @@ async function handleLogout() {
 
 async function saveOrderPatch(patch, options = {}) {
     const orderId = state.activeOrderId;
+    const activeOrder = state.orders.find((item) => item.id === orderId);
     if (!orderId) {
         return;
     }
@@ -2304,11 +2404,32 @@ async function saveOrderPatch(patch, options = {}) {
     const nextPatch = {
         status: patch.status ?? orderStatus.value,
         quotedAmount: patch.quotedAmount ?? (orderQuotedAmount.value ? Number(orderQuotedAmount.value) : null),
+        deliveryStatus: activeOrder?.fulfillmentType === "local_delivery"
+            ? (patch.deliveryStatus ?? orderDeliveryStatus.value)
+            : undefined,
+        deliveryEtaStart: activeOrder?.fulfillmentType === "local_delivery"
+            ? (patch.deliveryEtaStart ?? normalizeDateTimeLocalValue(orderDeliveryEtaStart.value))
+            : undefined,
+        deliveryEtaEnd: activeOrder?.fulfillmentType === "local_delivery"
+            ? (patch.deliveryEtaEnd ?? normalizeDateTimeLocalValue(orderDeliveryEtaEnd.value))
+            : undefined,
+        deliveryNote: activeOrder?.fulfillmentType === "local_delivery"
+            ? (patch.deliveryNote ?? orderDeliveryNote.value.trim())
+            : undefined,
         internalNote: patch.internalNote ?? orderInternalNote.value.trim()
     };
 
     if (nextPatch.status === "quoted" && (nextPatch.quotedAmount === null || Number.isNaN(nextPatch.quotedAmount))) {
         showToast("Add the quoted amount before marking this order as quoted.", "error");
+        return;
+    }
+
+    if (
+        nextPatch.deliveryEtaStart
+        && nextPatch.deliveryEtaEnd
+        && new Date(nextPatch.deliveryEtaStart).getTime() > new Date(nextPatch.deliveryEtaEnd).getTime()
+    ) {
+        showToast("Delivery window end should be later than the start time.", "error");
         return;
     }
 
@@ -3184,7 +3305,7 @@ function bindInteractions() {
         renderProductEditor();
     });
 
-    [orderStatus, orderQuotedAmount, orderInternalNote].forEach((field) => {
+    [orderStatus, orderQuotedAmount, orderDeliveryStatus, orderDeliveryEtaStart, orderDeliveryEtaEnd, orderDeliveryNote, orderInternalNote].forEach((field) => {
         field.addEventListener("input", () => {
             updateFormSaveMeta("order");
             renderReplyTemplatePreview();

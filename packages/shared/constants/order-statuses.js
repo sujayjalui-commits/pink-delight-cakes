@@ -49,3 +49,38 @@ export const FULFILLMENT_TYPES = [
   "pickup",
   "local_delivery"
 ];
+
+export const DELIVERY_STATUSES = [
+  "not_applicable",
+  "delivery_pending",
+  "delivery_scheduled",
+  "out_for_delivery",
+  "delivered"
+];
+
+export const DELIVERY_STATUS_TRANSITIONS = {
+  not_applicable: [],
+  delivery_pending: ["delivery_scheduled"],
+  delivery_scheduled: ["out_for_delivery", "delivered"],
+  out_for_delivery: ["delivered"],
+  delivered: []
+};
+
+export function getAllowedNextDeliveryStatuses(status) {
+  return DELIVERY_STATUS_TRANSITIONS[String(status || "").trim()] || [];
+}
+
+export function canTransitionDeliveryStatus(fromStatus, toStatus) {
+  const currentStatus = String(fromStatus || "").trim();
+  const nextStatus = String(toStatus || "").trim();
+
+  if (!currentStatus || !nextStatus) {
+    return false;
+  }
+
+  if (currentStatus === nextStatus) {
+    return true;
+  }
+
+  return getAllowedNextDeliveryStatuses(currentStatus).includes(nextStatus);
+}

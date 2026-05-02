@@ -139,7 +139,12 @@ export class FakeD1Database {
         notes,
         cartSnapshot,
         status,
-        sourceChannel
+        sourceChannel,
+        deliveryStatus,
+        deliveryEtaStart,
+        deliveryEtaEnd,
+        deliveryNote,
+        deliveryUpdatedAt
       ] = boundValues;
 
       const createdOrder = {
@@ -161,6 +166,11 @@ export class FakeD1Database {
         source_channel: sourceChannel,
         quoted_amount: null,
         internal_note: null,
+        delivery_status: deliveryStatus,
+        delivery_eta_start: deliveryEtaStart,
+        delivery_eta_end: deliveryEtaEnd,
+        delivery_note: deliveryNote,
+        delivery_updated_at: deliveryUpdatedAt,
         created_at: createTimestamp(this.nextOrderId),
         updated_at: createTimestamp(this.nextOrderId)
       };
@@ -225,8 +235,8 @@ export class FakeD1Database {
       return this.adminUsers.find((admin) => admin.email === boundValues[0]) || null;
     }
 
-    if (query.includes("update order_requests set status = ?, quoted_amount = ?, internal_note = ?, updated_at = current_timestamp where id = ?")) {
-      const [status, quotedAmount, internalNote, orderId] = boundValues;
+    if (query.includes("update order_requests set status = ?, quoted_amount = ?, internal_note = ?, delivery_status = ?, delivery_eta_start = ?, delivery_eta_end = ?, delivery_note = ?, delivery_updated_at = ?, updated_at = current_timestamp where id = ?")) {
+      const [status, quotedAmount, internalNote, deliveryStatus, deliveryEtaStart, deliveryEtaEnd, deliveryNote, deliveryUpdatedAt, orderId] = boundValues;
       const orderIndex = this.orderRequests.findIndex((order) => Number(order.id) === Number(orderId));
 
       if (orderIndex === -1) {
@@ -238,6 +248,11 @@ export class FakeD1Database {
         status,
         quoted_amount: quotedAmount,
         internal_note: internalNote,
+        delivery_status: deliveryStatus,
+        delivery_eta_start: deliveryEtaStart,
+        delivery_eta_end: deliveryEtaEnd,
+        delivery_note: deliveryNote,
+        delivery_updated_at: deliveryUpdatedAt,
         updated_at: createTimestamp(3)
       };
 

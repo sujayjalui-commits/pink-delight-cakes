@@ -537,15 +537,38 @@ export async function updateAdminOrderFields(env, orderId, input, options = {}) 
   const nextStatus = input.status ?? currentOrder.status;
   const nextQuotedAmount = input.quotedAmount ?? currentOrder.quoted_amount;
   const nextInternalNote = input.internalNote ?? currentOrder.internal_note ?? null;
+  const nextDeliveryStatus = input.deliveryStatus ?? currentOrder.delivery_status ?? "not_applicable";
+  const nextDeliveryEtaStart = input.deliveryEtaStart ?? currentOrder.delivery_eta_start ?? null;
+  const nextDeliveryEtaEnd = input.deliveryEtaEnd ?? currentOrder.delivery_eta_end ?? null;
+  const nextDeliveryNote = input.deliveryNote ?? currentOrder.delivery_note ?? null;
+  const deliveryChanged = (
+    nextDeliveryStatus !== (currentOrder.delivery_status ?? "not_applicable")
+    || nextDeliveryEtaStart !== (currentOrder.delivery_eta_start ?? null)
+    || nextDeliveryEtaEnd !== (currentOrder.delivery_eta_end ?? null)
+    || nextDeliveryNote !== (currentOrder.delivery_note ?? null)
+  );
   const statusChanged = nextStatus !== currentOrder.status;
 
   const query = `
     UPDATE ${tables.orderRequests}
-    SET status = ?, quoted_amount = ?, internal_note = ?, updated_at = CURRENT_TIMESTAMP
+    SET status = ?, quoted_amount = ?, internal_note = ?, delivery_status = ?, delivery_eta_start = ?, delivery_eta_end = ?,
+        delivery_note = ?, delivery_updated_at = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `;
 
-  await env.DB.prepare(query).bind(nextStatus, nextQuotedAmount, nextInternalNote, orderId).run();
+  await env.DB.prepare(query)
+    .bind(
+      nextStatus,
+      nextQuotedAmount,
+      nextInternalNote,
+      nextDeliveryStatus,
+      nextDeliveryEtaStart,
+      nextDeliveryEtaEnd,
+      nextDeliveryNote,
+      deliveryChanged ? new Date().toISOString() : (currentOrder.delivery_updated_at ?? null),
+      orderId
+    )
+    .run();
 
   if (statusChanged) {
     await insertOrderStatusHistory(env, {
@@ -581,8 +604,13 @@ export async function createOrderRequest(env, payload) {
       notes,
       cart_snapshot,
       status,
-      source_channel
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      source_channel,
+      delivery_status,
+      delivery_eta_start,
+      delivery_eta_end,
+      delivery_note,
+      delivery_updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     RETURNING *
   `;
 
@@ -602,7 +630,12 @@ export async function createOrderRequest(env, payload) {
       payload.notes || null,
       payload.cartSnapshot || null,
       payload.status,
-      payload.sourceChannel
+      payload.sourceChannel,
+      payload.deliveryStatus,
+      payload.deliveryEtaStart || null,
+      payload.deliveryEtaEnd || null,
+      payload.deliveryNote || null,
+      payload.deliveryUpdatedAt || null
     )
     .first();
 

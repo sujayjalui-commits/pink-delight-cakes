@@ -159,6 +159,29 @@ const PUBLIC_TIMELINE_STEPS = [
   }
 ];
 
+const PUBLIC_DELIVERY_MESSAGES = {
+  delivery_pending: {
+    label: "Delivery details pending",
+    message: "Your cake is still being prepared. The bakery will share the delivery timing once it is scheduled.",
+    tone: "steady"
+  },
+  delivery_scheduled: {
+    label: "Delivery scheduled",
+    message: "The bakery has scheduled your delivery window. Keep your phone nearby in case any final coordination is needed.",
+    tone: "highlight"
+  },
+  out_for_delivery: {
+    label: "Out for delivery",
+    message: "Your cake is on the way. The bakery may call if they need help reaching you.",
+    tone: "active"
+  },
+  delivered: {
+    label: "Delivered",
+    message: "The bakery has marked this cake as delivered.",
+    tone: "success"
+  }
+};
+
 function normalizePhoneDigits(value) {
   return String(value || "").replace(/\D/g, "");
 }
@@ -426,6 +449,56 @@ function buildTimeline(stage, tone) {
   }));
 }
 
+function formatDeliveryWindow(start, end) {
+  if (!start && !end) {
+    return "";
+  }
+
+  const formatter = new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit"
+  });
+
+  const formatValue = (value) => {
+    if (!value) {
+      return "";
+    }
+
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? "" : formatter.format(parsed);
+  };
+
+  const startLabel = formatValue(start);
+  const endLabel = formatValue(end);
+
+  if (startLabel && endLabel) {
+    return `${startLabel} to ${endLabel}`;
+  }
+
+  return startLabel || endLabel;
+}
+
+function buildDeliveryTracking(order) {
+  if (order.fulfillment_type !== "local_delivery") {
+    return null;
+  }
+
+  const deliveryStatus = order.delivery_status || "delivery_pending";
+  const statusMeta = PUBLIC_DELIVERY_MESSAGES[deliveryStatus] || PUBLIC_DELIVERY_MESSAGES.delivery_pending;
+
+  return {
+    status: deliveryStatus,
+    statusLabel: statusMeta.label,
+    statusMessage: statusMeta.message,
+    tone: statusMeta.tone,
+    etaWindowLabel: formatDeliveryWindow(order.delivery_eta_start, order.delivery_eta_end),
+    note: order.delivery_note || "",
+    updatedAt: order.delivery_updated_at || order.updated_at || order.created_at || null
+  };
+}
+
 function mapPublicLookupOrder(order) {
   const snapshot = parseProductSnapshot(order.product_snapshot);
   const cartSnapshot = parseCartSnapshot(order.cart_snapshot);
@@ -445,6 +518,7 @@ function mapPublicLookupOrder(order) {
     whatsAppCtaLabel: "Ask about this inquiry"
   };
   const guidance = buildTrackingGuidance(order, statusMeta);
+  const deliveryTracking = buildDeliveryTracking(order);
 
   return {
     id: order.id,
@@ -478,6 +552,7 @@ function mapPublicLookupOrder(order) {
     confidenceLabel: guidance.confidenceLabel,
     confidenceTone: guidance.confidenceTone,
     confidenceMessage: guidance.confidenceMessage,
+    deliveryTracking,
     quotedAmount: order.quoted_amount ?? null,
     createdAt: order.created_at,
     updatedAt: order.updated_at,
@@ -565,7 +640,12 @@ export async function createPublicOrderRequest(env, input) {
     addOn: input.addOn || "",
     notes: input.notes || "",
     cartSnapshot: createCartSnapshot(cartItems),
-    sourceChannel: "website"
+    sourceChannel: "website",
+    deliveryStatus: input.fulfillmentType === "local_delivery" ? "delivery_pending" : "not_applicable",
+    deliveryEtaStart: null,
+    deliveryEtaEnd: null,
+    deliveryNote: "",
+    deliveryUpdatedAt: null
   };
 
   const persisted = await createOrderRequest(env, payload);
