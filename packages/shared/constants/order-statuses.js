@@ -84,3 +84,20 @@ export function canTransitionDeliveryStatus(fromStatus, toStatus) {
 
   return getAllowedNextDeliveryStatuses(currentStatus).includes(nextStatus);
 }
+
+export function normalizeDeliveryStatusForFulfillment(fulfillmentType, deliveryStatus) {
+  const normalizedFulfillmentType = String(fulfillmentType || "").trim();
+  const normalizedDeliveryStatus = String(deliveryStatus || "").trim();
+
+  if (normalizedFulfillmentType !== "local_delivery") {
+    return "not_applicable";
+  }
+
+  if (!normalizedDeliveryStatus || normalizedDeliveryStatus === "not_applicable") {
+    return "delivery_pending";
+  }
+
+  return DELIVERY_STATUSES.includes(normalizedDeliveryStatus)
+    ? normalizedDeliveryStatus
+    : "delivery_pending";
+}

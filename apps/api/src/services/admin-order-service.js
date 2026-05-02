@@ -3,7 +3,8 @@ import {
   canTransitionDeliveryStatus,
   canTransitionOrderStatus,
   getAllowedNextDeliveryStatuses,
-  getAllowedNextOrderStatuses
+  getAllowedNextOrderStatuses,
+  normalizeDeliveryStatusForFulfillment
 } from "../../../../packages/shared/constants/order-statuses.js";
 import { getAdminOrderById, getAdminOrders, getOrderStatusHistoryByOrderId, updateAdminOrderFields } from "../db/d1-client.js";
 
@@ -22,6 +23,7 @@ function parseJsonField(value, fallback = null) {
 function mapOrder(order) {
   const cartSnapshot = parseJsonField(order.cart_snapshot, null);
   const cartItems = Array.isArray(cartSnapshot?.items) ? cartSnapshot.items : [];
+  const deliveryStatus = normalizeDeliveryStatusForFulfillment(order.fulfillment_type, order.delivery_status);
 
   return {
     id: order.id,
@@ -46,7 +48,7 @@ function mapOrder(order) {
     status: order.status,
     sourceChannel: order.source_channel,
     quotedAmount: order.quoted_amount,
-    deliveryStatus: order.delivery_status || "not_applicable",
+    deliveryStatus,
     deliveryEtaStart: order.delivery_eta_start || null,
     deliveryEtaEnd: order.delivery_eta_end || null,
     deliveryNote: order.delivery_note || "",
@@ -132,6 +134,10 @@ export async function updateAdminOrder(env, orderId, input, adminUserId = null) 
     || input.deliveryEtaEnd !== undefined
     || input.deliveryNote !== undefined
   );
+  const currentDeliveryStatus = normalizeDeliveryStatusForFulfillment(
+    currentOrder.fulfillment_type,
+    currentOrder.delivery_status
+  );
 
   if (hasDeliveryField && currentOrder.fulfillment_type !== "local_delivery") {
     return {
@@ -143,16 +149,16 @@ export async function updateAdminOrder(env, orderId, input, adminUserId = null) 
 
   if (
     input.deliveryStatus !== undefined
-    && input.deliveryStatus !== (currentOrder.delivery_status || "not_applicable")
-    && !canTransitionDeliveryStatus(currentOrder.delivery_status || "not_applicable", input.deliveryStatus)
+    && input.deliveryStatus !== currentDeliveryStatus
+    && !canTransitionDeliveryStatus(currentDeliveryStatus, input.deliveryStatus)
   ) {
     return {
       ok: false,
       status: 409,
       error: "Invalid delivery status transition",
       details: [
-        `Cannot move delivery from ${currentOrder.delivery_status || "not_applicable"} to ${input.deliveryStatus}.`,
-        `Allowed next delivery statuses: ${getAllowedNextDeliveryStatuses(currentOrder.delivery_status || "not_applicable").join(", ") || "none"}`
+        `Cannot move delivery from ${currentDeliveryStatus} to ${input.deliveryStatus}.`,
+        `Allowed next delivery statuses: ${getAllowedNextDeliveryStatuses(currentDeliveryStatus).join(", ") || "none"}`
       ]
     };
   }

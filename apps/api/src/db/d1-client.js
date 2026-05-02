@@ -1,5 +1,16 @@
 import { tables } from "./tables.js";
 
+function normalizeDeliveryStatusForPersistence(fulfillmentType, deliveryStatus) {
+  if (String(fulfillmentType || "").trim() !== "local_delivery") {
+    return "not_applicable";
+  }
+
+  const normalizedDeliveryStatus = String(deliveryStatus || "").trim();
+  return !normalizedDeliveryStatus || normalizedDeliveryStatus === "not_applicable"
+    ? "delivery_pending"
+    : normalizedDeliveryStatus;
+}
+
 export function hasDatabase(env) {
   return Boolean(env?.DB);
 }
@@ -537,12 +548,19 @@ export async function updateAdminOrderFields(env, orderId, input, options = {}) 
   const nextStatus = input.status ?? currentOrder.status;
   const nextQuotedAmount = input.quotedAmount ?? currentOrder.quoted_amount;
   const nextInternalNote = input.internalNote ?? currentOrder.internal_note ?? null;
-  const nextDeliveryStatus = input.deliveryStatus ?? currentOrder.delivery_status ?? "not_applicable";
+  const currentDeliveryStatus = normalizeDeliveryStatusForPersistence(
+    currentOrder.fulfillment_type,
+    currentOrder.delivery_status
+  );
+  const nextDeliveryStatus = normalizeDeliveryStatusForPersistence(
+    currentOrder.fulfillment_type,
+    input.deliveryStatus ?? currentOrder.delivery_status
+  );
   const nextDeliveryEtaStart = input.deliveryEtaStart ?? currentOrder.delivery_eta_start ?? null;
   const nextDeliveryEtaEnd = input.deliveryEtaEnd ?? currentOrder.delivery_eta_end ?? null;
   const nextDeliveryNote = input.deliveryNote ?? currentOrder.delivery_note ?? null;
   const deliveryChanged = (
-    nextDeliveryStatus !== (currentOrder.delivery_status ?? "not_applicable")
+    nextDeliveryStatus !== currentDeliveryStatus
     || nextDeliveryEtaStart !== (currentOrder.delivery_eta_start ?? null)
     || nextDeliveryEtaEnd !== (currentOrder.delivery_eta_end ?? null)
     || nextDeliveryNote !== (currentOrder.delivery_note ?? null)

@@ -666,6 +666,61 @@ await runTest("public tracking lookup includes delivery update details for deliv
   assert.match(payload.orderRequest.deliveryTracking.etaWindowLabel, /May/i);
 });
 
+await runTest("public tracking lookup normalizes legacy local delivery rows that still say not applicable", async () => {
+  const env = createTestEnv({
+    orderRequests: [
+      {
+        id: 85,
+        customer_name: "Amiya",
+        customer_phone: "+91 87678 12121",
+        customer_email: "amiya@example.com",
+        product_id: 11,
+        product_snapshot: JSON.stringify({
+          id: 11,
+          slug: "signature-black-forest",
+          name: "Signature Black Forest",
+          category: "birthday",
+          startingPrice: 1800
+        }),
+        flavor: "Black Forest",
+        size_label: "1 kg",
+        servings: "8",
+        event_date: "2026-05-05",
+        fulfillment_type: "local_delivery",
+        add_on: "",
+        notes: "",
+        status: "scheduled",
+        quoted_amount: 2800,
+        source_channel: "website",
+        delivery_status: "not_applicable",
+        delivery_eta_start: null,
+        delivery_eta_end: null,
+        delivery_note: "",
+        delivery_updated_at: null,
+        created_at: "2026-04-18T00:00:00.000Z",
+        updated_at: "2026-05-04T10:15:00.000Z"
+      }
+    ]
+  });
+
+  const request = new Request(
+    "https://pink-delight-cakes-api.sujayjalui.workers.dev/api/order-requests/lookup?referenceId=85&phone=%2B91%2087678%2012121",
+    {
+      headers: {
+        origin: "https://pink-delight-cakes.pages.dev"
+      }
+    }
+  );
+
+  const response = await worker.fetch(request, env, createExecutionContext());
+  const payload = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(payload.ok, true);
+  assert.equal(payload.orderRequest.deliveryTracking.status, "delivery_pending");
+  assert.equal(payload.orderRequest.deliveryTracking.statusLabel, "Delivery details pending");
+});
+
 await runTest("public tracking lookup falls back safely for unexpected statuses", async () => {
   const nextDay = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
   const env = createTestEnv({
@@ -936,7 +991,7 @@ await runTest("admin order updates enforce valid transitions and append status h
   assert.equal(detailPayload.order.statusHistory[1].toStatus, "reviewing");
 });
 
-await runTest("admin delivery updates persist for local delivery inquiries", async () => {
+await runTest("admin delivery updates persist for local delivery inquiries even when legacy rows still say not applicable", async () => {
   const admin = {
     id: 17,
     email: "owner@pinkdelightcakes.com",
@@ -970,7 +1025,7 @@ await runTest("admin delivery updates persist for local delivery inquiries", asy
         quoted_amount: 3200,
         source_channel: "website",
         internal_note: "",
-        delivery_status: "delivery_pending",
+        delivery_status: "not_applicable",
         delivery_eta_start: null,
         delivery_eta_end: null,
         delivery_note: "",
@@ -1020,6 +1075,7 @@ await runTest("admin delivery updates persist for local delivery inquiries", asy
   assert.equal(patchPayload.order.deliveryStatus, "delivery_scheduled");
   assert.equal(patchPayload.order.deliveryEtaStart, "2026-05-06T10:00:00.000Z");
   assert.equal(patchPayload.order.deliveryNote, "Driver will call before arrival.");
+  assert.equal(env.DB.orderRequests[0].delivery_status, "delivery_scheduled");
   assert.ok(env.DB.orderRequests[0].delivery_updated_at);
 });
 

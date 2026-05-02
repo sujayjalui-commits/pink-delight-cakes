@@ -1,4 +1,5 @@
 import { seedCatalog } from "../../../../packages/shared/constants/seed-catalog.js";
+import { normalizeDeliveryStatusForFulfillment } from "../../../../packages/shared/constants/order-statuses.js";
 import { isValidPhoneNumber } from "../../../../packages/shared/helpers/validation.js";
 import { validatePublicOrderRequestInput } from "../../../../packages/shared/schemas/order-request-schema.js";
 import { createOrderRequest, getAdminOrderById, getProductBySlug, hasDatabase } from "../db/d1-client.js";
@@ -485,7 +486,7 @@ function buildDeliveryTracking(order) {
     return null;
   }
 
-  const deliveryStatus = order.delivery_status || "delivery_pending";
+  const deliveryStatus = normalizeDeliveryStatusForFulfillment(order.fulfillment_type, order.delivery_status);
   const statusMeta = PUBLIC_DELIVERY_MESSAGES[deliveryStatus] || PUBLIC_DELIVERY_MESSAGES.delivery_pending;
 
   return {

@@ -271,6 +271,17 @@ function statusLabel(status) {
         .replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
+function normalizeDeliveryStatus(fulfillmentType, deliveryStatus) {
+    if (String(fulfillmentType || "").trim() !== "local_delivery") {
+        return "not_applicable";
+    }
+
+    const normalizedDeliveryStatus = String(deliveryStatus || "").trim();
+    return !normalizedDeliveryStatus || normalizedDeliveryStatus === "not_applicable"
+        ? "delivery_pending"
+        : normalizedDeliveryStatus;
+}
+
 function formatCurrency(value) {
     if (value === null || value === undefined || value === "") {
         return "Not quoted yet";
@@ -949,7 +960,9 @@ function getOrderDraftPayload() {
         id: activeOrder.id,
         status: orderStatus.value,
         quotedAmount: orderQuotedAmount.value ? Number(orderQuotedAmount.value) : null,
-        deliveryStatus: orderDeliveryGroup.classList.contains("hidden") ? undefined : orderDeliveryStatus.value,
+        deliveryStatus: orderDeliveryGroup.classList.contains("hidden")
+            ? undefined
+            : normalizeDeliveryStatus(activeOrder.fulfillmentType, orderDeliveryStatus.value),
         deliveryEtaStart: orderDeliveryGroup.classList.contains("hidden") ? undefined : normalizeDateTimeLocalValue(orderDeliveryEtaStart.value),
         deliveryEtaEnd: orderDeliveryGroup.classList.contains("hidden") ? undefined : normalizeDateTimeLocalValue(orderDeliveryEtaEnd.value),
         deliveryNote: orderDeliveryGroup.classList.contains("hidden") ? undefined : orderDeliveryNote.value.trim(),
@@ -1178,7 +1191,9 @@ function getCurrentOrderDraft(order = state.orders.find((item) => item.id === st
         ...order,
         status: orderStatus.value || order.status,
         quotedAmount: orderQuotedAmount.value ? Number(orderQuotedAmount.value) : null,
-        deliveryStatus: orderDeliveryGroup.classList.contains("hidden") ? order.deliveryStatus : (orderDeliveryStatus.value || order.deliveryStatus),
+        deliveryStatus: orderDeliveryGroup.classList.contains("hidden")
+            ? normalizeDeliveryStatus(order.fulfillmentType, order.deliveryStatus)
+            : normalizeDeliveryStatus(order.fulfillmentType, orderDeliveryStatus.value || order.deliveryStatus),
         deliveryEtaStart: orderDeliveryGroup.classList.contains("hidden") ? order.deliveryEtaStart : normalizeDateTimeLocalValue(orderDeliveryEtaStart.value),
         deliveryEtaEnd: orderDeliveryGroup.classList.contains("hidden") ? order.deliveryEtaEnd : normalizeDateTimeLocalValue(orderDeliveryEtaEnd.value),
         deliveryNote: orderDeliveryGroup.classList.contains("hidden") ? order.deliveryNote : orderDeliveryNote.value.trim(),
@@ -1494,7 +1509,7 @@ function renderOrderDetail() {
             </div>
             <div class="summary-card">
                 <strong>Delivery</strong>
-                <span>${escapeHtml(order.fulfillmentType === "local_delivery" ? statusLabel(order.deliveryStatus || "delivery_pending") : "Pickup inquiry")}</span>
+                <span>${escapeHtml(order.fulfillmentType === "local_delivery" ? statusLabel(normalizeDeliveryStatus(order.fulfillmentType, order.deliveryStatus)) : "Pickup inquiry")}</span>
             </div>
         </div>
         ${renderCartSnapshot(order)}
@@ -1507,7 +1522,7 @@ function renderOrderDetail() {
     `).join("");
     orderQuotedAmount.value = order.quotedAmount ?? "";
     if (order.fulfillmentType === "local_delivery") {
-        const currentDeliveryStatus = order.deliveryStatus || "delivery_pending";
+        const currentDeliveryStatus = normalizeDeliveryStatus(order.fulfillmentType, order.deliveryStatus);
         const allowedDeliveryStatuses = [currentDeliveryStatus, ...getAllowedNextDeliveryStatuses(currentDeliveryStatus)]
             .filter((status, index, all) => all.indexOf(status) === index);
 
