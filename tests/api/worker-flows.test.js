@@ -18,7 +18,8 @@ function createProductSeed() {
     lead_time_hours: 24,
     availability_status: "available",
     featured: 1,
-    image_url: "https://example.com/cake.jpg"
+    image_url: "https://example.com/cake.jpg",
+    video_url: "https://example.com/cake.mp4"
   };
 }
 
@@ -466,7 +467,8 @@ await runTest("public catalog loads product options in one bulk query instead of
         lead_time_hours: 24,
         availability_status: "available",
         featured: 0,
-        image_url: "https://example.com/mango.jpg"
+        image_url: "https://example.com/mango.jpg",
+        video_url: null
       }
     ],
     productOptions: [
@@ -495,8 +497,65 @@ await runTest("public catalog loads product options in one bulk query instead of
   assert.equal(payload.products.length, 2);
   assert.equal(payload.products[0].options.flavors.length > 0, true);
   assert.equal(payload.products[1].options.addOns[0], "Birthday topper");
+  assert.equal(payload.products[0].videoUrl, "https://example.com/cake.mp4");
   assert.equal(bulkOptionQueries.length, 1);
   assert.equal(perProductOptionQueries.length, 0);
+});
+
+await runTest("admin product update persists an optional video URL while keeping the same product flow", async () => {
+  const admin = {
+    id: 14,
+    email: "owner@pinkdelightcakes.com",
+    role: "owner",
+    is_active: 1
+  };
+  const env = createTestEnv({
+    adminUsers: [admin],
+    products: [createProductSeed()],
+    productOptions: [
+      { product_id: 11, option_group: "flavor", option_label: "Black Forest", servings: null, price: null, sort_order: 1, id: 1 },
+      { product_id: 11, option_group: "size", option_label: "1 kg", servings: "10", price: 1800, sort_order: 1, id: 2 },
+      { product_id: 11, option_group: "addon", option_label: "Chocolate plaque", servings: null, price: null, sort_order: 1, id: 3 }
+    ]
+  });
+  const sessionToken = await createAdminSessionToken(admin, env);
+  const cookieHeader = `${apiConfig.adminSessionCookieName}=${sessionToken}`;
+
+  const response = await worker.fetch(
+    new Request("https://pink-delight-cakes.pages.dev/api/admin/products/11", {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+        "x-admin-intent": "mutate",
+        origin: "https://pink-delight-cakes.pages.dev",
+        cookie: cookieHeader
+      },
+      body: JSON.stringify({
+        slug: "signature-black-forest",
+        name: "Signature Black Forest",
+        category: "birthday",
+        shortDescription: "Dark chocolate sponge with cherries and cream.",
+        startingPrice: 1800,
+        badge: "Best seller",
+        leadTimeHours: 24,
+        availabilityStatus: "available",
+        featured: true,
+        imageUrl: "https://example.com/cake.jpg",
+        videoUrl: " https://example.com/signature-black-forest.mp4 ",
+        flavors: ["Black Forest"],
+        sizes: [{ label: "1 kg", servings: "10", price: 1800 }],
+        addOns: ["Chocolate plaque"]
+      })
+    }),
+    env,
+    createExecutionContext()
+  );
+  const payload = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(payload.ok, true);
+  assert.equal(payload.product.videoUrl, "https://example.com/signature-black-forest.mp4");
+  assert.equal(env.DB.products[0].video_url, "https://example.com/signature-black-forest.mp4");
 });
 
 await runTest("public testimonials endpoint returns only published testimonials", async () => {

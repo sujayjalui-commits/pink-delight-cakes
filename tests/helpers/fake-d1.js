@@ -60,6 +60,8 @@ export class FakeD1Database {
     }));
     this.nextOrderId = this.orderRequests.reduce((maxValue, order) => Math.max(maxValue, Number(order.id) || 0), 0) + 1;
     this.nextOrderStatusHistoryId = this.orderStatusHistory.reduce((maxValue, entry) => Math.max(maxValue, Number(entry.id) || 0), 0) + 1;
+    this.nextProductId = this.products.reduce((maxValue, product) => Math.max(maxValue, Number(product.id) || 0), 0) + 1;
+    this.nextProductOptionId = this.productOptions.reduce((maxValue, option) => Math.max(maxValue, Number(option.id) || 0), 0) + 1;
     this.queryLog = [];
   }
 
@@ -83,6 +85,10 @@ export class FakeD1Database {
       return this.products.find((product) => product.slug === boundValues[0]) || null;
     }
 
+    if (query.includes("select * from products where id = ? limit 1")) {
+      return this.products.find((product) => Number(product.id) === Number(boundValues[0])) || null;
+    }
+
     if (query.includes("select * from products order by featured desc, name asc")) {
       return [...this.products].sort((left, right) => {
         if (Number(right.featured) !== Number(left.featured)) {
@@ -93,6 +99,13 @@ export class FakeD1Database {
       });
     }
 
+    if (query.includes("select * from products order by created_at desc, id desc")) {
+      return [...this.products].sort((left, right) => {
+        const dateSort = String(right.created_at || "").localeCompare(String(left.created_at || ""));
+        return dateSort || Number(right.id || 0) - Number(left.id || 0);
+      });
+    }
+
     if (query.includes("select * from product_options where product_id = ?")) {
       return this.productOptions.filter((option) => option.product_id === boundValues[0]);
     }
@@ -100,6 +113,120 @@ export class FakeD1Database {
     if (query.includes("select * from product_options where product_id in (")) {
       const productIds = new Set(boundValues.map((value) => Number(value)));
       return this.productOptions.filter((option) => productIds.has(Number(option.product_id)));
+    }
+
+    if (query.includes("insert into products")) {
+      const [
+        slug,
+        name,
+        category,
+        shortDescription,
+        startingPrice,
+        badge,
+        leadTimeHours,
+        availabilityStatus,
+        featured,
+        imageUrl,
+        videoUrl
+      ] = boundValues;
+
+      const createdProduct = {
+        id: this.nextProductId,
+        slug,
+        name,
+        category,
+        short_description: shortDescription,
+        starting_price: startingPrice,
+        badge,
+        lead_time_hours: leadTimeHours,
+        availability_status: availabilityStatus,
+        featured,
+        image_url: imageUrl,
+        video_url: videoUrl,
+        created_at: createTimestamp(this.nextProductId),
+        updated_at: createTimestamp(this.nextProductId)
+      };
+
+      this.nextProductId += 1;
+      this.products.push(createdProduct);
+      return createdProduct;
+    }
+
+    if (query.includes("update products set slug = ?, name = ?, category = ?, short_description = ?, starting_price = ?, badge = ?, lead_time_hours = ?, availability_status = ?, featured = ?, image_url = ?, video_url = ?, updated_at = current_timestamp where id = ? returning *")) {
+      const [
+        slug,
+        name,
+        category,
+        shortDescription,
+        startingPrice,
+        badge,
+        leadTimeHours,
+        availabilityStatus,
+        featured,
+        imageUrl,
+        videoUrl,
+        productId
+      ] = boundValues;
+      const productIndex = this.products.findIndex((product) => Number(product.id) === Number(productId));
+
+      if (productIndex === -1) {
+        return null;
+      }
+
+      this.products[productIndex] = {
+        ...this.products[productIndex],
+        slug,
+        name,
+        category,
+        short_description: shortDescription,
+        starting_price: startingPrice,
+        badge,
+        lead_time_hours: leadTimeHours,
+        availability_status: availabilityStatus,
+        featured,
+        image_url: imageUrl,
+        video_url: videoUrl,
+        updated_at: createTimestamp(this.nextProductId + this.nextProductOptionId)
+      };
+
+      return this.products[productIndex];
+    }
+
+    if (query.includes("insert into product_options")) {
+      const [productId, optionLabel, thirdValue, fourthValue, fifthValue] = boundValues;
+      let optionGroup = "flavor";
+      let price = null;
+      let servings = null;
+      let sortOrder = thirdValue;
+
+      if (query.includes("values (?, 'size'")) {
+        optionGroup = "size";
+        price = thirdValue;
+        servings = fourthValue;
+        sortOrder = fifthValue;
+      } else if (query.includes("values (?, 'addon'")) {
+        optionGroup = "addon";
+      }
+
+      const createdOption = {
+        id: this.nextProductOptionId,
+        product_id: Number(productId),
+        option_group: optionGroup,
+        option_label: optionLabel,
+        price,
+        servings,
+        sort_order: sortOrder
+      };
+
+      this.nextProductOptionId += 1;
+      this.productOptions.push(createdOption);
+      return createdOption;
+    }
+
+    if (query.includes("delete from product_options where product_id = ?")) {
+      const productId = Number(boundValues[0]);
+      this.productOptions = this.productOptions.filter((option) => Number(option.product_id) !== productId);
+      return { success: true };
     }
 
     if (query.includes("select * from order_requests where id = ? limit 1")) {

@@ -657,6 +657,7 @@
 
         function mapProduct(product) {
             const ownerImageUrl = product.imageUrl || "";
+            const ownerVideoUrl = product.videoUrl || "";
             const options = product?.options || {};
             const sizes = Array.isArray(options.sizes) && options.sizes.length
                 ? options.sizes.map((size) => ({
@@ -672,7 +673,9 @@
                 badge: product.badge || "",
                 imageUrl: ownerImageUrl || PRODUCT_IMAGE_FALLBACKS[product.slug] || PRODUCT_IMAGE_FALLBACKS.default,
                 ownerImageUrl,
+                ownerVideoUrl,
                 hasOwnerImage: Boolean(String(ownerImageUrl).trim()),
+                hasOwnerVideo: Boolean(String(ownerVideoUrl).trim()),
                 alt: `${product.name} cake by ${state.settings.brandName}`,
                 startingPrice: product.startingPrice,
                 shortDescription: product.shortDescription || "Freshly baked to order for special celebrations.",
@@ -749,6 +752,16 @@
             return imageUrl.startsWith("src/") ? `/${imageUrl}` : imageUrl;
         }
 
+        function getProductVideoSource(product) {
+            const videoUrl = String(product?.ownerVideoUrl || "").trim();
+
+            if (!videoUrl) {
+                return "";
+            }
+
+            return videoUrl.startsWith("src/") ? `/${videoUrl}` : videoUrl;
+        }
+
         function renderCakePhoto(product, className = "") {
             const imageUrl = getProductImageSource(product);
 
@@ -762,6 +775,16 @@
             }
 
             return `<img class="${escapeHtml(className)}" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(product.alt)}" loading="lazy">`;
+        }
+
+        function renderSignatureMedia(product) {
+            const videoUrl = getProductVideoSource(product);
+
+            if (videoUrl) {
+                return `<video src="${escapeHtml(videoUrl)}" autoplay muted loop playsinline preload="metadata" aria-label="${escapeHtml(product.alt)}"></video>`;
+            }
+
+            return renderCakePhoto(product);
         }
 
         function clampNumber(value, min, max) {
@@ -1281,7 +1304,7 @@
             return `
                 <article class="signature-card reveal">
                     <div class="signature-image">
-                        ${renderCakePhoto(product)}
+                        ${renderSignatureMedia(product)}
                         ${product.badge ? `<span class="badge">${escapeHtml(product.badge)}</span>` : ""}
                     </div>
                     <div class="signature-content">

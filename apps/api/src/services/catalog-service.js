@@ -12,6 +12,7 @@ function mapSeedProduct(product) {
     leadTimeHours: product.leadTimeHours,
     availabilityStatus: product.availabilityStatus,
     featured: product.featured,
+    videoUrl: product.videoUrl || null,
     options: {
       flavors: product.flavors,
       sizes: product.sizes,
@@ -71,6 +72,7 @@ function mapDatabaseProduct(product, options) {
     availabilityStatus: product.availability_status,
     featured: Boolean(product.featured),
     imageUrl: product.image_url,
+    videoUrl: product.video_url,
     options: groupDatabaseOptions(options)
   };
 }

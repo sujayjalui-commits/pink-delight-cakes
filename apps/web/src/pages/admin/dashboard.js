@@ -173,6 +173,7 @@ const productStartingPrice = document.getElementById("productStartingPrice");
 const productLeadTime = document.getElementById("productLeadTime");
 const productAvailability = document.getElementById("productAvailability");
 const productImageUrl = document.getElementById("productImageUrl");
+const productVideoUrl = document.getElementById("productVideoUrl");
 const productImageFile = document.getElementById("productImageFile");
 const productImageUploadButton = document.getElementById("productImageUploadButton");
 const productImageClearButton = document.getElementById("productImageClearButton");
@@ -794,6 +795,18 @@ function getProductImagePreviewSource(value) {
     `);
 }
 
+function getProductVideoPreviewSource(value) {
+    const normalizedValue = String(value || "").trim();
+
+    if (!normalizedValue) {
+        return "";
+    }
+
+    return normalizedValue.startsWith("src/")
+        ? `/${normalizedValue}`
+        : normalizedValue;
+}
+
 function getSettingsSpotlightImageMetaText(value) {
     return String(value || "").trim()
         ? "Current spotlight image is ready for the storefront. Upload a new photo or paste another image URL to replace it."
@@ -878,10 +891,14 @@ function renderProductPreview() {
     const draft = collectProductPayload();
     const previewFlavor = draft.flavors.find(Boolean) || "Flavor option";
     const previewSize = draft.sizes.find((size) => size.label)?.label || "Serving size";
+    const previewVideoUrl = getProductVideoPreviewSource(draft.videoUrl);
+    const mediaMarkup = previewVideoUrl
+        ? `<video src="${escapeHtml(previewVideoUrl)}" autoplay muted loop playsinline preload="metadata"></video>`
+        : `<img src="${escapeHtml(getProductImagePreviewSource(draft.imageUrl))}" alt="${escapeHtml(draft.name || "Cake preview")}">`;
 
     productPreviewCard.innerHTML = `
         <div class="product-preview-image">
-            <img src="${escapeHtml(getProductImagePreviewSource(draft.imageUrl))}" alt="${escapeHtml(draft.name || "Cake preview")}">
+            ${mediaMarkup}
             ${draft.badge ? `<span class="badge-chip">${escapeHtml(draft.badge)}</span>` : ""}
         </div>
         <div class="product-preview-content">
@@ -1789,6 +1806,7 @@ function getDefaultProductDraft() {
         availabilityStatus: PRODUCT_AVAILABILITY[0],
         featured: false,
         imageUrl: "",
+        videoUrl: "",
         options: {
             flavors: [""],
             sizes: [{ label: "", servings: "", price: "" }],
@@ -1943,6 +1961,7 @@ function fillProductForm(product) {
     productLeadTime.value = product.leadTimeHours || "";
     productAvailability.value = product.availabilityStatus || PRODUCT_AVAILABILITY[0];
     productImageUrl.value = product.imageUrl || "";
+    productVideoUrl.value = product.videoUrl || "";
     productFeatured.checked = Boolean(product.featured);
     productImageFile.value = "";
     productImageMeta.textContent = product.imageUrl
@@ -2002,6 +2021,7 @@ function collectProductPayload() {
         availabilityStatus: productAvailability.value,
         featured: productFeatured.checked,
         imageUrl: productImageUrl.value.trim(),
+        videoUrl: productVideoUrl.value.trim(),
         flavors: lists.flavors,
         sizes: lists.sizes,
         addOns: lists.addOns
@@ -3350,6 +3370,7 @@ function bindInteractions() {
         productLeadTime,
         productAvailability,
         productImageUrl,
+        productVideoUrl,
         productFeatured
     ].forEach((field) => {
         field.addEventListener("input", renderProductPreview);

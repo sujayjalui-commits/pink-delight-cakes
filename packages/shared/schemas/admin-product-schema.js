@@ -1,6 +1,10 @@
 import { PRODUCT_AVAILABILITY_STATUSES } from "../constants/order-statuses.js";
 import { isNonEmptyString, isPositiveInteger } from "../helpers/validation.js";
 
+function isOptionalMediaString(value) {
+  return value == null || typeof value === "string";
+}
+
 function validateSize(size) {
   const errors = [];
 
@@ -23,6 +27,9 @@ export function validateAdminProductInput(product) {
   if (!PRODUCT_AVAILABILITY_STATUSES.includes(product.availabilityStatus)) {
     errors.push("availabilityStatus is invalid");
   }
+
+  if (!isOptionalMediaString(product.imageUrl)) errors.push("imageUrl must be a string");
+  if (!isOptionalMediaString(product.videoUrl)) errors.push("videoUrl must be a string");
 
   if (!Array.isArray(product.flavors) || product.flavors.length === 0) {
     errors.push("flavors must contain at least one item");

@@ -406,8 +406,9 @@ export async function createProductWithOptions(env, payload) {
       availability_status,
       featured,
       image_url,
+      video_url,
       updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
     RETURNING *`
   )
     .bind(
@@ -420,7 +421,8 @@ export async function createProductWithOptions(env, payload) {
       payload.leadTimeHours,
       payload.availabilityStatus,
       payload.featured ? 1 : 0,
-      payload.imageUrl
+      payload.imageUrl,
+      payload.videoUrl
     )
     .first();
 
@@ -436,7 +438,7 @@ export async function updateProductWithOptions(env, productId, payload) {
   const updatedProduct = await env.DB.prepare(
     `UPDATE ${tables.products}
      SET slug = ?, name = ?, category = ?, short_description = ?, starting_price = ?, badge = ?, lead_time_hours = ?,
-         availability_status = ?, featured = ?, image_url = ?, updated_at = CURRENT_TIMESTAMP
+         availability_status = ?, featured = ?, image_url = ?, video_url = ?, updated_at = CURRENT_TIMESTAMP
      WHERE id = ?
      RETURNING *`
   )
@@ -451,6 +453,7 @@ export async function updateProductWithOptions(env, productId, payload) {
       payload.availabilityStatus,
       payload.featured ? 1 : 0,
       payload.imageUrl,
+      payload.videoUrl,
       productId
     )
     .first();

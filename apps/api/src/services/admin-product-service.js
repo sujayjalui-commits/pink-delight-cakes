@@ -45,6 +45,7 @@ function mapAdminProduct(product, options) {
     availabilityStatus: product.availability_status,
     featured: Boolean(product.featured),
     imageUrl: product.image_url,
+    videoUrl: product.video_url,
     createdAt: product.created_at,
     updatedAt: product.updated_at,
     options: groupDatabaseOptions(options)
@@ -63,6 +64,7 @@ function normalizeInput(input) {
     availabilityStatus: input.availabilityStatus,
     featured: Boolean(input.featured),
     imageUrl: input.imageUrl?.trim() || null,
+    videoUrl: input.videoUrl?.trim() || null,
     flavors: input.flavors.map((value) => value.trim()),
     sizes: input.sizes.map((size) => ({
       label: size.label.trim(),
