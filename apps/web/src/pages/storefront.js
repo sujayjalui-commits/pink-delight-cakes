@@ -362,6 +362,22 @@
             return Array.from({ length: count }, () => '<i class="fa-solid fa-star"></i>').join(" ");
         }
 
+        function getTestimonialInitials(name) {
+            const words = String(name || "")
+                .trim()
+                .split(/\s+/)
+                .filter(Boolean);
+
+            if (!words.length) {
+                return "PD";
+            }
+
+            return words
+                .slice(0, 2)
+                .map((word) => word.charAt(0).toUpperCase())
+                .join("");
+        }
+
         function isValidInquiryPhone(value) {
             const normalized = String(value || "").trim();
             const digitsOnly = normalized.replace(/\D/g, "");
@@ -1649,18 +1665,32 @@
             }
 
             reviewGrid.classList.remove("review-grid--empty");
-            reviewGrid.innerHTML = testimonials.map((testimonial, index) => `
-                <article class="testimonial-card${index === 0 ? " testimonial-card--feature" : ""} reveal">
-                    <div class="testimonial-card__body">
-                        <div class="stars">${createStarsMarkup(testimonial.rating)}</div>
+            reviewGrid.innerHTML = testimonials.map((testimonial) => {
+                const customerName = escapeHtml(testimonial.customerName || "Happy customer");
+                const occasionLabel = escapeHtml(testimonial.occasionLabel || "Celebration order");
+                const rating = Math.max(1, Math.min(5, Number(testimonial.rating) || 5));
+                const ratingLabel = `${rating} star${rating === 1 ? "" : "s"}`;
+                const initials = escapeHtml(getTestimonialInitials(testimonial.customerName));
+
+                return `
+                <article class="testimonial-card reveal">
+                    <div class="testimonial-card__avatar" aria-hidden="true">${initials}</div>
+                    <div class="testimonial-card__content">
+                        <div class="testimonial-card__header">
+                            <div class="testimonial-card__identity">
+                                <h3>${customerName}</h3>
+                                <div class="stars" aria-label="${ratingLabel}">${createStarsMarkup(rating)}</div>
+                            </div>
+                            <span class="testimonial-card__rating-label">${ratingLabel}</span>
+                        </div>
                         <p class="testimonial-card__quote">"${escapeHtml(testimonial.quoteText || "")}"</p>
-                    </div>
-                    <div class="testimonial-card__footer">
-                        <strong>${escapeHtml(testimonial.customerName || "Happy customer")}</strong>
-                        <span>${escapeHtml(testimonial.occasionLabel || "Celebration order")}</span>
+                        <div class="testimonial-card__tags">
+                            <span>${occasionLabel}</span>
+                        </div>
                     </div>
                 </article>
-            `).join("");
+                `;
+            }).join("");
 
             observeRevealItems(reviewGrid);
         }

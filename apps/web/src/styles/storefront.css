@@ -1290,7 +1290,14 @@
             height: 100%;
             object-fit: cover;
             display: block;
-            transition: transform 300ms ease;
+            transform: scale(1.02);
+            transition: transform 1200ms var(--ease-soft), filter 700ms var(--ease-soft);
+            will-change: transform;
+        }
+
+        .signature-card:hover .signature-image img,
+        .signature-card:hover .signature-image video {
+            transform: scale(1.05);
         }
 
         .signature-content {
@@ -2107,17 +2114,18 @@
             object-fit: cover;
             object-position: center 44%;
             filter: sepia(0.02) saturate(0.95) contrast(0.99) brightness(1.01);
-            transition: transform 640ms var(--ease-soft), filter 240ms ease;
+            transform: scale(1.02);
+            transition: transform 1200ms var(--ease-soft), filter 700ms var(--ease-soft);
         }
 
         .menu-page .menu-card:hover .menu-image img {
-            transform: scale(1.022);
+            transform: scale(1.03);
             filter: sepia(0.02) saturate(0.98) contrast(1) brightness(1.02);
         }
 
         .menu-page .menu-card:hover .menu-image {
-            transform: translateY(-3px);
-            box-shadow: 0 24px 42px rgba(87, 62, 48, 0.11);
+            transform: translateY(-4px);
+            box-shadow: 0 28px 46px rgba(87, 62, 48, 0.12);
         }
 
         .menu-page .menu-card:hover .menu-image::after {
@@ -3665,45 +3673,31 @@
             background: linear-gradient(180deg, rgba(255, 244, 236, 0.76), rgba(255, 248, 242, 0.35));
         }
 
-        .reviews-page .reviews-editorial-layout {
+        .reviews-page .reviews-storyboard {
+            max-width: 55rem;
+            margin: 0 auto;
+        }
+
+        .reviews-page .reviews-intro {
+            max-width: 42rem;
+            margin: -0.35rem auto 3rem;
+            text-align: center;
             display: grid;
-            grid-template-columns: minmax(280px, 0.82fr) minmax(0, 1.18fr);
-            gap: 1.6rem;
-            align-items: start;
+            gap: 0;
         }
 
-        .reviews-page .reviews-editorial-rail {
-            position: sticky;
-            top: 118px;
-            padding: 2rem 1.85rem;
-            border-radius: 32px;
-            background: linear-gradient(165deg, rgba(255, 252, 248, 0.9), rgba(255, 246, 239, 0.78));
-            border: 1px solid rgba(111, 78, 55, 0.08);
-            box-shadow: var(--shadow-soft);
-        }
-
-        .reviews-page .reviews-editorial-rail h2 {
-            margin: 0.9rem 0 0.9rem;
+        .reviews-page .reviews-intro h2 {
+            margin: 0;
             font-family: "Bodoni Moda", serif;
-            font-size: clamp(2.2rem, 4vw, 3.35rem);
-            line-height: 0.98;
-            letter-spacing: 0.02em;
-        }
-
-        .reviews-page .reviews-editorial-rail p {
-            color: var(--muted);
-            font-size: 1rem;
-            line-height: 1.74;
-        }
-
-        .reviews-page .reviews-editorial-stage {
-            min-width: 0;
+            font-size: clamp(2.05rem, 3.4vw, 3rem);
+            line-height: 1.03;
+            letter-spacing: 0.01em;
         }
 
         .reviews-page .review-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 1.45rem;
-            align-items: start;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 0;
+            align-items: stretch;
         }
 
         .reviews-page .review-grid--empty {
@@ -3711,82 +3705,121 @@
         }
 
         .reviews-page .testimonial-card {
-            position: relative;
-            padding: 1.7rem;
-            border-radius: 28px;
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 247, 241, 0.92));
-            overflow: hidden;
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            gap: 1.45rem;
+            padding: 2.2rem 0;
+            border-radius: 0;
+            background: transparent;
+            border-top: 1px solid rgba(111, 78, 55, 0.1);
+            box-shadow: none;
+            align-items: start;
+            min-height: 0;
         }
 
-        .reviews-page .testimonial-card::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            background:
-                radial-gradient(circle at 16% 14%, rgba(255, 255, 255, 0.5) 0 1px, transparent 1.7px),
-                linear-gradient(145deg, rgba(255, 252, 247, 0.12), rgba(201, 172, 145, 0.03));
-            opacity: 0.38;
+        .reviews-page .testimonial-card:first-child {
+            border-top: 0;
+            padding-top: 0;
         }
 
-        .reviews-page .testimonial-card__body,
-        .reviews-page .testimonial-card__footer {
-            position: relative;
-            z-index: 1;
+        .reviews-page .testimonial-card:last-child {
+            border-bottom: 1px solid rgba(111, 78, 55, 0.1);
+        }
+
+        .reviews-page .testimonial-card__avatar {
+            width: 3.4rem;
+            height: 3.4rem;
+            border-radius: 999px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(180deg, rgba(255, 248, 244, 0.98), rgba(244, 229, 222, 0.9));
+            border: 1px solid rgba(205, 163, 154, 0.38);
+            color: var(--accent);
+            font-family: "Be Vietnam Pro", sans-serif;
+            font-size: 0.96rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .reviews-page .testimonial-card__content {
+            min-width: 0;
+        }
+
+        .reviews-page .testimonial-card__header {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 1rem;
+            align-items: start;
+            margin-bottom: 0.9rem;
+        }
+
+        .reviews-page .testimonial-card__identity {
+            display: grid;
+            gap: 0.35rem;
+        }
+
+        .reviews-page .testimonial-card__identity h3 {
+            margin: 0;
+            font-family: "Cormorant Garamond", serif;
+            font-size: clamp(2rem, 2.7vw, 2.45rem);
+            line-height: 0.96;
+            font-style: italic;
+            letter-spacing: 0.01em;
+        }
+
+        .reviews-page .stars {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            color: #d48f86;
+            margin-bottom: 0;
+            font-size: 0.66rem;
+            letter-spacing: 0.06em;
+        }
+
+        .reviews-page .testimonial-card__rating-label {
+            padding-top: 0.5rem;
+            color: var(--muted);
+            font-size: 0.73rem;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            white-space: nowrap;
         }
 
         .reviews-page .testimonial-card__quote {
             margin: 0;
+            max-width: 40rem;
             color: var(--text);
-            font-size: 1rem;
-            line-height: 1.8;
+            font-size: 1.08rem;
+            line-height: 1.82;
         }
 
-        .reviews-page .testimonial-card__footer {
-            margin-top: 1.25rem;
-            padding-top: 1rem;
-            border-top: 1px solid rgba(111, 78, 55, 0.1);
-            display: grid;
-            gap: 0.22rem;
+        .reviews-page .testimonial-card__tags {
+            margin-top: 1.2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
         }
 
-        .reviews-page .testimonial-card strong {
-            font-size: 0.98rem;
-        }
-
-        .reviews-page .testimonial-card--feature {
-            grid-column: 1 / -1;
-            display: grid;
-            grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.62fr);
-            gap: 1.5rem;
-            align-items: end;
-            padding: 2rem 2rem 1.9rem;
-            background: linear-gradient(160deg, rgba(255, 253, 250, 0.94), rgba(255, 241, 232, 0.92));
-            box-shadow: 0 18px 34px rgba(103, 74, 61, 0.08);
-        }
-
-        .reviews-page .testimonial-card--feature .stars {
-            margin-bottom: 1.15rem;
-        }
-
-        .reviews-page .testimonial-card--feature .testimonial-card__quote {
-            font-family: "Cormorant Garamond", serif;
-            font-size: clamp(1.45rem, 2vw, 1.8rem);
-            line-height: 1.42;
-        }
-
-        .reviews-page .testimonial-card--feature .testimonial-card__footer {
-            margin-top: 0;
-            padding-top: 0;
-            padding-left: 1.25rem;
-            border-top: 0;
-            border-left: 1px solid rgba(111, 78, 55, 0.1);
-            align-self: stretch;
-            align-content: end;
+        .reviews-page .testimonial-card__tags span {
+            display: inline-flex;
+            align-items: center;
+            min-height: 2rem;
+            padding: 0.42rem 0.86rem;
+            border-radius: 999px;
+            background: rgba(229, 154, 148, 0.18);
+            color: var(--accent);
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
         }
 
         .reviews-page .review-empty-state {
-            max-width: none;
+            max-width: 55rem;
+            margin: 0 auto;
         }
 
         .story-grid {
@@ -4099,23 +4132,8 @@
                 gap: 2rem;
             }
 
-            .reviews-page .reviews-editorial-layout {
-                grid-template-columns: 1fr;
-            }
-
-            .reviews-page .reviews-editorial-rail {
-                position: static;
-            }
-
-            .reviews-page .testimonial-card--feature {
-                grid-template-columns: 1fr;
-            }
-
-            .reviews-page .testimonial-card--feature .testimonial-card__footer {
-                padding-left: 0;
-                padding-top: 1rem;
-                border-left: 0;
-                border-top: 1px solid rgba(111, 78, 55, 0.1);
+            .reviews-page .reviews-intro {
+                margin: -0.2rem auto 2.5rem;
             }
 
             .featured-spotlight {
@@ -4375,13 +4393,37 @@
                 border-radius: 24px;
             }
 
-            .reviews-page .reviews-editorial-rail {
-                padding: 1.6rem 1.35rem;
-                border-radius: 26px;
+            .reviews-page .reviews-intro {
+                margin: -0.1rem auto 2.2rem;
             }
 
-            .reviews-page .reviews-editorial-rail h2 {
-                font-size: 2rem;
+            .reviews-page .reviews-intro h2 {
+                font-size: 1.85rem;
+            }
+
+            .reviews-page .testimonial-card {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                padding: 2rem 0;
+            }
+
+            .reviews-page .testimonial-card__avatar {
+                width: 3rem;
+                height: 3rem;
+            }
+
+            .reviews-page .testimonial-card__header {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+            }
+
+            .reviews-page .testimonial-card__rating-label {
+                padding-top: 0;
+            }
+
+            .reviews-page .testimonial-card__quote {
+                font-size: 0.98rem;
+                line-height: 1.76;
             }
 
             .reviews-page .review-grid {
@@ -5073,6 +5115,19 @@
             height: 100%;
             border: 1px solid rgba(120, 89, 73, 0.1);
             box-shadow: 0 18px 34px rgba(84, 61, 50, 0.04);
+        }
+
+        .home-page .signature-image {
+            transition: transform 700ms var(--ease-soft), box-shadow 320ms ease;
+        }
+
+        .home-page .signature-card:hover .signature-image {
+            transform: translateY(-3px);
+        }
+
+        .home-page .signature-card:hover .signature-image img,
+        .home-page .signature-card:hover .signature-image video {
+            transform: scale(1.03);
         }
 
         .home-page .signature-card:nth-child(1) .signature-image {
