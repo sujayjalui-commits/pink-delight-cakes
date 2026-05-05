@@ -157,6 +157,7 @@
         const homeHeroDescription = document.getElementById("homeHeroDescription");
         const homeHeroPrimaryCta = document.getElementById("homeHeroPrimaryCta");
         const homeHeroPrimaryCtaLabel = homeHeroPrimaryCta?.querySelector("span") || null;
+        const homeHeroWhatsAppCta = document.getElementById("homeHeroWhatsAppCta");
         const heroCarousel = document.querySelector(".hero-carousel");
         const heroTrack = document.getElementById("heroTrack");
         const heroDots = document.getElementById("heroDots");
@@ -387,6 +388,12 @@
             return message
                 ? `https://wa.me/${number}?text=${encodeURIComponent(message)}`
                 : `https://wa.me/${number}`;
+        }
+
+        function createHeroWhatsAppMessage(productName = "") {
+            const normalizedName = String(productName || "").trim();
+            const subject = normalizedName || "this cake";
+            return `Hi ${state.settings.brandName}, I would like to order ${subject}.`;
         }
 
         function createInstagramLink(handle) {
@@ -1978,7 +1985,8 @@
                 imageUrl: product.imageUrl || HERO_COLLAGE_FALLBACKS[0],
                 alt: `${product.name || state.settings.brandName} cake by ${state.settings.brandName || DEFAULT_SETTINGS.brandName}`,
                 ctaHref: createSitePageLink(`inquiry-model/?product=${encodeURIComponent(product.slug)}#contact`),
-                ctaLabel: `Ask About ${product.name || "This Cake"}`
+                ctaLabel: `Inquire About ${product.name || "This Cake"}`,
+                whatsAppHref: createWhatsAppLink(state.settings.contactPhone, createHeroWhatsAppMessage(product.name))
             }));
 
             while (slides.length < 4) {
@@ -1990,7 +1998,8 @@
                     imageUrl: HERO_COLLAGE_FALLBACKS[fallbackIndex] || HERO_COLLAGE_FALLBACKS[0],
                     alt: `${state.settings.brandName || DEFAULT_SETTINGS.brandName} featured cake`,
                     ctaHref: createSitePageLink("inquiry-model/#contact"),
-                    ctaLabel: "Ask About This Cake"
+                    ctaLabel: "Inquire About This Cake",
+                    whatsAppHref: createWhatsAppLink(state.settings.contactPhone, createHeroWhatsAppMessage())
                 });
             }
 
@@ -2071,7 +2080,11 @@
             }
 
             if (homeHeroPrimaryCtaLabel) {
-                homeHeroPrimaryCtaLabel.textContent = slide.ctaLabel || "Ask About This Cake";
+                homeHeroPrimaryCtaLabel.textContent = slide.ctaLabel || "Inquire About This Cake";
+            }
+
+            if (homeHeroWhatsAppCta) {
+                homeHeroWhatsAppCta.setAttribute("href", slide.whatsAppHref || createWhatsAppLink(state.settings.contactPhone, createHeroWhatsAppMessage()));
             }
 
             if (heroDots) {

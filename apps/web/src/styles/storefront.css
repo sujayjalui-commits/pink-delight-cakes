@@ -482,6 +482,7 @@
 
         .site-nav .nav-with-beta,
         .site-nav .nav-bag,
+        .site-nav .nav-icon,
         .site-nav .nav-cta {
             display: inline-flex;
             align-items: center;
@@ -574,7 +575,8 @@
             box-shadow: none;
         }
 
-        .nav-bag {
+        .nav-bag,
+        .nav-icon {
             position: relative;
             padding: 0.68rem 0.86rem;
             border-radius: 999px;
@@ -583,7 +585,13 @@
             color: var(--secondary);
         }
 
+        .nav-icon {
+            justify-content: center;
+            min-width: 2.4rem;
+        }
+
         .home-page .nav-bag,
+        .home-page .nav-icon,
         .editorial-page .nav-bag {
             min-height: auto;
             gap: 0.42rem;
@@ -594,7 +602,19 @@
             box-shadow: none;
         }
 
+        .editorial-page .nav-icon {
+            min-height: auto;
+            gap: 0.42rem;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: var(--text);
+            box-shadow: none;
+        }
+
         .nav-bag.active,
+        .site-nav .nav-icon:hover,
+        .site-nav .nav-icon:focus-visible,
         .site-nav .nav-bag:hover,
         .site-nav .nav-bag:focus-visible {
             background: transparent;
@@ -602,7 +622,12 @@
         }
 
         .home-page .nav-bag .fa-bag-shopping,
+        .home-page .nav-icon .fa-whatsapp,
         .editorial-page .nav-bag .fa-bag-shopping {
+            font-size: 1.04rem;
+        }
+
+        .editorial-page .nav-icon .fa-whatsapp {
             font-size: 1.04rem;
         }
 
@@ -4687,6 +4712,7 @@
         .home-page .site-nav__actions,
         .editorial-page .site-nav__actions {
             grid-column: 2;
+            gap: 0.62rem;
         }
 
         .home-page .site-nav a,
@@ -4702,13 +4728,16 @@
         }
 
         .home-page .nav-bag,
+        .home-page .nav-icon,
         .editorial-page .nav-bag,
+        .editorial-page .nav-icon,
         .home-page .nav-toggle,
         .editorial-page .nav-toggle {
             transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, color 180ms ease;
         }
 
         .home-page .nav-bag,
+        .home-page .nav-icon,
         .editorial-page .nav-bag {
             padding: 0.58rem 0.82rem;
             border-radius: 999px;
@@ -4717,8 +4746,18 @@
             box-shadow: none;
         }
 
+        .editorial-page .nav-icon {
+            padding: 0.58rem 0.82rem;
+            border-radius: 999px;
+            background: rgba(255, 253, 249, 0.85);
+            border: 1px solid rgba(120, 89, 73, 0.12);
+            box-shadow: none;
+        }
+
         .home-page .nav-bag i,
+        .home-page .nav-icon i,
         .editorial-page .nav-bag i,
+        .editorial-page .nav-icon i,
         .home-page .nav-toggle i,
         .editorial-page .nav-toggle i {
             transition: transform 220ms var(--ease-soft), color 180ms ease;
@@ -4730,8 +4769,12 @@
         }
 
         .home-page .nav-bag:hover,
+        .home-page .nav-icon:hover,
+        .home-page .nav-icon:focus-visible,
         .home-page .nav-bag:focus-visible,
         .editorial-page .nav-bag:hover,
+        .editorial-page .nav-icon:hover,
+        .editorial-page .nav-icon:focus-visible,
         .editorial-page .nav-bag:focus-visible {
             transform: translateY(-1px);
             background: rgba(255, 255, 255, 0.96);
@@ -4740,8 +4783,12 @@
         }
 
         .home-page .nav-bag:hover i,
+        .home-page .nav-icon:hover i,
+        .home-page .nav-icon:focus-visible i,
         .home-page .nav-bag:focus-visible i,
         .editorial-page .nav-bag:hover i,
+        .editorial-page .nav-icon:hover i,
+        .editorial-page .nav-icon:focus-visible i,
         .editorial-page .nav-bag:focus-visible i {
             transform: translateY(-1px) rotate(-8deg) scale(1.06);
             color: #8d4748;
