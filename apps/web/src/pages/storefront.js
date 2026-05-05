@@ -391,13 +391,19 @@
 
         function createInstagramLink(handle) {
             const normalizedValue = String(handle || "").trim();
+            const defaultHandleSlug = String(DEFAULT_SETTINGS.instagramHandle || "").trim().replace(/^@/, "").toLowerCase();
 
             if (/^https?:\/\//i.test(normalizedValue)) {
                 return normalizedValue;
             }
 
             const slug = normalizedValue.replace(/^@/, "");
-            return slug ? `https://instagram.com/${slug}` : "https://instagram.com";
+
+            if (slug && slug.toLowerCase() === defaultHandleSlug && DEFAULT_INSTAGRAM_URL) {
+                return DEFAULT_INSTAGRAM_URL;
+            }
+
+            return slug ? `https://instagram.com/${slug}` : (DEFAULT_INSTAGRAM_URL || "https://instagram.com");
         }
 
         function createTrackLink(referenceId = "") {
@@ -752,14 +758,60 @@
             return imageUrl.startsWith("src/") ? `/${imageUrl}` : imageUrl;
         }
 
-        function getProductVideoSource(product) {
-            const videoUrl = String(product?.ownerVideoUrl || "").trim();
+        function normalizeHostedVideoUrl(value) {
+            const normalizedValue = String(value || "").trim();
 
-            if (!videoUrl) {
+            if (!normalizedValue) {
                 return "";
             }
 
-            return videoUrl.startsWith("src/") ? `/${videoUrl}` : videoUrl;
+            if (normalizedValue.startsWith("src/")) {
+                return `/${normalizedValue}`;
+            }
+
+            if (normalizedValue.startsWith("/src/")) {
+                return normalizedValue;
+            }
+
+            let parsedUrl;
+
+            try {
+                parsedUrl = new URL(normalizedValue);
+            } catch {
+                return "";
+            }
+
+            const hostname = parsedUrl.hostname.toLowerCase();
+
+            if (/(^|\.)(instagram\.com|facebook\.com|fb\.watch|tiktok\.com|youtube\.com|youtu\.be)$/i.test(hostname)) {
+                return "";
+            }
+
+            if (hostname === "drive.google.com") {
+                const driveMatch = parsedUrl.pathname.match(/\/file\/d\/([^/]+)/i);
+                const driveId = driveMatch?.[1] || parsedUrl.searchParams.get("id");
+
+                if (driveId) {
+                    return `https://drive.google.com/uc?export=download&id=${encodeURIComponent(driveId)}`;
+                }
+            }
+
+            if (hostname.endsWith("dropbox.com")) {
+                parsedUrl.searchParams.delete("dl");
+                parsedUrl.searchParams.set("raw", "1");
+                return parsedUrl.toString();
+            }
+
+            if (hostname === "1drv.ms" || hostname.endsWith("onedrive.live.com")) {
+                parsedUrl.searchParams.set("download", "1");
+                return parsedUrl.toString();
+            }
+
+            return parsedUrl.toString();
+        }
+
+        function getProductVideoSource(product) {
+            return normalizeHostedVideoUrl(product?.ownerVideoUrl);
         }
 
         function renderCakePhoto(product, className = "") {
@@ -779,12 +831,55 @@
 
         function renderSignatureMedia(product) {
             const videoUrl = getProductVideoSource(product);
+            const fallbackImageUrl = getProductImageSource(product);
 
             if (videoUrl) {
-                return `<video src="${escapeHtml(videoUrl)}" autoplay muted loop playsinline preload="metadata" aria-label="${escapeHtml(product.alt)}"></video>`;
+                const fallbackAttributes = fallbackImageUrl
+                    ? ` poster="${escapeHtml(fallbackImageUrl)}" data-fallback-image="${escapeHtml(fallbackImageUrl)}"`
+                    : "";
+
+                return `<video class="signature-video" src="${escapeHtml(videoUrl)}"${fallbackAttributes} autoplay muted loop playsinline preload="metadata" aria-label="${escapeHtml(product.alt)}"></video>`;
             }
 
             return renderCakePhoto(product);
+        }
+
+        function replaceSignatureVideoWithFallback(video) {
+            const fallbackImageUrl = String(video?.dataset?.fallbackImage || "").trim();
+
+            if (!fallbackImageUrl || !video?.parentElement) {
+                return;
+            }
+
+            const fallbackImage = document.createElement("img");
+            fallbackImage.src = fallbackImageUrl;
+            fallbackImage.alt = video.getAttribute("aria-label") || "Signature cake preview";
+            fallbackImage.loading = "lazy";
+            fallbackImage.decoding = "async";
+            video.replaceWith(fallbackImage);
+        }
+
+        function hydrateSignatureVideos(scope = signatureGrid) {
+            if (!scope) {
+                return;
+            }
+
+            scope.querySelectorAll(".signature-video").forEach((video) => {
+                if (video.dataset.hydrated === "true") {
+                    return;
+                }
+
+                video.dataset.hydrated = "true";
+                video.addEventListener("error", () => replaceSignatureVideoWithFallback(video), { once: true });
+
+                const playPromise = typeof video.play === "function" ? video.play() : null;
+
+                if (playPromise && typeof playPromise.catch === "function") {
+                    playPromise.catch(() => {
+                        // Autoplay can be blocked even when the video source is valid.
+                    });
+                }
+            });
         }
 
         function clampNumber(value, min, max) {
@@ -1334,6 +1429,7 @@
             }
 
             signatureGrid.innerHTML = cards.slice(0, 3).join("");
+            hydrateSignatureVideos(signatureGrid);
             observeRevealItems(signatureGrid);
         }
 

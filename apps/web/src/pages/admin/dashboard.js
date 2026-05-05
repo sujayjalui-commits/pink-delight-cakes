@@ -802,9 +802,49 @@ function getProductVideoPreviewSource(value) {
         return "";
     }
 
-    return normalizedValue.startsWith("src/")
-        ? `/${normalizedValue}`
-        : normalizedValue;
+    if (normalizedValue.startsWith("src/")) {
+        return `/${normalizedValue}`;
+    }
+
+    if (normalizedValue.startsWith("/src/")) {
+        return normalizedValue;
+    }
+
+    let parsedUrl;
+
+    try {
+        parsedUrl = new URL(normalizedValue);
+    } catch {
+        return "";
+    }
+
+    const hostname = parsedUrl.hostname.toLowerCase();
+
+    if (/(^|\.)(instagram\.com|facebook\.com|fb\.watch|tiktok\.com|youtube\.com|youtu\.be)$/i.test(hostname)) {
+        return "";
+    }
+
+    if (hostname === "drive.google.com") {
+        const driveMatch = parsedUrl.pathname.match(/\/file\/d\/([^/]+)/i);
+        const driveId = driveMatch?.[1] || parsedUrl.searchParams.get("id");
+
+        if (driveId) {
+            return `https://drive.google.com/uc?export=download&id=${encodeURIComponent(driveId)}`;
+        }
+    }
+
+    if (hostname.endsWith("dropbox.com")) {
+        parsedUrl.searchParams.delete("dl");
+        parsedUrl.searchParams.set("raw", "1");
+        return parsedUrl.toString();
+    }
+
+    if (hostname === "1drv.ms" || hostname.endsWith("onedrive.live.com")) {
+        parsedUrl.searchParams.set("download", "1");
+        return parsedUrl.toString();
+    }
+
+    return parsedUrl.toString();
 }
 
 function getSettingsSpotlightImageMetaText(value) {
