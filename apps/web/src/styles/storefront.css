@@ -4040,71 +4040,6 @@
             transform: translateY(0);
         }
 
-        .home-page .hero-copy.reveal {
-            transform: translate3d(-26px, 22px, 0);
-            transition-duration: 780ms;
-            transition-timing-function: cubic-bezier(0.2, 0.82, 0.24, 1);
-        }
-
-        .home-page .hero-carousel.reveal {
-            transform: translate3d(34px, 24px, 0);
-            transition-duration: 860ms;
-            transition-timing-function: cubic-bezier(0.2, 0.82, 0.24, 1);
-        }
-
-        .home-page .signature-section .section-heading.reveal {
-            transform: translate3d(0, 28px, 0);
-            transition-duration: 700ms;
-        }
-
-        .home-page .promise-card.reveal,
-        .home-page .signature-card.reveal,
-        .home-page .about-panel.reveal,
-        .home-page .story-image-card.reveal {
-            transition-duration: 760ms;
-            transition-timing-function: cubic-bezier(0.2, 0.82, 0.24, 1);
-        }
-
-        .home-page .promise-card.reveal {
-            transform: translate3d(0, 30px, 0);
-        }
-
-        .home-page .promise-card.reveal:nth-child(2) {
-            transition-delay: 60ms;
-        }
-
-        .home-page .promise-card.reveal:nth-child(3) {
-            transition-delay: 120ms;
-        }
-
-        .home-page .promise-card.reveal:nth-child(4) {
-            transition-delay: 180ms;
-        }
-
-        .home-page .signature-card.reveal {
-            transform: translate3d(0, 34px, 0);
-        }
-
-        .home-page .signature-card.reveal:nth-child(2) {
-            transform: translate3d(18px, 34px, 0);
-            transition-delay: 90ms;
-        }
-
-        .home-page .signature-card.reveal:nth-child(3) {
-            transform: translate3d(-18px, 34px, 0);
-            transition-delay: 150ms;
-        }
-
-        .home-page .about-panel.reveal {
-            transform: translate3d(-24px, 28px, 0);
-            transition-delay: 80ms;
-        }
-
-        .home-page .story-image-card.reveal {
-            transform: translate3d(24px, 28px, 0);
-            transition-delay: 140ms;
-        }
-
         @media (prefers-reduced-motion: reduce) {
             .home-page .hero-dots .dot.active::after {
                 animation: none;
@@ -4113,16 +4048,7 @@
 
             .home-page .hero-track,
             .home-page .hero,
-            .home-page .hero-copy > *,
-            .home-page .hero-copy.reveal,
-            .home-page .hero-carousel.reveal,
-            .home-page .signature-section .section-heading.reveal,
-            .home-page .promise-card.reveal,
-            .home-page .signature-card.reveal,
-            .home-page .about-panel.reveal,
-            .home-page .story-image-card.reveal,
-            .home-page .signature-card:hover .signature-image img,
-            .home-page .signature-card:hover .signature-image video {
+            .home-page .hero-copy > * {
                 transform: none !important;
             }
 
@@ -5192,21 +5118,20 @@
         }
 
         .home-page .signature-image {
-            transition: box-shadow 320ms ease;
+            transition: transform 700ms var(--ease-soft), box-shadow 320ms ease;
+        }
+
+        .home-page .signature-card:hover .signature-image {
+            transform: translateY(-3px);
         }
 
         .home-page .signature-card:hover .signature-image img,
         .home-page .signature-card:hover .signature-image video {
-            transform: scale(1.038);
-        }
-
-        .home-page .signature-card:hover .signature-image {
-            box-shadow: 0 20px 36px rgba(84, 61, 50, 0.06);
+            transform: scale(1.03);
         }
 
         .home-page .signature-card:nth-child(1) .signature-image {
             aspect-ratio: 0.88;
-            overflow: hidden;
         }
 
         .home-page .signature-card:nth-child(1) .signature-image img,
