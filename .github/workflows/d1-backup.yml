@@ -31,6 +31,7 @@ jobs:
         run: npm install --global wrangler@4.80.0
 
       - name: Export D1 backup
+        timeout-minutes: 30
         run: node scripts/backups/export-d1.mjs
 
       - name: Upload backup artifact

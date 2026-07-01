@@ -27,6 +27,7 @@ jobs:
           node-version: 20
 
       - name: Run production checks
+        timeout-minutes: 10
         run: |
           node scripts/maintenance/check-production.mjs
           node scripts/maintenance/check-browser-smoke.mjs
