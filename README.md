@@ -22,7 +22,7 @@ Monorepo structure for the Pink Delight Cakes website.
 
 1. Move frontend assets and scripts from `apps/web/index.html` into `apps/web/src`.
 2. Use the Phase 1 backend foundation in `apps/api`, `packages/shared`, and `database`.
-3. Apply `database/migrations/001_initial_schema.sql` to your D1 database.
+3. Apply the complete numbered migration chain with `wrangler d1 migrations apply pink-delight-cakes --local` for local development. Do not provision from the historical schema snapshot.
 4. Build Phase 2 public product and inquiry APIs on top of this foundation.
 5. Configure the Phase 3 admin secrets and protected management routes.
 
@@ -80,12 +80,15 @@ Apply `database/migrations/002_admin_internal_note.sql` before using inquiry not
 
 ## GitHub Automatic Deploys
 
+See [Operations and recovery](docs/operations-recovery.md) for release gates, backup verification, restoration drills, and reactivating schedules after inactivity.
+
 This project is now set up for GitHub Actions based deployments:
 
 - Worker deploy workflow: `.github/workflows/deploy-worker.yml`
 - Pages deploy workflow: `.github/workflows/deploy-pages.yml`
 - Production health workflow: `.github/workflows/production-healthcheck.yml`
 - D1 backup workflow: `.github/workflows/d1-backup.yml`
+- Pull-request and reusable deployment validation: `.github/workflows/validate.yml`
 
 Add these repository secrets in GitHub before pushing to `main`:
 
@@ -100,6 +103,10 @@ Recommended repository variables for deploy-time URL stamping:
 - `API_BASE_URL=https://your-api-origin`
 
 Deployment behavior:
+
+- both deployment workflows require passing API, migration, backup-verifier and Pages checks, plus local D1 replay and Worker compilation
+- Worker deployments also require a fresh export that passes local restore/integrity verification before any remote migration is applied
+- production health checks run after successful deployments
 
 - pushes that change `apps/api`, `database`, `packages/shared`, or `wrangler.toml` deploy the Worker
 - pushes that change `apps/web` deploy the Pages frontend from `apps/web`
@@ -132,7 +139,7 @@ Local / scripted ops commands:
 
 Backup habit:
 
-- the scheduled D1 backup workflow exports the live database to a timestamped `.sql` artifact
+- the scheduled D1 backup workflow exports the live database, verifies a temporary SQLite restore, and uploads the SQL with a SHA-256 verification manifest
 - artifacts are retained in GitHub Actions for 14 days by default
 - you can also run `npm run db:backup` manually from a machine that has Wrangler access to the Cloudflare account
 

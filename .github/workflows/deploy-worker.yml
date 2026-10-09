@@ -9,17 +9,40 @@ on:
       - "database/**"
       - "packages/shared/**"
       - "scripts/deploy/**"
+      - "scripts/backups/**"
+      - "scripts/maintenance/**"
+      - "tests/**"
       - "package.json"
+      - "package-lock.json"
       - "wrangler.toml"
       - ".github/workflows/deploy-worker.yml"
+      - ".github/workflows/validate.yml"
+      - ".github/workflows/d1-backup.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: deploy-worker-production
+  cancel-in-progress: false
+
 jobs:
+  validate:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/validate.yml
+
+  backup:
+    needs: validate
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/d1-backup.yml
+    secrets: inherit
+
   deploy:
+    needs: [validate, backup]
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     env:
       CONFIGURED_SITE_BASE_URL: ${{ vars.SITE_BASE_URL }}
       CONFIGURED_ADMIN_BASE_URL: ${{ vars.ADMIN_BASE_URL }}
@@ -33,10 +56,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Install repo dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Install Wrangler
         run: npm install --global wrangler@4.80.0
@@ -48,6 +71,9 @@ jobs:
           API_BASE_URL: ${{ env.CONFIGURED_API_BASE_URL }}
           CORS_ALLOWED_ORIGINS: ${{ env.CONFIGURED_CORS_ALLOWED_ORIGINS }}
         run: npm run deploy:prepare:worker
+
+      - name: Compile deployment bundle before remote changes
+        run: wrangler deploy --dry-run --config wrangler.deploy.toml
 
       - name: Check pending remote D1 migrations
         env:

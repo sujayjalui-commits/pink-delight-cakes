@@ -2,15 +2,34 @@ name: D1 Backup
 
 on:
   schedule:
-    - cron: "35 19 * * *"
+    - cron: "37 19 * * *"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/d1-backup.yml"
+      - "scripts/backups/**"
   workflow_dispatch:
+  workflow_call:
+    secrets:
+      CLOUDFLARE_API_TOKEN:
+        required: true
+      CLOUDFLARE_ACCOUNT_ID:
+        required: true
+      MONITORING_WEBHOOK_URL:
+        required: false
 
 permissions:
   contents: read
 
+concurrency:
+  group: d1-backup
+  cancel-in-progress: false
+
 jobs:
   backup:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -25,7 +44,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
       - name: Install Wrangler
         run: npm install --global wrangler@4.80.0
@@ -34,11 +58,16 @@ jobs:
         timeout-minutes: 30
         run: node scripts/backups/export-d1.mjs
 
+      - name: Verify backup by restoring into temporary SQLite
+        run: python scripts/backups/verify_backup.py artifacts/d1-backups
+
       - name: Upload backup artifact
         uses: actions/upload-artifact@v4
         with:
           name: d1-backup-${{ github.run_id }}
-          path: artifacts/d1-backups/*.sql
+          path: |
+            artifacts/d1-backups/*.sql
+            artifacts/d1-backups/verification.json
           if-no-files-found: error
           retention-days: 14
 
@@ -46,7 +75,7 @@ jobs:
         if: failure() && env.MONITORING_WEBHOOK_URL != ''
         env:
           MONITORING_ALERT_TITLE: D1 backup failed
-          MONITORING_ALERT_BODY: The scheduled D1 export workflow failed before the backup artifact was produced.
+          MONITORING_ALERT_BODY: D1 export, restore verification, or backup artifact upload failed.
           MONITORING_ALERT_SEVERITY: error
           GITHUB_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node scripts/maintenance/send-webhook-alert.mjs
