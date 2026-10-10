@@ -1,4 +1,5 @@
--- Initial migration mirrors database/schema/phase-1-schema.sql
+-- Historical baseline. Later columns belong to their numbered migrations.
+-- Keep this filename: D1 records applied migrations by name and does not replay it.
 
 CREATE TABLE IF NOT EXISTS business_settings (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -10,23 +11,6 @@ CREATE TABLE IF NOT EXISTS business_settings (
   currency TEXT NOT NULL DEFAULT 'INR',
   payment_mode TEXT NOT NULL DEFAULT 'hybrid_razorpay',
   inquiry_channel TEXT NOT NULL DEFAULT 'website',
-  delivery_pickup_copy TEXT,
-  notice_period_copy TEXT,
-  bakery_intro_title TEXT,
-  bakery_intro_paragraph_1 TEXT,
-  bakery_intro_paragraph_2 TEXT,
-  response_time_copy TEXT,
-  address_line_1 TEXT,
-  address_line_2 TEXT,
-  state_region TEXT,
-  postal_code TEXT,
-  country_code TEXT,
-  weekday_open_time TEXT,
-  weekday_close_time TEXT,
-  saturday_open_time TEXT,
-  saturday_close_time TEXT,
-  sunday_open_time TEXT,
-  sunday_close_time TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

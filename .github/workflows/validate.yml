@@ -1,0 +1,44 @@
+name: Validate
+
+on:
+  pull_request:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: API, migrations, backups and Pages checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      WRANGLER_SEND_METRICS: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Run API regression tests
+        run: npm test
+      - name: Check fresh migrations and historical upgrades
+        run: npm run db:check
+      - name: Test backup restore verification
+        run: npm run test:backups
+      - name: Validate stamped Pages bundle
+        run: npm run ops:check:pages-predeploy
+      - name: Install Wrangler
+        run: npm install --global wrangler@4.80.0
+      - name: Replay migrations with local D1 and check repeat apply
+        run: |
+          wrangler d1 migrations apply pink-delight-cakes --local --persist-to .wrangler/migration-check
+          wrangler d1 migrations apply pink-delight-cakes --local --persist-to .wrangler/migration-check
+      - name: Compile Worker without deploying
+        run: wrangler deploy --dry-run

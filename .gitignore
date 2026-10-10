@@ -7,6 +7,7 @@ wrangler.deploy.toml
 dist/
 coverage/
 artifacts/
+__pycache__/
 .deploy/
 *.log
 tail-log*.txt
