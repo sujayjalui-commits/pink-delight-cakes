@@ -2,7 +2,7 @@ import { seedCatalog } from "../../../../packages/shared/constants/seed-catalog.
 import { normalizeDeliveryStatusForFulfillment } from "../../../../packages/shared/constants/order-statuses.js";
 import { isValidPhoneNumber } from "../../../../packages/shared/helpers/validation.js";
 import { validatePublicOrderRequestInput } from "../../../../packages/shared/schemas/order-request-schema.js";
-import { createOrderRequest, getAdminOrderById, getProductBySlug, hasDatabase } from "../db/d1-client.js";
+import { createOrderRequest, getOrderBySubmissionKey, getAdminOrderById, getProductBySlug, hasDatabase } from "../db/d1-client.js";
 
 const PUBLIC_STATUS_MESSAGES = {
   new: {
@@ -586,6 +586,26 @@ function createDatabaseProductSnapshot(product) {
   });
 }
 
+function publicInquiryResult(order, replayed) {
+  // Never expose internal notes, version, retry key/hash or later admin edits on replay.
+  const fields = ["id", "customer_name", "customer_phone", "customer_email", "product_id",
+    "product_snapshot", "flavor", "size_label", "servings", "event_date", "fulfillment_type",
+    "add_on", "notes", "cart_snapshot", "source_channel", "created_at"];
+  return { ok: true, persistence: "database", replayed,
+    orderRequest: { ...Object.fromEntries(fields.map((field) => [field, order[field]])), status: "new" } };
+}
+
+async function submissionFingerprint(input) {
+  // Fixed field order makes JSON property order irrelevant. Exclude live catalogue
+  // snapshots so retrying after a catalogue edit still recovers the original inquiry.
+  const fields = ["customerName", "customerPhone", "customerEmail", "productId", "fulfillmentType",
+    "flavor", "sizeLabel", "servings", "eventDate", "addOn", "notes"];
+  const value = { ...Object.fromEntries(fields.map((field) => [field, input[field] || ""])),
+    cartItems: sanitizeCartItems(input.cartItems) };
+  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(JSON.stringify(value)));
+  return Array.from(new Uint8Array(hash), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
 export async function createPublicOrderRequest(env, input) {
   if (!hasDatabase(env)) {
     return {
@@ -619,6 +639,17 @@ export async function createPublicOrderRequest(env, input) {
     };
   }
 
+  if (input.submissionKey !== undefined && (typeof input.submissionKey !== "string"
+      || !/^[a-zA-Z0-9_-]{16,128}$/.test(input.submissionKey))) {
+    return { ok: false, status: 400, error: "Invalid inquiry retry key" };
+  }
+  // Legacy clients without a key retain atomic saves but cannot deduplicate retries.
+  const submissionKey = input.submissionKey || crypto.randomUUID();
+  const submissionHash = await submissionFingerprint(input);
+  const conflict = { ok: false, status: 409, error: "This inquiry retry key was already used for different details. Reload the form before sending a new inquiry." };
+  const existing = await getOrderBySubmissionKey(env, submissionKey);
+  if (existing) return existing.submission_hash === submissionHash ? publicInquiryResult(existing, true) : conflict;
+
   const databaseProduct = await getProductBySlug(env, primaryProductId);
   const seedProduct = databaseProduct ? null : findSeedProduct(primaryProductId);
   const selectedProduct = databaseProduct || seedProduct;
@@ -632,6 +663,8 @@ export async function createPublicOrderRequest(env, input) {
 
   const payload = {
     ...draft,
+    submissionKey,
+    submissionHash,
     productId: databaseProduct ? databaseProduct.id : null,
     productSnapshot: databaseProduct ? createDatabaseProductSnapshot(databaseProduct) : createSeedProductSnapshot(seedProduct),
     flavor: input.flavor || "",
@@ -651,7 +684,7 @@ export async function createPublicOrderRequest(env, input) {
 
   const persisted = await createOrderRequest(env, payload);
 
-  if (!persisted) {
+  if (!persisted?.order) {
     return {
       ok: false,
       status: 503,
@@ -659,11 +692,8 @@ export async function createPublicOrderRequest(env, input) {
     };
   }
 
-  return {
-    ok: true,
-    orderRequest: persisted,
-    persistence: "database"
-  };
+  if (persisted.order.submission_hash !== submissionHash) return conflict;
+  return publicInquiryResult(persisted.order, persisted.replayed);
 }
 
 export async function lookupPublicOrderRequest(env, referenceId, phone) {

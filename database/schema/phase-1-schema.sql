@@ -101,10 +101,15 @@ CREATE TABLE IF NOT EXISTS order_requests (
   delivery_eta_end TEXT,
   delivery_note TEXT,
   delivery_updated_at TEXT,
+  version INTEGER NOT NULL DEFAULT 1,
+  submission_key TEXT,
+  submission_hash TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_order_requests_submission_key ON order_requests(submission_key);
 
 CREATE TABLE IF NOT EXISTS order_request_status_history (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

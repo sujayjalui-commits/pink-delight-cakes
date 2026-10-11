@@ -1,16 +1,5 @@
 import { tables } from "./tables.js";
 
-function normalizeDeliveryStatusForPersistence(fulfillmentType, deliveryStatus) {
-  if (String(fulfillmentType || "").trim() !== "local_delivery") {
-    return "not_applicable";
-  }
-
-  const normalizedDeliveryStatus = String(deliveryStatus || "").trim();
-  return !normalizedDeliveryStatus || normalizedDeliveryStatus === "not_applicable"
-    ? "delivery_pending"
-    : normalizedDeliveryStatus;
-}
-
 export function hasDatabase(env) {
   return Boolean(env?.DB);
 }
@@ -354,15 +343,15 @@ export async function saveBusinessSettings(env, payload) {
     .first();
 }
 
-async function insertProductOptions(env, productId, payload) {
+function productOptionStatements(env, productSlug, payload) {
   const statements = [];
 
   payload.flavors.forEach((flavor, index) => {
     statements.push(
       env.DB.prepare(
         `INSERT INTO ${tables.productOptions} (product_id, option_group, option_label, price, servings, sort_order)
-         VALUES (?, 'flavor', ?, NULL, NULL, ?)`
-      ).bind(productId, flavor, index + 1)
+         VALUES ((SELECT id FROM products WHERE slug = ?), 'flavor', ?, NULL, NULL, ?)`
+      ).bind(productSlug, flavor, index + 1)
     );
   });
 
@@ -370,8 +359,8 @@ async function insertProductOptions(env, productId, payload) {
     statements.push(
       env.DB.prepare(
         `INSERT INTO ${tables.productOptions} (product_id, option_group, option_label, price, servings, sort_order)
-         VALUES (?, 'size', ?, ?, ?, ?)`
-      ).bind(productId, size.label, size.price, size.servings, index + 1)
+         VALUES ((SELECT id FROM products WHERE slug = ?), 'size', ?, ?, ?, ?)`
+      ).bind(productSlug, size.label, size.price, size.servings, index + 1)
     );
   });
 
@@ -379,14 +368,12 @@ async function insertProductOptions(env, productId, payload) {
     statements.push(
       env.DB.prepare(
         `INSERT INTO ${tables.productOptions} (product_id, option_group, option_label, price, servings, sort_order)
-         VALUES (?, 'addon', ?, NULL, NULL, ?)`
-      ).bind(productId, addOn, index + 1)
+         VALUES ((SELECT id FROM products WHERE slug = ?), 'addon', ?, NULL, NULL, ?)`
+      ).bind(productSlug, addOn, index + 1)
     );
   });
 
-  if (statements.length > 0) {
-    await env.DB.batch(statements);
-  }
+  return statements;
 }
 
 export async function createProductWithOptions(env, payload) {
@@ -394,7 +381,7 @@ export async function createProductWithOptions(env, payload) {
     return null;
   }
 
-  const createdProduct = await env.DB.prepare(
+  const insert = env.DB.prepare(
     `INSERT INTO ${tables.products} (
       slug,
       name,
@@ -423,11 +410,10 @@ export async function createProductWithOptions(env, payload) {
       payload.featured ? 1 : 0,
       payload.imageUrl,
       payload.videoUrl
-    )
-    .first();
+    );
 
-  await insertProductOptions(env, createdProduct.id, payload);
-  return createdProduct;
+  const [result] = await env.DB.batch([insert, ...productOptionStatements(env, payload.slug, payload)]);
+  return result.results[0] || null;
 }
 
 export async function updateProductWithOptions(env, productId, payload) {
@@ -435,7 +421,9 @@ export async function updateProductWithOptions(env, productId, payload) {
     return null;
   }
 
-  const updatedProduct = await env.DB.prepare(
+  if (!await getAdminProductById(env, productId)) return null;
+
+  const update = env.DB.prepare(
     `UPDATE ${tables.products}
      SET slug = ?, name = ?, category = ?, short_description = ?, starting_price = ?, badge = ?, lead_time_hours = ?,
          availability_status = ?, featured = ?, image_url = ?, video_url = ?, updated_at = CURRENT_TIMESTAMP
@@ -455,17 +443,14 @@ export async function updateProductWithOptions(env, productId, payload) {
       payload.imageUrl,
       payload.videoUrl,
       productId
-    )
-    .first();
+    );
 
-  if (!updatedProduct) {
-    return null;
-  }
-
-  await env.DB.prepare(`DELETE FROM ${tables.productOptions} WHERE product_id = ?`).bind(productId).run();
-  await insertProductOptions(env, productId, payload);
-
-  return updatedProduct;
+  const [result] = await env.DB.batch([
+    update,
+    env.DB.prepare(`DELETE FROM ${tables.productOptions} WHERE product_id = ?`).bind(productId),
+    ...productOptionStatements(env, payload.slug, payload)
+  ]);
+  return result.results[0] || null;
 }
 
 export async function getAdminOrders(env, filters = {}) {
@@ -510,98 +495,43 @@ export async function getOrderStatusHistoryByOrderId(env, orderId) {
   return result.results || [];
 }
 
-export async function insertOrderStatusHistory(env, payload) {
-  if (!hasDatabase(env)) {
-    return null;
+export async function updateAdminOrderFields(env, orderId, input, options = {}) {
+  if (!hasDatabase(env)) return null;
+  // Use the exact snapshot against which the service validated the transition.
+  const currentOrder = options.currentOrder;
+  const columns = {
+    status: "status", quotedAmount: "quoted_amount", internalNote: "internal_note",
+    deliveryStatus: "delivery_status", deliveryEtaStart: "delivery_eta_start",
+    deliveryEtaEnd: "delivery_eta_end", deliveryNote: "delivery_note"
+  };
+  const entries = Object.entries(columns).filter(([field]) => input[field] !== undefined);
+  const assignments = entries.map(([, column]) => `${column} = ?`);
+  const bindings = entries.map(([field]) => input[field]);
+  if (entries.some(([field, column]) => field.startsWith("delivery") && input[field] !== currentOrder[column])) {
+    assignments.push("delivery_updated_at = ?");
+    bindings.push(new Date().toISOString());
   }
-
-  const query = `
-    INSERT INTO ${tables.orderRequestStatusHistory} (
-      order_request_id,
-      from_status,
-      to_status,
-      changed_by_admin_user_id,
-      change_source
-    ) VALUES (?, ?, ?, ?, ?)
-    RETURNING *
-  `;
-
-  return env.DB.prepare(query)
-    .bind(
-      payload.orderRequestId,
-      payload.fromStatus || null,
-      payload.toStatus,
-      payload.changedByAdminUserId || null,
-      payload.changeSource || "admin_dashboard"
-    )
-    .first();
+  assignments.push("version = version + 1", "updated_at = CURRENT_TIMESTAMP");
+  const update = env.DB.prepare(`UPDATE ${tables.orderRequests}
+    SET ${assignments.join(", ")} WHERE id = ? AND version = ? RETURNING *`)
+    .bind(...bindings, orderId, input.version);
+  const statements = [update];
+  if (input.status !== undefined && input.status !== currentOrder.status) {
+    // changes() refers to the guarded UPDATE immediately before this statement.
+    // A stale update adds no history; a history failure rolls back the update.
+    statements.push(env.DB.prepare(`INSERT INTO ${tables.orderRequestStatusHistory}
+      (order_request_id, from_status, to_status, changed_by_admin_user_id, change_source)
+      SELECT ?, ?, ?, ?, ? WHERE changes() = 1`)
+      .bind(orderId, currentOrder.status, input.status, options.changedByAdminUserId || null,
+        options.changeSource || "admin_dashboard"));
+  }
+  const [result] = await env.DB.batch(statements);
+  return result.results[0] || null;
 }
 
-export async function updateAdminOrderFields(env, orderId, input, options = {}) {
-  if (!hasDatabase(env)) {
-    return null;
-  }
-
-  const currentOrder = await getAdminOrderById(env, orderId);
-
-  if (!currentOrder) {
-    return null;
-  }
-
-  const nextStatus = input.status ?? currentOrder.status;
-  const nextQuotedAmount = input.quotedAmount ?? currentOrder.quoted_amount;
-  const nextInternalNote = input.internalNote ?? currentOrder.internal_note ?? null;
-  const currentDeliveryStatus = normalizeDeliveryStatusForPersistence(
-    currentOrder.fulfillment_type,
-    currentOrder.delivery_status
-  );
-  const nextDeliveryStatus = normalizeDeliveryStatusForPersistence(
-    currentOrder.fulfillment_type,
-    input.deliveryStatus ?? currentOrder.delivery_status
-  );
-  const nextDeliveryEtaStart = input.deliveryEtaStart ?? currentOrder.delivery_eta_start ?? null;
-  const nextDeliveryEtaEnd = input.deliveryEtaEnd ?? currentOrder.delivery_eta_end ?? null;
-  const nextDeliveryNote = input.deliveryNote ?? currentOrder.delivery_note ?? null;
-  const deliveryChanged = (
-    nextDeliveryStatus !== currentDeliveryStatus
-    || nextDeliveryEtaStart !== (currentOrder.delivery_eta_start ?? null)
-    || nextDeliveryEtaEnd !== (currentOrder.delivery_eta_end ?? null)
-    || nextDeliveryNote !== (currentOrder.delivery_note ?? null)
-  );
-  const statusChanged = nextStatus !== currentOrder.status;
-
-  const query = `
-    UPDATE ${tables.orderRequests}
-    SET status = ?, quoted_amount = ?, internal_note = ?, delivery_status = ?, delivery_eta_start = ?, delivery_eta_end = ?,
-        delivery_note = ?, delivery_updated_at = ?, updated_at = CURRENT_TIMESTAMP
-    WHERE id = ?
-  `;
-
-  await env.DB.prepare(query)
-    .bind(
-      nextStatus,
-      nextQuotedAmount,
-      nextInternalNote,
-      nextDeliveryStatus,
-      nextDeliveryEtaStart,
-      nextDeliveryEtaEnd,
-      nextDeliveryNote,
-      deliveryChanged ? new Date().toISOString() : (currentOrder.delivery_updated_at ?? null),
-      orderId
-    )
-    .run();
-
-  if (statusChanged) {
-    await insertOrderStatusHistory(env, {
-      orderRequestId: orderId,
-      fromStatus: currentOrder.status,
-      toStatus: nextStatus,
-      changedByAdminUserId: options.changedByAdminUserId || null,
-      changeSource: options.changeSource || "admin_dashboard"
-    });
-  }
-
-  return getAdminOrderById(env, orderId);
+export async function getOrderBySubmissionKey(env, key) {
+  return env.DB.prepare(`SELECT * FROM ${tables.orderRequests} WHERE submission_key = ? LIMIT 1`)
+    .bind(key).first();
 }
 
 export async function createOrderRequest(env, payload) {
@@ -630,12 +560,15 @@ export async function createOrderRequest(env, payload) {
       delivery_eta_start,
       delivery_eta_end,
       delivery_note,
-      delivery_updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      delivery_updated_at,
+      submission_key,
+      submission_hash
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(submission_key) DO NOTHING
     RETURNING *
   `;
 
-  const result = await env.DB.prepare(query)
+  const insert = env.DB.prepare(query)
     .bind(
       payload.customerName,
       payload.customerPhone,
@@ -656,19 +589,19 @@ export async function createOrderRequest(env, payload) {
       payload.deliveryEtaStart || null,
       payload.deliveryEtaEnd || null,
       payload.deliveryNote || null,
-      payload.deliveryUpdatedAt || null
-    )
-    .first();
+      payload.deliveryUpdatedAt || null,
+      payload.submissionKey,
+      payload.submissionHash
+    );
 
-  if (result?.id) {
-    await insertOrderStatusHistory(env, {
-      orderRequestId: result.id,
-      fromStatus: null,
-      toStatus: payload.status,
-      changedByAdminUserId: null,
-      changeSource: "public_inquiry"
-    });
-  }
-
-  return result || null;
+  const results = await env.DB.batch([
+    insert,
+    env.DB.prepare(`INSERT INTO ${tables.orderRequestStatusHistory}
+      (order_request_id, from_status, to_status, changed_by_admin_user_id, change_source)
+      SELECT id, NULL, status, NULL, 'public_inquiry' FROM ${tables.orderRequests}
+      WHERE submission_key = ? AND changes() = 1`).bind(payload.submissionKey),
+    env.DB.prepare(`SELECT * FROM ${tables.orderRequests} WHERE submission_key = ? LIMIT 1`)
+      .bind(payload.submissionKey)
+  ]);
+  return { order: results[2].results[0] || null, replayed: results[0].results.length === 0 };
 }

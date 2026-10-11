@@ -2,6 +2,9 @@ import { DELIVERY_STATUSES, ORDER_STATUSES } from "../constants/order-statuses.j
 
 export function validateAdminOrderUpdate(input) {
   const errors = [];
+  if (!Number.isSafeInteger(input.version) || input.version < 1) {
+    errors.push("version is required; reload the order before saving");
+  }
 
   if (input.status !== undefined && !ORDER_STATUSES.includes(input.status)) {
     errors.push("status is invalid");

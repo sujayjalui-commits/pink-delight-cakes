@@ -1171,6 +1171,7 @@
         }
 
         function setCartSubmitBusy(isBusy) {
+            cartInquirySubmitting = isBusy;
             if (!submitCartInquiryButton) {
                 return;
             }
@@ -2549,6 +2550,7 @@
         }
 
         function setSubmitBusy(busy) {
+            inquirySubmitting = busy;
             if (!submitInquiryButton) {
                 return;
             }
@@ -2619,8 +2621,32 @@
             renderTestimonials();
         }
 
+        let inquirySubmitting = false;
+        let cartInquirySubmitting = false;
+        const inquiryRetryRecords = new Map();
+
+        async function inquirySubmissionKey(kind, payload) {
+            const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(JSON.stringify(payload)));
+            const fingerprint = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+            const storageKey = `pinkDelightCakes.inquiryRetry.${kind}.v1`;
+            let record = inquiryRetryRecords.get(kind);
+            try {
+                record = JSON.parse(sessionStorage.getItem(storageKey)) || record;
+            } catch { /* In-memory retries still work when storage is unavailable. */ }
+            if (record?.fingerprint !== fingerprint || typeof record?.key !== "string") {
+                record = { fingerprint, key: crypto.randomUUID() };
+            }
+            inquiryRetryRecords.set(kind, record);
+            try {
+                // Only a digest and random key; no customer details in this record.
+                sessionStorage.setItem(storageKey, JSON.stringify(record));
+            } catch { /* Keep the in-memory record until the page closes. */ }
+            return record.key;
+        }
+
         async function handleInquirySubmit(event) {
             event.preventDefault();
+            if (inquirySubmitting) return;
 
             if (!state.products.length) {
                 setFormStatus("The live catalogue is not ready yet. Please try again in a moment or continue on WhatsApp.", "error");
@@ -2654,6 +2680,7 @@
             setFormStatus("Saving your inquiry to the bakery dashboard...");
 
             try {
+                payload.submissionKey = await inquirySubmissionKey("single", payload);
                 const response = await apiRequest("/api/order-requests", {
                     method: "POST",
                     body: payload
@@ -2714,6 +2741,7 @@
 
         async function handleCartInquirySubmit(event) {
             event.preventDefault();
+            if (cartInquirySubmitting) return;
 
             const payload = buildCartInquiryPayload();
 
@@ -2746,6 +2774,7 @@
             setCartFormStatus("Saving your cart inquiry to the bakery dashboard...");
 
             try {
+                payload.submissionKey = await inquirySubmissionKey("cart", payload);
                 const response = await apiRequest("/api/order-requests", {
                     method: "POST",
                     body: payload

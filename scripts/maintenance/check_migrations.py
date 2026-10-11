@@ -44,13 +44,18 @@ def column_schema(db):
 def seed_customer_fixture(db):
     db.execute("INSERT INTO business_settings (brand_name, city) VALUES ('Migration fixture', 'Preserve city')")
     db.execute("INSERT INTO order_requests (customer_name, customer_phone, product_snapshot, fulfillment_type, status, quoted_amount) VALUES ('Synthetic fixture', '9000000000', '{}', 'local_delivery', 'paid', 1800)")
+    columns = {row[1] for row in db.execute("PRAGMA table_info(order_requests)")}
+    if "delivery_status" in columns:
+        db.execute("UPDATE order_requests SET delivery_status='delivery_pending'")
+    if db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='order_request_status_history'").fetchone():
+        db.execute("INSERT INTO order_request_status_history (order_request_id, to_status, change_source) SELECT id, status, 'fixture' FROM order_requests")
     db.commit()
 
 
 def check_database(db):
     assert db.execute("PRAGMA integrity_check").fetchall() == [("ok",)]
     assert not db.execute("PRAGMA foreign_key_check").fetchall()
-    assert {"cart_snapshot", "delivery_status", "internal_note"} <= {row[1] for row in db.execute("PRAGMA table_info(order_requests)")}
+    assert {"cart_snapshot", "delivery_status", "internal_note", "version", "submission_key", "submission_hash"} <= {row[1] for row in db.execute("PRAGMA table_info(order_requests)")}
     assert "video_url" in {row[1] for row in db.execute("PRAGMA table_info(products)")}
 
 
@@ -68,7 +73,7 @@ def main():
 
     # Representative historical releases, including immediately before the
     # duplicate-column migrations and before the order-history backfill.
-    for prefix in (1, 3, 5, 12):
+    for prefix in (1, 3, 5, 12, len(MIGRATIONS) - 1):
         with database() as upgrade:
             apply_pending(upgrade, MIGRATIONS[:prefix])
             seed_customer_fixture(upgrade)
@@ -78,6 +83,7 @@ def main():
             assert upgrade.execute("SELECT customer_name, status, quoted_amount, delivery_status FROM order_requests").fetchone() == ("Synthetic fixture", "paid", 1800, "delivery_pending")
             assert upgrade.execute("SELECT city FROM business_settings").fetchone() == ("Preserve city",)
             assert upgrade.execute("SELECT count(*) FROM order_request_status_history").fetchone() == (1,)
+            assert upgrade.execute("SELECT version, submission_key, submission_hash FROM order_requests").fetchone() == (1, None, None)
         print(f"PASS: upgrade after {MIGRATIONS[prefix - 1].name} preserves inquiry and settings")
 
     # The pre-repair 001 included columns also added by 004/005. Recreate that

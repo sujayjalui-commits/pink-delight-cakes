@@ -4,7 +4,7 @@ import worker from "../../apps/api/worker.js";
 import { createAdminSessionToken } from "../../apps/api/src/auth/sessions.js";
 import { hashAdminPassword } from "../../apps/api/src/auth/passwords.js";
 import { apiConfig } from "../../apps/api/src/config/api-config.js";
-import { createExecutionContext, createTestEnv } from "../helpers/fake-d1.js";
+import { createExecutionContext, createTestEnv } from "../helpers/sqlite-d1.js";
 
 function createProductSeed() {
   return {
@@ -1014,6 +1014,7 @@ await runTest("admin order updates enforce valid transitions and append status h
         cookie: cookieHeader
       },
       body: JSON.stringify({
+        version: 1,
         status: "reviewing",
         internalNote: "Quote prep in progress."
       })
@@ -1118,6 +1119,7 @@ await runTest("admin delivery updates persist for local delivery inquiries even 
         cookie: cookieHeader
       },
       body: JSON.stringify({
+        version: 1,
         deliveryStatus: "delivery_scheduled",
         deliveryEtaStart: "2026-05-06T10:00:00.000Z",
         deliveryEtaEnd: "2026-05-06T11:00:00.000Z",
@@ -1201,6 +1203,7 @@ await runTest("admin order updates reject invalid status jumps", async () => {
         cookie: cookieHeader
       },
       body: JSON.stringify({
+        version: 1,
         status: "completed"
       })
     }),
