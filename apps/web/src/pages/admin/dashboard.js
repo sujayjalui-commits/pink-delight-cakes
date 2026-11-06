@@ -1601,6 +1601,7 @@ function renderOrderDetail() {
         orderDeliveryNote.value = "";
     }
     orderInternalNote.value = order.internalNote ?? "";
+    state.formMeta.order.version = order.version;
     orderQuickActions.querySelectorAll("[data-quick-status]").forEach((button) => {
         const nextStatus = button.dataset.quickStatus;
         const isAllowed = canTransitionOrderStatus(order.status, nextStatus) && nextStatus !== order.status;
@@ -2477,16 +2478,17 @@ async function saveOrderPatch(patch, options = {}) {
     }
 
     const nextPatch = {
+        version: state.formMeta.order.version,
         status: patch.status ?? orderStatus.value,
-        quotedAmount: patch.quotedAmount ?? (orderQuotedAmount.value ? Number(orderQuotedAmount.value) : null),
+        quotedAmount: patch.quotedAmount !== undefined ? patch.quotedAmount : (orderQuotedAmount.value ? Number(orderQuotedAmount.value) : null),
         deliveryStatus: activeOrder?.fulfillmentType === "local_delivery"
             ? (patch.deliveryStatus ?? orderDeliveryStatus.value)
             : undefined,
         deliveryEtaStart: activeOrder?.fulfillmentType === "local_delivery"
-            ? (patch.deliveryEtaStart ?? normalizeDateTimeLocalValue(orderDeliveryEtaStart.value))
+            ? (patch.deliveryEtaStart !== undefined ? patch.deliveryEtaStart : normalizeDateTimeLocalValue(orderDeliveryEtaStart.value))
             : undefined,
         deliveryEtaEnd: activeOrder?.fulfillmentType === "local_delivery"
-            ? (patch.deliveryEtaEnd ?? normalizeDateTimeLocalValue(orderDeliveryEtaEnd.value))
+            ? (patch.deliveryEtaEnd !== undefined ? patch.deliveryEtaEnd : normalizeDateTimeLocalValue(orderDeliveryEtaEnd.value))
             : undefined,
         deliveryNote: activeOrder?.fulfillmentType === "local_delivery"
             ? (patch.deliveryNote ?? orderDeliveryNote.value.trim())
@@ -2511,12 +2513,20 @@ async function saveOrderPatch(patch, options = {}) {
     const actionButton = options.button || orderSaveButton;
     const busyLabel = options.busyLabel || "Saving update...";
     const defaultLabel = options.defaultLabel || "Save order update";
+    const baseline = JSON.parse(state.formMeta.order.baseline || "{}");
+    const changedPatch = Object.fromEntries(Object.entries(nextPatch).filter(([field, value]) => (
+        field === "version" || (value !== undefined && value !== baseline[field])
+    )));
+    if (Object.keys(changedPatch).length === 1) {
+        showToast("No order changes to save.", "info");
+        return;
+    }
     setButtonBusy(actionButton, true, busyLabel);
 
     try {
         const payload = await apiRequest(`/admin/orders/${orderId}`, {
             method: "PATCH",
-            body: nextPatch
+            body: changedPatch
         });
 
         state.orders = state.orders.map((order) => (order.id === orderId ? payload.order : order));
@@ -2569,7 +2579,7 @@ async function handleBulkOrderAction(statusValue, button) {
         for (const orderId of selectedIds) {
             await apiRequest(`/admin/orders/${orderId}`, {
                 method: "PATCH",
-                body: { status: statusValue }
+                body: { status: statusValue, version: state.orders.find((order) => order.id === orderId)?.version }
             });
         }
 

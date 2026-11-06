@@ -113,7 +113,7 @@ export async function handleCreateOrderRequest(request, env, executionCtx) {
     return createJsonResponse(result, result.status || 400);
   }
 
-  if (executionCtx?.waitUntil && isTelegramNotificationConfigured(env)) {
+  if (!result.replayed && executionCtx?.waitUntil && isTelegramNotificationConfigured(env)) {
     executionCtx.waitUntil(
       sendOwnerInquiryTelegram(env, result.orderRequest).catch((error) => {
         const monitoringPayload = {
@@ -138,5 +138,5 @@ export async function handleCreateOrderRequest(request, env, executionCtx) {
     );
   }
 
-  return createJsonResponse(result, 201);
+  return createJsonResponse(result, result.replayed ? 200 : 201, { "Cache-Control": "no-store" });
 }

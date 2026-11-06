@@ -27,6 +27,7 @@ function mapOrder(order) {
 
   return {
     id: order.id,
+    version: order.version,
     customerName: order.customer_name,
     customerPhone: order.customer_phone,
     customerEmail: order.customer_email,
@@ -112,6 +113,10 @@ export async function updateAdminOrder(env, orderId, input, adminUserId = null) 
     };
   }
 
+  if (input.version !== currentOrder.version) {
+    return { ok: false, status: 409, error: "This order changed since you opened it. Reload the order and review your changes before saving." };
+  }
+
   if (
     input.status !== undefined
     && input.status !== currentOrder.status
@@ -164,6 +169,7 @@ export async function updateAdminOrder(env, orderId, input, adminUserId = null) 
   }
 
   const updatedOrder = await updateAdminOrderFields(env, orderId, input, {
+    currentOrder,
     changedByAdminUserId: adminUserId,
     changeSource: "admin_dashboard"
   });
@@ -171,8 +177,8 @@ export async function updateAdminOrder(env, orderId, input, adminUserId = null) 
   if (!updatedOrder) {
     return {
       ok: false,
-      status: 500,
-      error: "Order could not be updated"
+      status: 409,
+      error: "This order changed while you were saving. Reload the order and review your changes before saving."
     };
   }
 
