@@ -30,4 +30,7 @@
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
+  <url>
+    <loc>__PUBLIC_SITE_URL__about/</loc>
+  </url>
 </urlset>
