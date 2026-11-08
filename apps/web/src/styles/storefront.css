@@ -5503,6 +5503,20 @@
     gap: 0.18rem;
     white-space: nowrap;
 }
+/* Use the outer gutter on wide screens, preserving the original wordmark
+   and navigation positions. Smaller screens keep the badge in normal flow. */
+@media (min-width: 1480px) {
+    .home-page .home-nav-brand,
+    .editorial-page .home-nav-brand {
+        position: relative;
+    }
+    .home-nav-brand__logo {
+        position: absolute;
+        right: calc(100% + 16px);
+        top: 50%;
+        transform: translateY(-50%);
+    }
+}
 @media (max-width: 640px) {
     .home-page .home-nav-brand,
     .editorial-page .home-nav-brand { gap: 0.5rem; }
