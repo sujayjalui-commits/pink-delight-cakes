@@ -13,6 +13,7 @@ const requiredFiles = [
   path.join("inquiry-model", "index.html"),
   path.join("how-it-works", "index.html"),
   path.join("reviews", "index.html"),
+  path.join("about", "index.html"),
   path.join("track", "index.html"),
   path.join("admin", "index.html"),
   "admin.html",
@@ -33,6 +34,7 @@ const stampedFiles = [
   path.join("inquiry-model", "index.html"),
   path.join("how-it-works", "index.html"),
   path.join("reviews", "index.html"),
+  path.join("about", "index.html"),
   path.join("track", "index.html"),
   path.join("admin", "index.html"),
   "admin.html",
@@ -127,6 +129,13 @@ const storefrontHtml = readOutputFile("index.html");
 assertContains(storefrontHtml, 'data-api-base="https://', "index.html");
 assertContains(storefrontHtml, "<h1>Pink Delight</h1>", "index.html");
 
+assertNotContains(storefrontHtml, 'id="about"', "index.html");
+const aboutHtml = readOutputFile(path.join("about", "index.html"));
+for (const id of ["about", "bakeryIntroParagraph1", "bakeryIntroParagraph2", "founderNoteText", "founderPortraitImage"]) {
+  assertContains(aboutHtml, `id="${id}"`, "about/index.html");
+}
+assertContains(aboutHtml, 'href="/about/"', "about/index.html");
+
 const menuHtml = readOutputFile(path.join("menu", "index.html"));
 assertContains(menuHtml, 'id="menuGrid"', "menu/index.html");
 assertNotContains(menuHtml, 'id="signatureGrid"', "menu/index.html");
@@ -165,7 +174,7 @@ assertContains(sitemapXml, "/cart/</loc>", "sitemap.xml");
 assertContains(sitemapXml, "/inquiry-model/</loc>", "sitemap.xml");
 assertContains(sitemapXml, "/how-it-works/</loc>", "sitemap.xml");
 assertContains(sitemapXml, "/reviews/</loc>", "sitemap.xml");
-assertNotContains(sitemapXml, "/about/</loc>", "sitemap.xml");
+assertContains(sitemapXml, "/about/</loc>", "sitemap.xml");
 
 const robotsTxt = readOutputFile("robots.txt");
 assertContains(robotsTxt, "Sitemap:", "robots.txt");
