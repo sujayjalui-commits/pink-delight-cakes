@@ -5534,11 +5534,3 @@
     .home-page .site-nav.active,
     .editorial-page .site-nav.active { display: flex; }
 }
-
-/* Dedicated bakery story page. */
-.about-page-title {
-    font-family: "Bodoni Moda", serif;
-    font-size: clamp(2rem, 4vw, 3.25rem);
-    line-height: 1.15;
-    margin: 0 0 1.5rem;
-}
