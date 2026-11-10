@@ -1434,7 +1434,7 @@
                             <span>From ${escapeHtml(formatCurrency(product.startingPrice))}</span>
                             <span>${escapeHtml(formatLeadTime(product.leadTimeHours))}</span>
                         </div>
-                        <a class="btn btn-secondary" href="${escapeHtml(createSitePageLink(`inquiry-model/?product=${encodeURIComponent(product.slug)}#contact`))}" data-request-product="${escapeHtml(product.slug)}">Ask about this cake</a>
+                        <a class="btn btn-secondary" href="${escapeHtml(createSitePageLink(`inquiry-model/?product=${encodeURIComponent(product.slug)}#contact`))}" data-request-product="${escapeHtml(product.slug)}">Ask about this cake <span class="inquiry-beta">Beta</span></a>
                     </div>
                 </article>
             `;
@@ -1635,8 +1635,8 @@
                                 </div>
                                 <span class="availability-pill"><i class="fa-solid fa-circle"></i> ${escapeHtml(formatAvailability(product.availabilityStatus))}</span>
                                 <div class="menu-actions">
-                                    <button class="btn btn-bag" type="button" data-add-to-cart="${escapeHtml(product.slug)}"><i class="fa-solid fa-bag-shopping"></i> Add to bag</button>
-                                    <a class="btn btn-secondary" href="${escapeHtml(createSitePageLink(`inquiry-model/?product=${encodeURIComponent(product.slug)}#contact`))}" data-request-product="${escapeHtml(product.slug)}">Request this product</a>
+                                    <button class="btn btn-bag" type="button" data-add-to-cart="${escapeHtml(product.slug)}"><i class="fa-solid fa-bag-shopping"></i> Add to bag <span class="inquiry-beta">Beta</span></button>
+                                    <a class="btn btn-secondary" href="${escapeHtml(createSitePageLink(`inquiry-model/?product=${encodeURIComponent(product.slug)}#contact`))}" data-request-product="${escapeHtml(product.slug)}">Request this product <span class="inquiry-beta">Beta</span></a>
                                 </div>
                             </div>
                         </details>
@@ -1831,7 +1831,7 @@
 
             return `
                 <article class="inquiry-summary-card${toneClass}">
-                    <span class="inquiry-summary-card__eyebrow">${escapeHtml(eyebrow)}</span>
+                    <span class="inquiry-summary-card__eyebrow">${escapeHtml(eyebrow)} <span class="inquiry-beta">Beta</span></span>
                     <h5 class="inquiry-summary-card__title">${escapeHtml(title)}</h5>
                     <p class="inquiry-summary-card__note">${escapeHtml(note)}</p>
                     <div class="inquiry-summary-grid">
