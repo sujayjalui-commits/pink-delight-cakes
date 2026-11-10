@@ -1635,7 +1635,7 @@
                                 </div>
                                 <span class="availability-pill"><i class="fa-solid fa-circle"></i> ${escapeHtml(formatAvailability(product.availabilityStatus))}</span>
                                 <div class="menu-actions">
-                                    <button class="btn btn-bag" type="button" data-add-to-cart="${escapeHtml(product.slug)}"><i class="fa-solid fa-bag-shopping"></i> Add to bag <span class="inquiry-beta">Beta</span></button>
+                                    <button class="btn btn-bag" type="button" data-add-to-cart="${escapeHtml(product.slug)}"><i class="fa-solid fa-bag-shopping"></i> Add to bag</button>
                                     <a class="btn btn-secondary" href="${escapeHtml(createSitePageLink(`inquiry-model/?product=${encodeURIComponent(product.slug)}#contact`))}" data-request-product="${escapeHtml(product.slug)}">Request this product <span class="inquiry-beta">Beta</span></a>
                                 </div>
                             </div>
