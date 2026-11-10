@@ -2046,3 +2046,23 @@ select {
         white-space: nowrap;
     }
 }
+
+/* Small feature-status label shared across the inquiry workflow. */
+.inquiry-beta {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    padding: 2px 6px;
+    border: 1px solid #d9bcb2;
+    border-radius: 999px;
+    background: #f7ebe5;
+    color: #75483d;
+    font-family: "Inter", sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    vertical-align: middle;
+    white-space: nowrap;
+}
