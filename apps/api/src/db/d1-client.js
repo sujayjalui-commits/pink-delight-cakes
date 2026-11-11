@@ -234,6 +234,7 @@ export async function saveBusinessSettings(env, payload) {
         bakery_intro_paragraph_1,
         bakery_intro_paragraph_2,
         response_time_copy,
+        baker_image_url,
         featured_spotlight_title,
         featured_spotlight_description,
         featured_spotlight_image_url,
@@ -249,7 +250,7 @@ export async function saveBusinessSettings(env, payload) {
         sunday_open_time,
         sunday_close_time,
         updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
       RETURNING *`
     )
       .bind(
@@ -272,6 +273,7 @@ export async function saveBusinessSettings(env, payload) {
         payload.bakeryIntroParagraph1,
         payload.bakeryIntroParagraph2,
         payload.responseTimeCopy,
+        payload.bakerImageUrl,
         payload.featuredSpotlightTitle,
         payload.featuredSpotlightDescription,
         payload.featuredSpotlightImageUrl,
@@ -296,7 +298,7 @@ export async function saveBusinessSettings(env, payload) {
          address_line_1 = ?, address_line_2 = ?, state_region = ?, postal_code = ?, country_code = ?,
          currency = ?, payment_mode = ?, inquiry_channel = ?, delivery_pickup_copy = ?, notice_period_copy = ?,
          bakery_intro_title = ?, bakery_intro_paragraph_1 = ?, bakery_intro_paragraph_2 = ?, response_time_copy = ?,
-         featured_spotlight_title = ?, featured_spotlight_description = ?, featured_spotlight_image_url = ?, featured_spotlight_source_url = ?,
+         baker_image_url = ?, featured_spotlight_title = ?, featured_spotlight_description = ?, featured_spotlight_image_url = ?, featured_spotlight_source_url = ?,
          hero_product_slug_1 = ?, hero_product_slug_2 = ?, hero_product_slug_3 = ?, hero_product_slug_4 = ?,
          weekday_open_time = ?, weekday_close_time = ?, saturday_open_time = ?, saturday_close_time = ?,
          sunday_open_time = ?, sunday_close_time = ?,
@@ -324,6 +326,7 @@ export async function saveBusinessSettings(env, payload) {
       payload.bakeryIntroParagraph1,
       payload.bakeryIntroParagraph2,
       payload.responseTimeCopy,
+      payload.bakerImageUrl,
       payload.featuredSpotlightTitle,
       payload.featuredSpotlightDescription,
       payload.featuredSpotlightImageUrl,

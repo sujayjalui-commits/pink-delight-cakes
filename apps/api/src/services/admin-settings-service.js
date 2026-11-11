@@ -24,6 +24,7 @@ function mapBusinessSettings(settings) {
     bakeryIntroParagraph1: settings.bakery_intro_paragraph_1,
     bakeryIntroParagraph2: settings.bakery_intro_paragraph_2,
     responseTimeCopy: settings.response_time_copy,
+    bakerImageUrl: settings.baker_image_url ?? null,
     featuredSpotlightTitle: settings.featured_spotlight_title,
     featuredSpotlightDescription: settings.featured_spotlight_description,
     featuredSpotlightImageUrl: settings.featured_spotlight_image_url,
@@ -84,6 +85,7 @@ function normalizeInput(input) {
     bakeryIntroParagraph1: input.bakeryIntroParagraph1?.trim() || null,
     bakeryIntroParagraph2: input.bakeryIntroParagraph2?.trim() || null,
     responseTimeCopy: input.responseTimeCopy?.trim() || null,
+    bakerImageUrl: input.bakerImageUrl?.trim() || null,
     featuredSpotlightTitle: input.featuredSpotlightTitle?.trim() || null,
     featuredSpotlightDescription: input.featuredSpotlightDescription?.trim() || null,
     featuredSpotlightImageUrl: input.featuredSpotlightImageUrl?.trim() || null,
@@ -118,7 +120,11 @@ export async function updateAdminBusinessSettings(env, input) {
     };
   }
 
-  const saved = await saveBusinessSettings(env, normalizeInput(input));
+  // Older admin tabs do not send this field; keep the saved photo in that case.
+  const current = input.bakerImageUrl === undefined ? await getAdminBusinessSettings(env) : null;
+  const saved = await saveBusinessSettings(env, normalizeInput({
+    ...input, bakerImageUrl: input.bakerImageUrl === undefined ? current?.baker_image_url : input.bakerImageUrl
+  }));
 
   if (!saved) {
     return {

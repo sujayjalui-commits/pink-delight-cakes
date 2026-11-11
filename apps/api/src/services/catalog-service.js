@@ -136,6 +136,7 @@ export async function getPublicSettingsView(env) {
     bakeryIntroParagraph1: databaseSettings.bakery_intro_paragraph_1 || seedCatalog.businessSettings.bakeryIntroParagraph1,
     bakeryIntroParagraph2: databaseSettings.bakery_intro_paragraph_2 || seedCatalog.businessSettings.bakeryIntroParagraph2,
     responseTimeCopy: databaseSettings.response_time_copy || seedCatalog.businessSettings.responseTimeCopy,
+    bakerImageUrl: databaseSettings.baker_image_url ?? null,
     featuredSpotlightTitle: databaseSettings.featured_spotlight_title ?? null,
     featuredSpotlightDescription: databaseSettings.featured_spotlight_description ?? null,
     featuredSpotlightImageUrl: databaseSettings.featured_spotlight_image_url ?? null,

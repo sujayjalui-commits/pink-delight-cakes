@@ -2188,7 +2188,12 @@
             renderHomepageHeroCarousel();
 
             if (founderPortraitImage) {
-                founderPortraitImage.src = FOUNDER_PORTRAIT_FALLBACK;
+                const bakerPhoto = normalizeSpotlightImageUrl(state.settings.bakerImageUrl);
+                founderPortraitImage.onerror = () => {
+                    founderPortraitImage.onerror = null;
+                    founderPortraitImage.src = FOUNDER_PORTRAIT_FALLBACK;
+                };
+                founderPortraitImage.src = bakerPhoto || FOUNDER_PORTRAIT_FALLBACK;
                 founderPortraitImage.alt = `${DEFAULT_OWNER_NAME}, founder of ${state.settings.brandName || DEFAULT_SETTINGS.brandName}`;
             }
         }

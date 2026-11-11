@@ -15,6 +15,14 @@ function validateOptionalLength(value, fieldName, maxLength, errors) {
 
 export function validateAdminSettingsInput(settings) {
   const errors = [];
+  if (!isOptionalString(settings.bakerImageUrl)) errors.push("bakerImageUrl must be a string");
+  validateOptionalLength(settings.bakerImageUrl, "bakerImageUrl", 600000, errors);
+  if (typeof settings.bakerImageUrl === "string" && settings.bakerImageUrl.trim()) {
+    const value = settings.bakerImageUrl.trim();
+    let valid = /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/i.test(value);
+    try { const url = new URL(value); valid ||= ["https:", "http:"].includes(url.protocol); } catch {}
+    if (!valid) errors.push("bakerImageUrl must be an HTTP(S) image URL or a JPEG, PNG or WebP data URL");
+  }
 
   if (!isNonEmptyString(settings.brandName)) errors.push("brandName is required");
   if (!ALLOWED_CURRENCIES.includes(settings.currency)) errors.push("currency is invalid");
