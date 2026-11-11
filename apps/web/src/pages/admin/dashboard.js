@@ -214,14 +214,11 @@ const settingsHeroProduct2 = document.getElementById("settingsHeroProduct2");
 const settingsHeroProduct3 = document.getElementById("settingsHeroProduct3");
 const settingsHeroProduct4 = document.getElementById("settingsHeroProduct4");
 const settingsHeroSelectionMeta = document.getElementById("settingsHeroSelectionMeta");
-const settingsSpotlightTitle = document.getElementById("settingsSpotlightTitle");
-const settingsSpotlightDescription = document.getElementById("settingsSpotlightDescription");
-const settingsSpotlightImageUrl = document.getElementById("settingsSpotlightImageUrl");
-const settingsSpotlightSourceUrl = document.getElementById("settingsSpotlightSourceUrl");
-const settingsSpotlightImageFile = document.getElementById("settingsSpotlightImageFile");
-const settingsSpotlightUploadButton = document.getElementById("settingsSpotlightUploadButton");
-const settingsSpotlightClearButton = document.getElementById("settingsSpotlightClearButton");
-const settingsSpotlightImageMeta = document.getElementById("settingsSpotlightImageMeta");
+const settingsBakerImageUrl = document.getElementById("settingsBakerImageUrl");
+const settingsBakerImageFile = document.getElementById("settingsBakerImageFile");
+const settingsBakerUploadButton = document.getElementById("settingsBakerUploadButton");
+const settingsBakerClearButton = document.getElementById("settingsBakerClearButton");
+const settingsBakerImageMeta = document.getElementById("settingsBakerImageMeta");
 const settingsWeekdayOpenTime = document.getElementById("settingsWeekdayOpenTime");
 const settingsWeekdayCloseTime = document.getElementById("settingsWeekdayCloseTime");
 const settingsSaturdayOpenTime = document.getElementById("settingsSaturdayOpenTime");
@@ -240,7 +237,7 @@ const settingsPreviewPhone = document.getElementById("settingsPreviewPhone");
 const settingsPreviewEmail = document.getElementById("settingsPreviewEmail");
 const settingsPreviewLocation = document.getElementById("settingsPreviewLocation");
 const settingsPreviewResponse = document.getElementById("settingsPreviewResponse");
-const settingsPreviewSpotlight = document.getElementById("settingsPreviewSpotlight");
+const settingsPreviewBaker = document.getElementById("settingsPreviewBaker");
 const settingsSaveButton = document.getElementById("settingsSaveButton");
 const settingsSaveMeta = document.getElementById("settingsSaveMeta");
 const testimonialsForm = document.getElementById("testimonialsForm");
@@ -847,19 +844,14 @@ function getProductVideoPreviewSource(value) {
     return parsedUrl.toString();
 }
 
-function getSettingsSpotlightImageMetaText(value) {
+function getSettingsBakerImageMetaText(value) {
     return String(value || "").trim()
-        ? "Current spotlight image is ready for the storefront. Upload a new photo or paste another image URL to replace it."
-        : "No spotlight image selected yet. Upload from your device or paste a hosted image URL.";
+        ? "Baker photo selected. Save settings to publish it on the homepage."
+        : "Default photo selected. Upload a replacement or save to use the default.";
 }
 
-function getFeaturedSpotlightDraftFromSettings(settings) {
-    return {
-        title: String(settings?.featuredSpotlightTitle || "").trim(),
-        description: String(settings?.featuredSpotlightDescription || "").trim(),
-        imageUrl: String(settings?.featuredSpotlightImageUrl || "").trim(),
-        sourceUrl: String(settings?.featuredSpotlightSourceUrl || "").trim()
-    };
+function getBakerPhotoDraft(settings) {
+    return { imageUrl: String(settings?.bakerImageUrl || "").trim() };
 }
 
 function getHomepageHeroProductSlugs(settings) {
@@ -923,9 +915,7 @@ function renderHomepageHeroSelectionMeta(settings) {
         : `Selected hero order: ${summary}`;
 }
 
-function hasFeaturedSpotlightContent(spotlight) {
-    return Boolean(spotlight.title || spotlight.description || spotlight.imageUrl);
-}
+
 
 function renderProductPreview() {
     const draft = collectProductPayload();
@@ -2093,12 +2083,9 @@ function fillSettingsForm(settings) {
     settingsResponseTimeCopy.value = settings?.responseTimeCopy || "";
     renderHomepageHeroProductFields(settings);
     renderHomepageHeroSelectionMeta(settings);
-    settingsSpotlightTitle.value = settings?.featuredSpotlightTitle || "";
-    settingsSpotlightDescription.value = settings?.featuredSpotlightDescription || "";
-    settingsSpotlightImageUrl.value = settings?.featuredSpotlightImageUrl || "";
-    settingsSpotlightSourceUrl.value = settings?.featuredSpotlightSourceUrl || "";
-    settingsSpotlightImageMeta.textContent = getSettingsSpotlightImageMetaText(settings?.featuredSpotlightImageUrl);
-    settingsSpotlightImageFile.value = "";
+    settingsBakerImageUrl.value = settings?.bakerImageUrl || "";
+    settingsBakerImageMeta.textContent = getSettingsBakerImageMetaText(settings?.bakerImageUrl);
+    settingsBakerImageFile.value = "";
     settingsWeekdayOpenTime.value = settings?.weekdayOpenTime || "";
     settingsWeekdayCloseTime.value = settings?.weekdayCloseTime || "";
     settingsSaturdayOpenTime.value = settings?.saturdayOpenTime || "";
@@ -2127,7 +2114,7 @@ function renderTestimonialsEditor() {
 
 function renderSettingsSummary() {
     const settings = state.settings;
-    const spotlight = getFeaturedSpotlightDraftFromSettings(settings);
+    const spotlight = getBakerPhotoDraft(settings);
 
     if (!settings) {
         settingsSummary.innerHTML = `
@@ -2195,10 +2182,8 @@ function renderSettingsSummary() {
             value: getHomepageHeroSelectionSummary(settings)
         },
         {
-            label: "Featured spotlight",
-            value: hasFeaturedSpotlightContent(spotlight)
-                ? (spotlight.title || "Configured")
-                : "Hidden"
+            label: "Baker photo",
+            value: spotlight.imageUrl ? "Custom photo" : "Default photo"
         },
         {
             label: "Weekday hours",
@@ -2230,11 +2215,8 @@ function renderSettingsPreview() {
     const settings = collectSettingsPayload();
     const city = String(settings.city || "").trim();
     const deliveryCopy = personalizeDeliveryCopy(settings.deliveryPickupCopy, city);
-    const spotlight = getFeaturedSpotlightDraftFromSettings(settings);
-    const spotlightSourceUrl = normalizeAbsoluteUrl(spotlight.sourceUrl);
-    const spotlightImageUrl = getProductImagePreviewSource(spotlight.imageUrl);
-    const spotlightTitle = spotlight.title || "Featured cake spotlight";
-    const spotlightDescription = spotlight.description || "Add a featured cake photo and copy here to spotlight one special design above the signature cake grid.";
+    const spotlight = getBakerPhotoDraft(settings);
+    const spotlightImageUrl = spotlight.imageUrl || "/src/assets/baat-pakki-engagement-cake.webp";
 
     renderHomepageHeroSelectionMeta(settings);
     settingsPreviewHeroTitle.textContent = settings.brandName || "Pink Delight Cakes";
@@ -2249,30 +2231,14 @@ function renderSettingsPreview() {
     settingsPreviewLocation.textContent = deliveryCopy || getContactLocationLabel(city);
     settingsPreviewResponse.textContent = settings.responseTimeCopy || "We usually reply with design options and pricing within 2 hours during bakery hours.";
 
-    if (!hasFeaturedSpotlightContent(spotlight)) {
-        settingsPreviewSpotlight.innerHTML = `
-            <span class="empty-preview-label">Spotlight hidden</span>
-            <strong>No featured cake spotlight is published right now.</strong>
-            <p>Add a title, description, and photo to show a featured design card above the signature cakes.</p>
-            <span>Leaving all spotlight fields empty keeps this section off the storefront.</span>
-        `;
-        settingsPreviewSpotlight.classList.add("empty-preview");
-        return;
-    }
-
-    settingsPreviewSpotlight.classList.remove("empty-preview");
-    settingsPreviewSpotlight.innerHTML = `
+    settingsPreviewBaker.classList.remove("empty-preview");
+    settingsPreviewBaker.innerHTML = `
         <div class="settings-spotlight-preview-media">
-            <img src="${escapeHtml(spotlightImageUrl)}" alt="${escapeHtml(spotlightTitle)}">
+            <img src="${escapeHtml(spotlightImageUrl || "/src/assets/baat-pakki-engagement-cake.webp")}" alt="About the baker photo preview">
         </div>
         <div class="settings-spotlight-preview-content">
-            <span class="eyebrow">Featured spotlight</span>
-            <strong>${escapeHtml(spotlightTitle)}</strong>
-            <p>${escapeHtml(spotlightDescription)}</p>
-            <div class="settings-spotlight-preview-actions">
-                <span class="preview-highlight">Ask about this design</span>
-                ${spotlightSourceUrl ? `<a class="preview-link" href="${escapeHtml(spotlightSourceUrl)}" target="_blank" rel="noreferrer">View source link</a>` : ""}
-            </div>
+            <span class="eyebrow">About the baker photo</span>
+            <p>${spotlight.imageUrl ? "Your selected photo will appear in the homepage About section after saving." : "The current default photo will appear on the homepage."}</p>
         </div>
     `;
 }
@@ -2334,10 +2300,11 @@ function collectSettingsPayload() {
         heroProductSlug2: settingsHeroProduct2.value.trim(),
         heroProductSlug3: settingsHeroProduct3.value.trim(),
         heroProductSlug4: settingsHeroProduct4.value.trim(),
-        featuredSpotlightTitle: settingsSpotlightTitle.value.trim(),
-        featuredSpotlightDescription: settingsSpotlightDescription.value.trim(),
-        featuredSpotlightImageUrl: settingsSpotlightImageUrl.value.trim(),
-        featuredSpotlightSourceUrl: settingsSpotlightSourceUrl.value.trim(),
+        featuredSpotlightTitle: state.settings?.featuredSpotlightTitle || "",
+        featuredSpotlightDescription: state.settings?.featuredSpotlightDescription || "",
+        bakerImageUrl: settingsBakerImageUrl.value.trim(),
+        featuredSpotlightImageUrl: state.settings?.featuredSpotlightImageUrl || "",
+        featuredSpotlightSourceUrl: state.settings?.featuredSpotlightSourceUrl || "",
         weekdayOpenTime: settingsWeekdayOpenTime.value,
         weekdayCloseTime: settingsWeekdayCloseTime.value,
         saturdayOpenTime: settingsSaturdayOpenTime.value,
@@ -2817,7 +2784,7 @@ function handleProductImageClear() {
     updateFormSaveMeta("product");
 }
 
-async function handleSettingsSpotlightImageUpload(event) {
+async function handleSettingsBakerImageUpload(event) {
     const file = event.target.files?.[0];
 
     if (!file) {
@@ -2829,27 +2796,27 @@ async function handleSettingsSpotlightImageUpload(event) {
         return;
     }
 
-    setButtonBusy(settingsSpotlightUploadButton, true, "Processing photo...");
+    setButtonBusy(settingsBakerUploadButton, true, "Processing photo...");
 
     try {
         const result = await compressProductImage(file);
-        settingsSpotlightImageUrl.value = result.dataUrl;
-        settingsSpotlightImageMeta.textContent = `Uploaded from device and resized to ${result.width}x${result.height} (${Math.round(result.bytes / 1024)} KB).`;
+        settingsBakerImageUrl.value = result.dataUrl;
+        settingsBakerImageMeta.textContent = `Uploaded from device and resized to ${result.width}x${result.height} (${Math.round(result.bytes / 1024)} KB).`;
         renderSettingsPreview();
         updateFormSaveMeta("settings");
-        showToast("Featured spotlight photo updated in the settings draft.", "success");
+        showToast("Baker photo updated in the draft. Save settings to publish.", "success");
     } catch (error) {
         showToast(error.message || "Unable to process that photo.", "error");
     } finally {
-        setButtonBusy(settingsSpotlightUploadButton, false, "Upload spotlight photo");
-        settingsSpotlightImageFile.value = "";
+        setButtonBusy(settingsBakerUploadButton, false, "Upload baker photo");
+        settingsBakerImageFile.value = "";
     }
 }
 
-function handleSettingsSpotlightImageClear() {
-    settingsSpotlightImageUrl.value = "";
-    settingsSpotlightImageFile.value = "";
-    settingsSpotlightImageMeta.textContent = getSettingsSpotlightImageMetaText("");
+function handleSettingsBakerImageClear() {
+    settingsBakerImageUrl.value = "";
+    settingsBakerImageFile.value = "";
+    settingsBakerImageMeta.textContent = getSettingsBakerImageMetaText("");
     renderSettingsPreview();
     updateFormSaveMeta("settings");
 }
@@ -3279,21 +3246,21 @@ function bindInteractions() {
 
     productImageFile.addEventListener("change", handleProductImageUpload);
     productImageClearButton.addEventListener("click", handleProductImageClear);
-    settingsSpotlightUploadButton.addEventListener("click", () => {
-        settingsSpotlightImageFile.click();
+    settingsBakerUploadButton.addEventListener("click", () => {
+        settingsBakerImageFile.click();
     });
-    settingsSpotlightImageFile.addEventListener("change", handleSettingsSpotlightImageUpload);
-    settingsSpotlightClearButton.addEventListener("click", handleSettingsSpotlightImageClear);
-    [settingsSpotlightImageUrl].forEach((field) => {
+    settingsBakerImageFile.addEventListener("change", handleSettingsBakerImageUpload);
+    settingsBakerClearButton.addEventListener("click", handleSettingsBakerImageClear);
+    [settingsBakerImageUrl].forEach((field) => {
         field.addEventListener("input", () => {
-            settingsSpotlightImageMeta.textContent = String(settingsSpotlightImageUrl.value || "").trim()
-                ? "Using the pasted image URL for the featured spotlight."
-                : getSettingsSpotlightImageMetaText("");
+            settingsBakerImageMeta.textContent = String(settingsBakerImageUrl.value || "").trim()
+                ? "Using this image URL for the baker photo after saving."
+                : getSettingsBakerImageMetaText("");
         });
         field.addEventListener("change", () => {
-            settingsSpotlightImageMeta.textContent = String(settingsSpotlightImageUrl.value || "").trim()
-                ? "Using the pasted image URL for the featured spotlight."
-                : getSettingsSpotlightImageMetaText("");
+            settingsBakerImageMeta.textContent = String(settingsBakerImageUrl.value || "").trim()
+                ? "Using this image URL for the baker photo after saving."
+                : getSettingsBakerImageMetaText("");
         });
     });
 

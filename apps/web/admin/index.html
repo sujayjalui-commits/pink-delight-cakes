@@ -759,44 +759,28 @@
 
                                     <div class="editor-group">
                                         <div class="group-head">
-                                            <h4>Featured spotlight</h4>
-                                            <span class="meta-label">Swap the special featured cake photo and copy without editing code.</span>
-                                        </div>
-
-                                        <div class="field-grid">
-                                            <label>
-                                                <span>Spotlight title</span>
-                                                <input type="text" id="settingsSpotlightTitle" placeholder="Baat Pakki engagement cake">
-                                            </label>
-                                            <label>
-                                                <span>Source link</span>
-                                                <input type="url" id="settingsSpotlightSourceUrl" placeholder="https://www.instagram.com/p/...">
-                                            </label>
+                                            <h4>About the baker photo</h4>
+                                            <span class="meta-label">Change the photo in the homepage About the baker section. Save settings to publish.</span>
                                         </div>
 
                                         <label>
-                                            <span>Spotlight description</span>
-                                            <textarea id="settingsSpotlightDescription" rows="4" placeholder="Describe the cake design, styling, and why it is featured."></textarea>
-                                        </label>
-
-                                        <label>
-                                            <span>Spotlight image URL</span>
-                                            <input type="text" id="settingsSpotlightImageUrl" placeholder="https://... or upload a photo below">
+                                            <span>Baker image URL</span>
+                                            <input type="text" id="settingsBakerImageUrl" placeholder="https://... or upload a photo below">
                                         </label>
 
                                         <div class="quick-action-row">
-                                            <input type="file" id="settingsSpotlightImageFile" accept="image/*" class="hidden">
-                                            <button class="btn btn-secondary ghost" type="button" id="settingsSpotlightUploadButton">
+                                            <input type="file" id="settingsBakerImageFile" accept="image/*" class="hidden">
+                                            <button class="btn btn-secondary ghost" type="button" id="settingsBakerUploadButton">
                                                 <i class="fa-solid fa-image"></i>
-                                                <span>Upload spotlight photo</span>
+                                                <span>Upload baker photo</span>
                                             </button>
-                                            <button class="btn btn-secondary ghost" type="button" id="settingsSpotlightClearButton">
+                                            <button class="btn btn-secondary ghost" type="button" id="settingsBakerClearButton">
                                                 <i class="fa-solid fa-trash-can"></i>
-                                                <span>Clear spotlight photo</span>
+                                                <span>Use default photo</span>
                                             </button>
                                         </div>
 
-                                        <p class="meta-label" id="settingsSpotlightImageMeta">Upload from your device or paste a hosted image URL for the featured spotlight.</p>
+                                        <p class="meta-label" id="settingsBakerImageMeta">Upload a photo or paste an image URL, then Save settings. Clearing restores the default photo.</p>
                                     </div>
 
                                     <div class="editor-save-row">
@@ -845,7 +829,7 @@
                                         <p id="settingsPreviewResponse">We usually reply with design options and pricing within 2 hours during bakery hours.</p>
                                     </article>
 
-                                    <article class="settings-preview-card settings-preview-card--spotlight" id="settingsPreviewSpotlight"></article>
+                                    <article class="settings-preview-card settings-preview-card--spotlight" id="settingsPreviewBaker"></article>
                                 </div>
                             </article>
 
