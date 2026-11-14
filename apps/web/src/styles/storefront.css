@@ -5030,6 +5030,27 @@
             margin-bottom: 0.5rem;
         }
 
+        /* Promise-card motion only; keep the existing live layout and colors. */
+        .home-page .promise-card i {
+            transition: transform 220ms ease;
+        }
+
+        @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+            .home-page .promise-card:hover {
+                transform: translateY(-3px);
+                border-color: rgba(171, 111, 96, 0.28);
+                box-shadow: 0 14px 28px rgba(114, 69, 57, 0.1);
+            }
+
+            .home-page .promise-card:hover i {
+                transform: rotate(-6deg) scale(1.06);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce), (hover: none) {
+            .home-page .promise-card:hover { transform: none; }
+        }
+
         .home-page .signature-section {
             padding-top: 6.75rem;
             padding-bottom: 6rem;
