@@ -149,3 +149,7 @@ Backup habit:
   - `docs/session-2026-04-product-and-platform-upgrade.md`
 - Long-form historical project evolution:
   - `docs/project-history.md`
+
+## Audit and remediation records
+
+See [backend audit status and original findings](docs/audits/README.md) for historical audits, recorded fixes, remaining verification items and scope limitations.
