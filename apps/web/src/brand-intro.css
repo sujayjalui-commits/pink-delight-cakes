@@ -1,0 +1,24 @@
+#brand-intro {
+  position: fixed; inset: 0; margin: 0; width: 100%; height: 100%;
+  max-width: none; max-height: none; padding: 0; border: 0; background: #f8f0de;
+}
+#brand-intro[open] { display: grid; place-items: center; overflow: hidden; }
+#brand-intro canvas { display: block; pointer-events: none; }
+#brand-intro button {
+  position: absolute; right: max(1.5rem, env(safe-area-inset-right)); bottom: max(1.5rem, env(safe-area-inset-bottom));
+  display: inline-flex; align-items: center; gap: .65rem; min-height: 44px;
+  padding: .55rem 1rem; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--secondary); box-shadow: var(--shadow-soft);
+  font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer !important;
+  transition: background var(--transition), border-color var(--transition);
+}
+#brand-intro button::after {
+  content: ''; width: .45em; height: .45em; border: solid currentColor;
+  border-width: 1.5px 1.5px 0 0; transform: rotate(45deg);
+  transition: transform var(--transition);
+}
+#brand-intro button:hover { background: var(--surface-strong); border-color: var(--accent); }
+#brand-intro button:hover::after { transform: translateX(2px) rotate(45deg); }
+#brand-intro button:focus-visible { outline: 2px solid var(--accent-dark); outline-offset: 3px; }
+#brand-intro[open] { cursor: auto !important; }
+#brand-intro::backdrop { background: transparent; }
