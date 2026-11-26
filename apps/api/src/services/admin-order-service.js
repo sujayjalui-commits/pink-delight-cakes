@@ -44,6 +44,7 @@ function mapOrder(order) {
     eventDate: order.event_date,
     fulfillmentType: order.fulfillment_type,
     addOn: order.add_on,
+    deliveryAddress: order.delivery_address,
     notes: order.notes,
     internalNote: order.internal_note,
     status: order.status,

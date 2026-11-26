@@ -565,8 +565,9 @@ export async function createOrderRequest(env, payload) {
       delivery_note,
       delivery_updated_at,
       submission_key,
+      delivery_address,
       submission_hash
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(submission_key) DO NOTHING
     RETURNING *
   `;
@@ -594,6 +595,7 @@ export async function createOrderRequest(env, payload) {
       payload.deliveryNote || null,
       payload.deliveryUpdatedAt || null,
       payload.submissionKey,
+      payload.deliveryAddress || null,
       payload.submissionHash
     );
 

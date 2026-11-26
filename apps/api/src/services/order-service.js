@@ -602,6 +602,7 @@ async function submissionFingerprint(input) {
     "flavor", "sizeLabel", "servings", "eventDate", "addOn", "notes"];
   const value = { ...Object.fromEntries(fields.map((field) => [field, input[field] || ""])),
     cartItems: sanitizeCartItems(input.cartItems) };
+  if (input.fulfillmentType === "local_delivery" && input.deliveryAddress) value.deliveryAddress = input.deliveryAddress;
   const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(JSON.stringify(value)));
   return Array.from(new Uint8Array(hash), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
@@ -626,6 +627,8 @@ export async function createPublicOrderRequest(env, input) {
     status: "new"
   };
 
+  if (input.fulfillmentType === "local_delivery" && input.deliveryAddress !== undefined &&
+      (typeof input.deliveryAddress !== "string" || input.deliveryAddress.length > 340 || !/, [1-9][0-9]{5}$/.test(input.deliveryAddress))) return {ok:false,status:400,error:"Complete the delivery address and six-digit pincode."};
   const validation = validatePublicOrderRequestInput({
     ...input,
     ...draft
@@ -672,6 +675,7 @@ export async function createPublicOrderRequest(env, input) {
     servings: input.servings || "",
     eventDate: input.eventDate || "",
     addOn: input.addOn || "",
+    deliveryAddress: input.fulfillmentType === "local_delivery" ? input.deliveryAddress : null,
     notes: input.notes || "",
     cartSnapshot: createCartSnapshot(cartItems),
     sourceChannel: "website",
