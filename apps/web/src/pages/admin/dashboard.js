@@ -1542,6 +1542,7 @@ function renderOrderDetail() {
                 <strong>Selection</strong>
                 <span>${escapeHtml(order.flavor || "No flavor")} • ${escapeHtml(order.sizeLabel || "No size")}</span>
             </div>
+            ${order.deliveryAddress ? `<div class="summary-card"><strong>Delivery address</strong><span>${escapeHtml(order.deliveryAddress)}</span></div>` : ""}
             <div class="summary-card">
                 <strong>Customer notes</strong>
                 <span>${escapeHtml(order.notes || "No customer notes")}</span>

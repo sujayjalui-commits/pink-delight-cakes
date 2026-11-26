@@ -127,6 +127,14 @@
                                             <option value="local_delivery">Local delivery</option>
                                         </select>
                                     </div>
+                                    <fieldset id="deliveryDetails" class="delivery-details field-full hidden" disabled>
+                                        <legend>Delivery address</legend>
+                                        <div class="delivery-fields">
+                                        <div class="field"><label for="deliveryStreet">Flat, building and street</label><textarea id="deliveryStreet" autocomplete="street-address" maxlength="240" required></textarea></div>
+                                        <div class="field"><label for="deliveryCity">City</label><input id="deliveryCity" autocomplete="address-level2" maxlength="80" required></div>
+                                        <div class="field"><label for="deliveryPin">Pincode</label><input id="deliveryPin" autocomplete="postal-code" inputmode="numeric" pattern="[1-9][0-9]{5}" maxlength="6" required></div>
+                                        </div>
+                                    </fieldset>
                                     <div class="field field-full">
                                         <label for="cartNotes">Overall notes</label>
                                         <textarea id="cartNotes" name="notes" placeholder="Mention occasion, design references, delivery area, or timing preferences."></textarea>

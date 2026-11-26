@@ -1109,10 +1109,31 @@
                 servings: primaryItem.servings || "",
                 eventDate: cartEventDate?.value || "",
                 fulfillmentType: cartFulfillment?.value || "pickup",
+                deliveryAddress: inquiryAddress(),
                 addOn: primaryItem.addOn || "",
                 notes: cartNotes?.value.trim() || "",
                 cartItems
             };
+        }
+
+        const deliveryFields = document.getElementById("deliveryDetails");
+        function inquiryAddress() {
+            if (!deliveryFields || deliveryFields.disabled) return "";
+            return ["deliveryStreet","deliveryCity","deliveryPin"].map(id => document.getElementById(id).value.trim()).filter(Boolean).join(", ");
+        }
+        if (deliveryFields) {
+            const mode = document.getElementById("cartFulfillment") || document.getElementById("fulfillment");
+            function syncAddress() {
+                deliveryFields.disabled = mode.value !== "local_delivery";
+                deliveryFields.classList.toggle("hidden", deliveryFields.disabled);
+            }
+            function refreshAddressPreview() {
+                if (cartFulfillment) updateCartWhatsAppLink(); else updateRequestPreview();
+            }
+            deliveryFields.addEventListener("input", refreshAddressPreview);
+            mode.addEventListener("change", () => { syncAddress(); refreshAddressPreview(); });
+            mode.form.addEventListener("reset", () => setTimeout(syncAddress,0));
+            syncAddress();
         }
 
         function createCartWhatsAppMessage(payload = buildCartInquiryPayload()) {
@@ -1124,6 +1145,7 @@
                 payload.customerEmail ? `Email: ${payload.customerEmail}` : "",
                 `Event date: ${payload.eventDate || "Not selected yet"}`,
                 `Fulfillment: ${formatFulfillmentLabel(payload.fulfillmentType)}`,
+                ...(payload.deliveryAddress ? ["Delivery address: " + payload.deliveryAddress] : []),
                 "",
                 "Bag items:",
                 ...payload.cartItems.map((item, index) => {
@@ -1777,6 +1799,7 @@
                 servings: size?.servings || "",
                 eventDate: eventDate.value || "",
                 fulfillmentType: fulfillment.value,
+                deliveryAddress: inquiryAddress(),
                 addOn: addon.value === "None" ? "" : addon.value,
                 notes: requestNotes.value.trim()
             };
@@ -1793,6 +1816,7 @@
                 `Size: ${size ? formatSizeText(size) : "Will confirm"}`,
                 `Event date: ${payload.eventDate || "Not selected yet"}`,
                 `Fulfillment: ${formatFulfillmentLabel(payload.fulfillmentType)}`,
+                ...(payload.deliveryAddress ? ["Delivery address: " + payload.deliveryAddress] : []),
                 `Add-on: ${payload.addOn || "None"}`,
                 `Notes: ${payload.notes || "No extra notes yet"}`
             ];
