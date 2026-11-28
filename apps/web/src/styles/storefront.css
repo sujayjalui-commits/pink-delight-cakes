@@ -5008,19 +5008,19 @@
 
         .home-page .promise-divider {
             position: absolute;
-            inset: -1px 0 auto;
-            height: 1px;
+            inset: -21px 0 auto;
+            height: 41px;
         }
 
         .home-page .promise-divider::before {
             content: "";
             position: absolute;
-            inset: 0;
+            inset: 20px 0 auto;
             height: 1px;
-            background: rgba(169, 72, 73, 0.7);
+            background: linear-gradient(90deg, transparent, rgba(169, 72, 73, 0.52) 25%, rgba(169, 72, 73, 0.52) 75%, transparent);
             transform: scaleX(0);
             opacity: 0;
-            transition: transform var(--transition), opacity var(--transition);
+            transition: transform 1.1s cubic-bezier(.22,.61,.36,1), opacity .75s ease-in-out;
         }
 
         @media (hover: hover) {
